@@ -6,24 +6,17 @@
 //
 
 @preconcurrency import FirebaseAuth
+import Observation
 
 @Observable class AuthenticationVM {
     var errorMessage: String?
     var isLoading = false
+    var isLoggedIn = false
     var currentUser: User?
+    var auth: Auth
     
-    let auth = Auth.auth()
-
     init() {
-        auth.addStateDidChangeListener { [weak self] _, user in
-            DispatchQueue.main.async {
-                if let user = user {
-                    self?.fetchUser(userId: user.uid, email: user.email ?? "", username: user.displayName ?? "")
-                } else {
-                    self?.currentUser = nil
-                }
-            }
-        }
+        self.auth = Auth.auth()
     }
     
     
@@ -34,9 +27,9 @@
             let user = authResult.user
             
             DispatchQueue.main.async {
-                self.fetchUser(userId: user.uid, email: email, username: user.displayName ?? "")
                 self.isLoading = false
-                print("Signed in up as \(user.displayName ?? "Anonymous")")
+                self.isLoggedIn = true
+                print("Signed in as \(user.displayName ?? "Anonymous")")
             }
         } catch {
             DispatchQueue.main.async {
@@ -64,26 +57,6 @@
             }
         } catch {
             self.errorMessage = error.localizedDescription
-        }
-    }
-    
-    private func fetchUser(userId: String, email: String, username: String) {
-        Task {
-            do {
-                let document = try await Firebase.db.collection("USERS").document(userId).getDocument()
-                DispatchQueue.main.async {
-                    if document.exists {
-                        self.currentUser = User(userId: userId, username: username, email: email)
-                    } else {
-                        self.errorMessage = "User not found."
-//                        Task { try await Firebase.db.collection("USERS").document(userId).setData(["email": email, "username": username]) }
-                    }
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    self.errorMessage = "Failed to fetch user data: \(error.localizedDescription)"
-                }
-            }
         }
     }
 }

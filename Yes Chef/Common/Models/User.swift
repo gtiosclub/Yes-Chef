@@ -18,7 +18,6 @@ class User: Equatable, Identifiable, ObservableObject {
         self.username = username
         self.userId = userId
         self.email = email
-        self.phoneNumber = phoneNumber
     }
     
     static func == (lhs: User, rhs: User) -> Bool {
