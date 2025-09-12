@@ -13,12 +13,26 @@ class User: Equatable, Identifiable, ObservableObject {
     var username: String
     var email: String
     var phoneNumber: String?
+    var bio: String? //User self introduction
+
     
-    init(userId: String, username: String, email: String) {
-        self.username = username
+    @Published var profilePhoto: String
+    @Published var followers: [String] = []
+    @Published var following: [String] = []
+    @Published var myRecipes: [String] = []
+    @Published var savedRecipes: [String] = []
+    @Published var badges: [String] = []
+
+
+    
+    init(userId: String, username: String, email: String, bio: String? = nil) {
         self.userId = userId
+        self.username = username
         self.email = email
+        self.profilePhoto = ""
+        self.bio = bio
     }
+
     
     static func == (lhs: User, rhs: User) -> Bool {
         lhs.id == rhs.id && lhs.userId == rhs.userId && lhs.username == rhs.username && lhs.phoneNumber == rhs.phoneNumber
