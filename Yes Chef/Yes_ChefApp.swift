@@ -15,7 +15,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
       if let app = FirebaseApp.app() {
           print("Firebase configured with name: \(app.name)")
       } else {
-          print("❌ Firebase configuration failed")
+          print("Firebase configuration failed")
       }
     return true
   }
