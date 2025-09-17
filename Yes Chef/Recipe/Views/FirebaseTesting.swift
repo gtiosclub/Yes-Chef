@@ -24,3 +24,7 @@ struct FirebaseTesting: View {
         }
     }
 }
+
+#Preview {
+    FirebaseTesting()
+}
