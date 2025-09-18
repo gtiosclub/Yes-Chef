@@ -14,8 +14,6 @@ enum Ingredient: Hashable {
     case dairy(Dairy)
     case seasoning(Seasoning)
     
-    
-    // Proteins
     enum Protein: String, CaseIterable {
         case chicken = "Chicken"
         case beef = "Beef"
@@ -27,7 +25,6 @@ enum Ingredient: Hashable {
         case shrimp = "Shrimp"
     }
     
-    // Vegetables
     enum Vegetable: String, CaseIterable {
         case onion = "Onion"
         case garlic = "Garlic"
@@ -39,7 +36,6 @@ enum Ingredient: Hashable {
         case mushrooms = "Mushrooms"
     }
     
-    // Grains & Starches
     enum Grain: String, CaseIterable {
         case rice = "Rice"
         case pasta = "Pasta"
@@ -48,7 +44,6 @@ enum Ingredient: Hashable {
         case flour = "Flour"
     }
     
-    // Dairy
     enum Dairy: String, CaseIterable {
         case milk = "Milk"
         case cheese = "Cheese"
@@ -56,7 +51,6 @@ enum Ingredient: Hashable {
         case yogurt = "Yogurt"
     }
     
-    // Seasonings & Condiments
     enum Seasoning: String, CaseIterable {
         case salt = "Salt"
         case blackPepper = "Black Pepper"
@@ -66,7 +60,6 @@ enum Ingredient: Hashable {
     }
     
 
-    // All Categories
     static var allCategories: [(String, [String])] {
         return [
             ("Proteins", Protein.allCases.map { $0.rawValue }),
@@ -77,7 +70,6 @@ enum Ingredient: Hashable {
         ]
     }
     
-    // Convenience Methods
     static func getAllIngredients() -> [String] {
         return allCategories.flatMap { $0.1 }
     }
