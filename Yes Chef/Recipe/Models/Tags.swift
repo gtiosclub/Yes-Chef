@@ -17,7 +17,6 @@ enum Tag: Hashable {
     case occasion(Occasion)
     case time(Time)
 
-    // 🌍 Cuisines (~18)
     enum Cuisine: String, CaseIterable {
         case american = "American"
         case italian = "Italian"
@@ -40,32 +39,25 @@ enum Tag: Hashable {
         case latinAmerican = "Latin American"
     }
 
-    // 🍽️ Meal Types (~7)
-    enum MealType: String, CaseIterable {
+    enum Course: String, CaseIterable {
         case breakfast = "Breakfast"
         case brunch = "Brunch"
         case lunch = "Lunch"
         case dinner = "Dinner"
         case snack = "Snack"
-        case dessert = "Dessert"
-        case beverage = "Beverage"
+        case dessert = "Dessert"      
     }
 
-    // 🍱 Course (~10)
-    enum Course: String, CaseIterable {
+    enum MealType: String, CaseIterable {
+        case beverage = "Beverage"
         case appetizer = "Appetizer"
-        case side = "Side"
-        case main = "Main"
         case soup = "Soup"
         case salad = "Salad"
         case sandwich = "Sandwich"
-        case bread = "Bread"
         case sauce = "Sauce"
         case condiment = "Condiment"
-        case drink = "Drink"
     }
 
-    // 🥗 Dietary / Lifestyle (~12)
     enum Dietary: String, CaseIterable {
         case vegetarian = "Vegetarian"
         case vegan = "Vegan"
@@ -83,7 +75,6 @@ enum Tag: Hashable {
         case kosher = "Kosher"
     }
 
-    // 🎯 Flavor profile (~11)
     enum Flavor: String, CaseIterable {
         case spicy = "Spicy"
         case mild = "Mild"
@@ -98,7 +89,6 @@ enum Tag: Hashable {
         case citrusy = "Citrusy"
     }
 
-    // 👩‍🍳 Cooking method / technique (~14)
     enum Method: String, CaseIterable {
         case grilled = "Grilled"
         case baked = "Baked"
@@ -116,7 +106,6 @@ enum Tag: Hashable {
         case raw = "Raw"
     }
 
-    // 📅 Occasion / vibe (~11)
     enum Occasion: String, CaseIterable {
         case kidFriendly = "Kid-Friendly"
         case healthy = "Healthy"
@@ -131,7 +120,6 @@ enum Tag: Hashable {
         case crowdPleaser = "Crowd-Pleaser"
     }
 
-    // ⏱️ Time/Effort (~6)
     enum Time: String, CaseIterable {
         case quick = "Quick (≤30m)"
         case weeknight = "Weeknight-Friendly"
