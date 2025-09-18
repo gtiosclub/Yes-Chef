@@ -18,6 +18,7 @@ class Recipe: Identifiable, ObservableObject {
     @Published var steps: [String]
     @Published var description: String
     @Published var PrepTime: Int
+    
     enum Difficulty: String {
         case easy
         case medium
