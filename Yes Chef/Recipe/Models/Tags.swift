@@ -1,3 +1,10 @@
+//
+//  Tags.swift
+//  Yes Chef
+//
+//  Created by Neel Bhattacharyya on 9/18/25.
+//
+
 import Foundation
 
 enum Tag: Hashable {
