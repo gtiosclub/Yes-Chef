@@ -20,9 +20,9 @@ class Recipe: Identifiable, ObservableObject {
     @Published var PrepTime: Int
     
     enum Difficulty: String {
-        case easy
-        case medium
-        case hard
+        case easy = "easy"
+        case medium = "medium"
+        case hard = "hard"
     }
     @Published var difficulty: Difficulty
     @Published var media: [String]
