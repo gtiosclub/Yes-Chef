@@ -8,27 +8,26 @@
 import Foundation
 import Firebase
 
-class Recipe: Identifiable, ObservableObject {
-    @Published var userId: String
-    @Published var recipeId: String
-    @Published var name: String
-    @Published var ingredients: [String]
-    @Published var allergens: [String]
-    @Published var tags: [String]
-    @Published var steps: [String]
-    @Published var description: String
-    @Published var PrepTime: Int
+struct RecipeModel {
+    var userId: String
+    var recipeId: String
+    var name: String
+    var ingredients: [String]
+    var allergens: [String]
+    var tags: [String]
+    var steps: [String]
+    var description: String
+    var prepTime: Int
+    var difficulty: difficulty
+    var media: [String]
     
-    enum Difficulty: String {
+    enum difficulty: String {
         case easy = "easy"
         case medium = "medium"
         case hard = "hard"
     }
-    @Published var difficulty: Difficulty
-    @Published var media: [String]
     
-    
-    init(userId: String, recipeId: String, name: String, ingredients: [String], allergens: [String], tags: [String], steps: [String], description: String, PrepTime: Int, difficulty: Difficulty, media: [String]) {
+    init(userId: String, recipeId: String, name: String, ingredients: [String], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: difficulty, media: [String]) {
         self.userId = userId
         self.recipeId = recipeId
         self.name = name
