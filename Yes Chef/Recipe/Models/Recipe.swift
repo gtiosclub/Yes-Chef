@@ -6,9 +6,8 @@
 //
 
 import Foundation
-import Firebase
 
-struct RecipeModel {
+struct Recipe {
     var userId: String
     var recipeId: String
     var name: String
