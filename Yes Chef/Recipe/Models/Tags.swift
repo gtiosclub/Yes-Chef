@@ -128,4 +128,57 @@ enum Tag: Hashable {
         case fiveIngredients = "Five Ingredients"
         case budget = "Budget"
     }
+    
+    static var allCategories: [String] {
+        return ["Cuisine", "Meal Type", "Course", "Dietary", "Flavor", "Method", "Occasion", "Time"]
+    }
+    
+    static func allCases(for category: String) -> [Tag] {
+        switch category.lowercased() {
+        case "cuisine":
+            return Cuisine.allCases.map { .cuisine($0) }
+        case "meal type", "mealtype":
+            return MealType.allCases.map { .mealType($0) }
+        case "course":
+            return Course.allCases.map { .course($0) }
+        case "dietary":
+            return Dietary.allCases.map { .dietary($0) }
+        case "flavor":
+            return Flavor.allCases.map { .flavor($0) }
+        case "method":
+            return Method.allCases.map { .method($0) }
+        case "occasion":
+            return Occasion.allCases.map { .occasion($0) }
+        case "time":
+            return Time.allCases.map { .time($0) }
+        default:
+            return []
+        }
+    }
+    
+    static var allTags: [Tag] {
+        var tags: [Tag] = []
+        tags.append(contentsOf: Cuisine.allCases.map { .cuisine($0) })
+        tags.append(contentsOf: MealType.allCases.map { .mealType($0) })
+        tags.append(contentsOf: Course.allCases.map { .course($0) })
+        tags.append(contentsOf: Dietary.allCases.map { .dietary($0) })
+        tags.append(contentsOf: Flavor.allCases.map { .flavor($0) })
+        tags.append(contentsOf: Method.allCases.map { .method($0) })
+        tags.append(contentsOf: Occasion.allCases.map { .occasion($0) })
+        tags.append(contentsOf: Time.allCases.map { .time($0) })
+        return tags
+    }
+    
+    static var tagsByCategory: [String: [Tag]] {
+        var grouped: [String: [Tag]] = [:]
+        grouped["Cuisine"] = Cuisine.allCases.map { .cuisine($0) }
+        grouped["Meal Type"] = MealType.allCases.map { .mealType($0) }
+        grouped["Course"] = Course.allCases.map { .course($0) }
+        grouped["Dietary"] = Dietary.allCases.map { .dietary($0) }
+        grouped["Flavor"] = Flavor.allCases.map { .flavor($0) }
+        grouped["Method"] = Method.allCases.map { .method($0) }
+        grouped["Occasion"] = Occasion.allCases.map { .occasion($0) }
+        grouped["Time"] = Time.allCases.map { .time($0) }
+        return grouped
+    }
 }

@@ -8,7 +8,6 @@
 import Foundation
 
 enum Allergen: String, Codable {
-
     case eggs = "Eggs"
     case soy = "Soy"
     case sesame = "Sesame"
