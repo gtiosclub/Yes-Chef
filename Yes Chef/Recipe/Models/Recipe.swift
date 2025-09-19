@@ -36,7 +36,7 @@ struct RecipeModel {
         self.tags = tags
         self.steps = steps
         self.description = description
-        self.PrepTime = PrepTime
+        self.prepTime = prepTime
         self.difficulty = difficulty
         self.media = media
     }

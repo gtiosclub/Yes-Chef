@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum Allergen: Hashable {
+enum Allergen: String, Codable {
 
     case eggs = "Eggs"
     case soy = "Soy"
@@ -17,5 +17,4 @@ enum Allergen: Hashable {
     case fish = "Fish"
     case shellfish = "Shellfish"
     case gluten = "Gluten"
-
 }
