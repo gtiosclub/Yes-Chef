@@ -8,6 +8,12 @@
 import Foundation
 import Observation
 
+enum Difficulty: String {
+    case easy = "easy"
+    case medium = "medium"
+    case hard = "hard"
+}
+
 @Observable class Recipe: Identifiable {
     var id: String {recipeId}
     var userId: String
@@ -21,12 +27,6 @@ import Observation
     var prepTime: Int
     var difficulty: Difficulty
     var media: [String]
-    
-    enum Difficulty: String {
-        case easy = "easy"
-        case medium = "medium"
-        case hard = "hard"
-    }
     
     init(userId: String, recipeId: String, name: String, ingredients: [String], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, media: [String]) {
         self.userId = userId

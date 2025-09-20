@@ -10,13 +10,6 @@ import Observation
 import FirebaseFirestore
 
 @Observable class RecipeVM  {
-    
-    enum Difficulty: String {
-        case easy = "easy"
-        case medium = "medium"
-        case hard = "hard"
-    }
-    
     func createRecipe(userId: String, name: String, ingredients: [String], allergens: [String],tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, media:[String]) -> String {
         
         let recipeID = UUID()
@@ -45,6 +38,4 @@ import FirebaseFirestore
 
         return recipeUUID;
     }
-    
-    
 }

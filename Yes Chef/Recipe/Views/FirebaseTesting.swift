@@ -36,7 +36,7 @@ struct FirebaseTesting: View {
             ],
             description: "Classic chocolate chip cookies that are crispy on the outside and chewy on the inside.",
             prepTime: 30,
-            difficulty: RecipeVM.Difficulty.easy,
+            difficulty: Difficulty.easy,
             media: ["cookie_image_1.jpg"]
         )
         
