@@ -11,11 +11,12 @@ import FirebaseFirestore
 
 @Observable class RecipeVM  {
     
-    enum Difficulty {
-            case easy
-            case medium
-            case hard
-        }
+    enum Difficulty: String {
+        case easy = "easy"
+        case medium = "medium"
+        case hard = "hard"
+    }
+    
     func createRecipe(userId: String, name: String, ingredients: [String], allergens: [String],tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, media:[String]) -> String {
         
         let recipeID = UUID()
@@ -31,7 +32,7 @@ import FirebaseFirestore
             "steps" : steps,
             "description" : description,
             "prepTime" : prepTime,
-            "difficulty": difficulty,
+            "difficulty": difficulty.rawValue,
             "media" : media
         ]
         db.collection("RECIPES").document(recipeUUID).setData(data) { error in
