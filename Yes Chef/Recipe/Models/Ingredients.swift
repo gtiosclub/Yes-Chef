@@ -252,21 +252,8 @@ enum Ingredient: Hashable {
         case pears = "Pears"
     }
     
-<<<<<<< Updated upstream
     static var allCategories: [String] {
         return ["Protein", "Vegetable", "Grain", "Dairy", "Seasoning"]
-=======
-
-    static var allCategories: [(String, [String])] {
-        return [
-            ("Proteins", Protein.allCases.map { $0.rawValue }),
-            ("Vegetables", Vegetable.allCases.map { $0.rawValue }),
-            ("Grains & Starches", Grain.allCases.map { $0.rawValue }),
-            ("Dairy", Dairy.allCases.map { $0.rawValue }),
-            ("Seasonings, Condiments & Spices", Seasoning.allCases.map { $0.rawValue }),
-            ("Fruit", Fruit.allCases.map { $0.rawValue})
-        ]
->>>>>>> Stashed changes
     }
     
     static func allCases(for category: String) -> [Ingredient] {
@@ -281,6 +268,8 @@ enum Ingredient: Hashable {
             return Dairy.allCases.map { .dairy($0) }
         case "seasoning":
             return Seasoning.allCases.map { .seasoning($0) }
+        case "fruit":
+            return Fruit.allCases.map { .fruit($0) }
         default:
             return []
         }
@@ -293,6 +282,8 @@ enum Ingredient: Hashable {
         ingredients.append(contentsOf: Grain.allCases.map { .grain($0) })
         ingredients.append(contentsOf: Dairy.allCases.map { .dairy($0) })
         ingredients.append(contentsOf: Seasoning.allCases.map { .seasoning($0) })
+        ingredients.append(contentsOf: Fruit.allCases.map { .fruit($0) })
+
         return ingredients
     }
     
@@ -303,6 +294,8 @@ enum Ingredient: Hashable {
         grouped["Grain"] = Grain.allCases.map { .grain($0) }
         grouped["Dairy"] = Dairy.allCases.map { .dairy($0) }
         grouped["Seasoning"] = Seasoning.allCases.map { .seasoning($0) }
+        grouped["Fruit"] = Fruit.allCases.map { .fruit($0) }
+        
         return grouped
     }
 }
