@@ -5,9 +5,6 @@ import FirebaseAuth
 
 
 class LeaderboardData: ObservableObject {
-    private var email = "emajithia3@gmail.com"
-    private var password = "Jama7685!"
-    
     struct UserTest: Identifiable, Codable {
         let id: String            // Firebase UID or UUID
         let username: String
@@ -40,7 +37,7 @@ class LeaderboardData: ObservableObject {
             if Auth.auth().currentUser != nil {
                 completion(true)
             } else {
-                Auth.auth().signIn(withEmail: email, password: password) { result, error in
+                Auth.auth().signInAnonymously() { result, error in
                     if let error = error {
                         print("Auth error:", error)
                         completion(false)
@@ -52,14 +49,15 @@ class LeaderboardData: ObservableObject {
         }
     
     func addLeaderboard() {
-            signInIfNeeded { success in
+            /*signInIfNeeded { success in
                 guard success else { return }
-                do {
-                    try self.db.collection("leaderboards").addDocument(from: self.currentLeaderboard)
-                    print("Leaderboard written successfully!")
-                } catch {
-                    print("Error writing leaderboard:", error)
-                }
+                
+            }*/
+            do {
+                try self.db.collection("leaderboards").addDocument(from: self.currentLeaderboard)
+                print("Leaderboard written successfully!")
+            } catch {
+                print("Error writing leaderboard:", error)
             }
         }
     
