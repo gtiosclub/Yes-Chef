@@ -20,7 +20,7 @@ class AIViewModel: ObservableObject {
                 let document = try await db.collection("APIKEYS").document("OpenAI").getDocument()
                 if let data = document.data(), let key = data["key"] as? String {
                     DispatchQueue.main.async {
-                        self.openaiKey = key
+                        self.openAIKey = key
                     }
                 } else {
                     print("No key found in document")
