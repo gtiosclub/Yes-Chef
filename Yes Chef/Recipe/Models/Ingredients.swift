@@ -317,4 +317,17 @@ enum Ingredient: Hashable {
         
         return grouped
     }
+    
+    var rawValue: String {
+        switch self {
+        default:
+            if case let .protein(val) = self { return val.rawValue }
+            if case let .vegetable(val) = self { return val.rawValue }
+            if case let .grain(val) = self { return val.rawValue }
+            if case let .dairy(val) = self { return val.rawValue }
+            if case let .seasoning(val) = self { return val.rawValue }
+            if case let .fruit(val) = self { return val.rawValue }
+            return ""
+        }
+    }
 }
