@@ -8,7 +8,7 @@
 import FirebaseFirestore
 import SwiftUI
 
-class HistoryViewModel {
+class HistoryViewModel: ObservableObject {
     @Published var history: [HistoryBlock] = []
     private var db = Firestore.firestore()
 
@@ -19,14 +19,17 @@ class HistoryViewModel {
                     print("Error: \(error)")
                     return
                 }
+            DispatchQueue.main.async {
                 
-            self.history = snapshot?.documents.compactMap { doc in
-                let data = doc.data()
-                let title = data["Title"] as? String ?? "Unknown"
-                let challengeName = data["challengeName"] as? String ?? "Unknown"
-                            
-                return HistoryBlock(id: doc.documentID, title: title, challengeName: challengeName)
-            } ?? []
+                
+                self.history = snapshot?.documents.compactMap { doc in
+                    let data = doc.data()
+                    let title = data["Title"] as? String ?? "Unknown"
+                    let challengeName = data["Challenge"] as? String ?? "Unknown"
+                    
+                    return HistoryBlock(id: doc.documentID, title: title, challengeName: challengeName)
+                } ?? []
+            }
         }
     }
 }
