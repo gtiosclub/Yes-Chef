@@ -3,7 +3,6 @@ import FirebaseFirestore
 import Firebase
 import FirebaseAuth
 
-
 class LeaderboardData: ObservableObject {
     struct UserTest: Identifiable, Codable {
         let id: String            // Firebase UID or UUID
@@ -20,7 +19,7 @@ class LeaderboardData: ObservableObject {
     }
 
     struct Leaderboard: Codable {
-        var id: String // optional, can be Firestore doc ID
+        var id: String // Firestore doc ID
         var weekStartDate: Date
         var entries: [LeaderboardEntry]
     }
@@ -32,38 +31,50 @@ class LeaderboardData: ObservableObject {
     )
     
     private var db = Firestore.firestore()
+   
 
-    func signInIfNeeded(completion: @escaping (Bool) -> Void) {
-            if Auth.auth().currentUser != nil {
-                completion(true)
-            } else {
-                Auth.auth().signInAnonymously() { result, error in
-                    if let error = error {
-                        print("Auth error:", error)
-                        completion(false)
-                    } else {
-                        completion(true)
-                    }
-                }
-            }
-        }
     
+    // Add leaderboard using Firestore completion block
     func addLeaderboard() {
-            /*signInIfNeeded { success in
-                guard success else { return }
-                
-            }*/
-            do {
-                try self.db.collection("leaderboards").addDocument(from: self.currentLeaderboard)
-                print("Leaderboard written successfully!")
-            } catch {
-                print("Error writing leaderboard:", error)
+        db.enableNetwork { error in
+            if let error = error {
+                print("Failed to re-enable network:", error.localizedDescription)
+            } else {
+                print("Network re-enabled")
             }
         }
+        // Convert Leaderboard to a dictionary
+        let data: [String: Any] = [
+            "id": self.currentLeaderboard.id,
+            "weekStartDate": Timestamp(date: self.currentLeaderboard.weekStartDate),
+            "entries": self.currentLeaderboard.entries.map { entry in
+                return [
+                    "id": entry.id.uuidString,
+                    "rank": entry.rank,
+                    "username": entry.user.username,
+                    "recipeName": entry.recipeName,
+                    "datePosted": Timestamp(date: entry.datePosted)
+                ]
+            }
+        ]
+        
+        
+        // Add to Firestore with completion block
+        self.db.collection("history").document(self.currentLeaderboard.id).setData(data) { error in
+            if let error = error {
+                print("Error writing leaderboard:", error.localizedDescription)
+            } else {
+                print("Leaderboard written successfully!")
+            }
+        }
+        
+        
+       
+    }
     
-
+    // Sample entries for testing
     static func sampleEntries() -> [LeaderboardEntry] {
-        var entries: [LeaderboardEntry] = (1...10).map { i in
+        return (1...10).map { i in
             let user = UserTest(
                 id: UUID().uuidString,
                 username: "User \(i)",
@@ -77,6 +88,9 @@ class LeaderboardData: ObservableObject {
                 datePosted: Date().addingTimeInterval(-Double(i) * 86400)
             )
         }
-        return entries
+    }
+    
+    func resetLeaderboard() {
+        self.currentLeaderboard.entries = []
     }
 }
