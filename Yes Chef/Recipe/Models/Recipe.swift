@@ -8,7 +8,9 @@
 import Foundation
 import Observation
 
-enum Difficulty: String {
+enum Difficulty: String, CaseIterable, Identifiable {
+    var id: String { self.rawValue }
+    
     case easy = "easy"
     case medium = "medium"
     case hard = "hard"
