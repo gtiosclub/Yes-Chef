@@ -36,6 +36,7 @@ class LeaderboardData: ObservableObject {
     
     // Add leaderboard using Firestore completion block
     func addLeaderboard() {
+        resetLeaderboard()
         db.enableNetwork { error in
             if let error = error {
                 print("Failed to re-enable network:", error.localizedDescription)

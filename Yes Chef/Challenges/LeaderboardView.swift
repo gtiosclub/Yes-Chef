@@ -10,7 +10,7 @@ import Foundation
 
 struct LeaderboardView: View {
     // Sample data for testing
-    var data : LeaderboardData = LeaderboardData()
+    @StateObject var data : LeaderboardData = LeaderboardData()
     
 
     
