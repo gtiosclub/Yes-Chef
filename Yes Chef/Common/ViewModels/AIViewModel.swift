@@ -70,7 +70,7 @@ import FirebaseFirestore
 //        var request = URLRequest(url: url)
 //        request.httpMethod = "POST"
 //        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-//        request.setValue("Bearer \(Keys.openAIKey)", forHTTPHeaderField: "Authorization")
+//        request.setValue("Bearer \(self.openAIKey)", forHTTPHeaderField: "Authorization")
 //        
 //        do {
 //            print("body created")
