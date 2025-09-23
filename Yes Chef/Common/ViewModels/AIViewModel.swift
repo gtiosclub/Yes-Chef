@@ -31,6 +31,9 @@ import FirebaseFirestore
             }
         }
     }
+    func suggestIngredients(title: String, description:String) {
+        
+    }
     
 //      =================== EXAMPLE ================
     
