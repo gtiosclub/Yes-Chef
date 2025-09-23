@@ -9,7 +9,7 @@ import SwiftUI
 
 struct HistoryTab: View {
     @State private var showPopup = false
-    @StateObject private var viewModel = HistoryViewModel()
+    @State private var viewModel = HistoryViewModel()
     
     
     var body: some View {
