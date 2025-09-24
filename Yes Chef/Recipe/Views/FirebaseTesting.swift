@@ -9,10 +9,22 @@ import SwiftUI
 import Foundation
 struct FirebaseTesting: View {
     @State private var recipeVM = RecipeVM()
+    @State private var aiVM = AIViewModel()
     
     var body: some View {
-        Button("Test Create Recipe") {
-            testCreateRecipe()
+        Section("Backend Methods") {
+            Button("Test Create Recipe") {
+                testCreateRecipe()
+            }
+        }
+        
+        Section("AI requests") {
+            Button("Create Description") {
+                aiVM.catchyDescription(title: "Rigatoni Vodka")
+                { description in
+                    print(description ?? "No description generated.")
+                }
+            }
         }
     }
     
