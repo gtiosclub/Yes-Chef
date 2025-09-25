@@ -20,8 +20,8 @@ struct FirebaseTesting: View {
         
         Section("AI requests") {
             Button("Create Description") {
-                aiVM.catchyDescription(title: "Rigatoni Vodka")
-                { description in
+                Task {
+                    let description = await aiVM.catchyDescription(title: "Rigatoni Vodka")
                     print(description ?? "No description generated.")
                 }
             }
