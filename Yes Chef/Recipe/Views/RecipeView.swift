@@ -17,7 +17,8 @@ struct RecipeView: View {
     @State private var difficulty: Difficulty = .easy
     @State private var recipeVM = RecipeVM()
     @State private var statusMessage = ""
-    
+    @State private var steps: [String] = [""]
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -60,7 +61,7 @@ struct RecipeView: View {
                         .padding(.top,-20)
                         .padding(.bottom, -38)
                     
-                    TextField("Enter Ingredients (Comma Seperated)", text: $ingredientsInput)
+                    TextField("Enter Ingredients (Comma Separated)", text: $ingredientsInput)
                         .font(.subheadline)
                         .padding(10)
                         .padding(.bottom,30)
@@ -77,7 +78,7 @@ struct RecipeView: View {
                         .padding(.top,-20)
                         .padding(.bottom, -38)
                     
-                    TextField("Enter Allergens (Comma Seperated)", text: $allergensInput)
+                    TextField("Enter Allergens (Comma Separated)", text: $allergensInput)
                         .font(.subheadline)
                         .padding(10)
                         .foregroundColor(.primary)
@@ -93,7 +94,7 @@ struct RecipeView: View {
                         .padding(.top,-20)
                         .padding(.bottom, -38)
                     
-                    TextField("Enter Tags (Comma Seperated)", text: $tagsInput)
+                    TextField("Enter Tags (Comma Separated)", text: $tagsInput)
                         .font(.subheadline)
                         .padding(10)
                         .foregroundColor(.primary)
@@ -107,6 +108,9 @@ struct RecipeView: View {
                         .font(.title)
                         .padding()
                         .padding(.top,-20)
+                        .padding(.bottom, -15)
+                    
+                    StepsInputView(steps: $steps)
                     
                     Text("Prep Time")
                         .font(.title)
@@ -150,50 +154,50 @@ struct RecipeView: View {
                     .padding(.horizontal)
                 }
             }
-            
-
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button(action: {
-                            // delete
-                        }) {
-                            Image(systemName: "xmark")
-                                .font(.title2)
-                                .foregroundStyle(.gray)
-                                .bold()
-                        }
-                    }
-                    
-                    ToolbarItem(placement: .principal) { // This centers the title
-                        Text("Add Recipe")
-                            .font(.largeTitle)
-                            
-                    }
-                    
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button(action: {
-                            let ingredients = ingredientsInput
-                                .split(separator: ",")
-                                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-
-                            let allergens = allergensInput
-                                .split(separator: ",")
-                                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-
-                            let tags = tagsInput
-                                .split(separator: ",")
-                                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-
-                            let prepTime = Int(prepTimeInput) ?? 0
-
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: {
+                        // delete
                     }) {
-                            Image(systemName: "checkmark")
-                                .font(.title2)
-                                .foregroundStyle(.gray)
-                                .bold()
-                        }
+                        Image(systemName: "xmark")
+                            .font(.title2)
+                            .foregroundStyle(.gray)
+                            .bold()
                     }
                 }
+                
+                ToolbarItem(placement: .principal) {
+                    Text("Add Recipe")
+                        .font(.largeTitle)
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        let ingredients = ingredientsInput
+                            .split(separator: ",")
+                            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+                        let allergens = allergensInput
+                            .split(separator: ",")
+                            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+                        let tags = tagsInput
+                            .split(separator: ",")
+                            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+                        let prepTime = Int(prepTimeInput) ?? 0
+                        let stepsList = steps
+                        
+                        // TODO: Call recipeVM.createRecipe(...) with stepsList and other fields
+                        
+                    }) {
+                        Image(systemName: "checkmark")
+                            .font(.title2)
+                            .foregroundStyle(.gray)
+                            .bold()
+                    }
+                }
+            }
         }
     }
 }
