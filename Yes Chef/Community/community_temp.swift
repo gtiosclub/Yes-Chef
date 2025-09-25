@@ -59,6 +59,50 @@ struct SettingsView: View {
     }
 }
 
+struct FeedView: View {
+    var body: some View {
+        NavigationView {
+            VStack(alignment: .leading) {
+                Text("Welcome Text!")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .padding(.top, 20)
+                
+                HStack(spacing: 20) {
+                    Button(action: {
+                        // button to switch to for you
+                    }) {
+                        Text("For You")
+                            .frame(width: 120 ,height: 20)
+                            .padding()
+                            .background(Color.gray.opacity(0.75))
+                            .cornerRadius(40)
+                            .foregroundColor(Color.white)
+                    }
+                    
+                    Button(action: {
+                        // button to switch to following
+                    }) {
+                        Text("Following")
+                            .frame(width: 120 ,height: 20)
+                            .padding()
+                            .background(Color.gray.opacity(0.75))
+                            .cornerRadius(40)
+                            .foregroundColor(Color.white)
+                    }
+                }
+                
+                ScrollView {
+                    VStack {
+                        // get posts from firebase and display them
+                    }
+                    .padding()
+                }
+            }
+        }
+    }
+}
+
 #Preview {
-    SettingsView()
+    FeedView()
 }
