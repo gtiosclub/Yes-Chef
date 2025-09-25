@@ -133,6 +133,21 @@ enum Tag: Hashable {
         return ["Cuisine", "Meal Type", "Course", "Dietary", "Flavor", "Method", "Occasion", "Time"]
     }
     
+    static var allTagStrings: [String] {
+        return allTags.map { tag in
+            switch tag {
+            case .cuisine(let cuisine): return cuisine.rawValue
+            case .mealType(let mealType): return mealType.rawValue
+            case .course(let course): return course.rawValue
+            case .dietary(let dietary): return dietary.rawValue
+            case .flavor(let flavor): return flavor.rawValue
+            case .method(let method): return method.rawValue
+            case .occasion(let occasion): return occasion.rawValue
+            case .time(let time): return time.rawValue
+            }
+        }
+    }
+    
     static func allCases(for category: String) -> [Tag] {
         switch category.lowercased() {
         case "cuisine":

@@ -31,6 +31,9 @@ import FirebaseFirestore
             }
         }
     }
+    func suggestIngredients(title: String, description:String) {
+        
+    }
     
 //      =================== EXAMPLE ================
     
@@ -70,7 +73,7 @@ import FirebaseFirestore
 //        var request = URLRequest(url: url)
 //        request.httpMethod = "POST"
 //        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-//        request.setValue("Bearer \(Keys.openAIKey)", forHTTPHeaderField: "Authorization")
+//        request.setValue("Bearer \(self.openAIKey)", forHTTPHeaderField: "Authorization")
 //        
 //        do {
 //            print("body created")
@@ -108,5 +111,130 @@ import FirebaseFirestore
 //            }
 //        }.resume()
 //    }
+    
+    
+    func catchyDescription(title: String) async -> String? {
+        let prompt = """
+        Your task is to create a catchy, natural description based on the recipe title provided. 
+        The description should be around 200 characters and should sound as humanly as possible. Focus on the main ingredients, the flavor profile, and the type of dish. 
+        Highlight the taste, key ingredients, and style of the dish. Return only the description in plain text.
+        """
+
+        let parameters: [String: Any] = [
+            "model": "gpt-4o-mini",
+            "messages": [
+                ["role": "system", "content": prompt],
+                ["role": "user", "content": title]
+            ],
+            "temperature": 0.2
+        ]
+
+        guard let url = URL(string: "https://api.openai.com/v1/chat/completions") else {
+            print("Invalid URL")
+            return nil
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(self.openAIKey ?? "")", forHTTPHeaderField: "Authorization")
+
+        do {
+            print("body created")
+            request.httpBody = try JSONSerialization.data(withJSONObject: parameters, options: [])
+        } catch {
+            print("Error serializing request body: \(error)")
+            return nil
+        }
+        
+        do {
+            let (data, _) = try await URLSession.shared.data(for: request)
+            
+            guard let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                  let choices = jsonResponse["choices"] as? [[String: Any]],
+                  let message = choices[0]["message"] as? [String: Any],
+                  let content = message["content"] as? String else {
+                print("Unexpected response format")
+                return nil
+            }
+            
+            return content
+            
+        } catch {
+            print("Error querying OpenAI: \(error)")
+            return nil
+        }
+    }
+    func suggestWeeklyChallenge(completion: @escaping (String?) -> Void) {
+        let systemPrompt = """
+        You are a creative chef. Generate a weekly cooking challenge meal idea. 
+        Keep it short (1–2 sentences, under 200 characters). 
+        Return only plain text, no markdown or code blocks.
+        """
+
+        let userPrompt = """
+        Please suggest one weekly challenge meal idea that is fun, creative, 
+        and encourages home cooks to try something new.
+        """
+
+        let parameters: [String: Any] = [
+            "model": "gpt-4o-mini",
+            "messages": [
+                ["role": "system", "content": systemPrompt],
+                ["role": "user", "content": userPrompt]
+            ],
+            "temperature": 0.7
+        ]
+
+        guard let url = URL(string: "https://api.openai.com/v1/chat/completions") else {
+            print("Invalid URL")
+            completion(nil)
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(self.openAIKey ?? "")", forHTTPHeaderField: "Authorization")
+
+        do {
+            print("body created")
+            request.httpBody = try JSONSerialization.data(withJSONObject: parameters, options: [])
+        } catch {
+            print("Error serializing request body: \(error)")
+            completion(nil)
+            return
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error querying OpenAI: \(error)")
+                completion(nil)
+                return
+            }
+
+            guard let data = data else {
+                print("No data received from OpenAI")
+                completion(nil)
+                return
+            }
+
+            do {
+                if let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                   let choices = jsonResponse["choices"] as? [[String: Any]],
+                   let message = choices[0]["message"] as? [String: Any],
+                   let content = message["content"] as? String {
+                    completion(content)
+                } else {
+                    print("Unexpected response format")
+                    completion(nil)
+                }
+            } catch {
+                print("Error parsing response: \(error)")
+                completion(nil)
+            }
+        }.resume()
+    }
+
     
 }
