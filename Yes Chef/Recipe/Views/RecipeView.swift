@@ -104,11 +104,11 @@ struct RecipeView: View {
                         .padding()
                         .foregroundColor(.secondary)
                     
-                    Text("Steps")
-                        .font(.title)
-                        .padding()
-                        .padding(.top,-20)
-                        .padding(.bottom, -15)
+//                    Text("Steps")
+//                        .font(.title)
+//                        .padding()
+//                        .padding(.top,-20)
+//                        .padding(.bottom, -15)
                     
                     StepsInputView(steps: $steps)
                     
