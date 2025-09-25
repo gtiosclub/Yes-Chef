@@ -112,4 +112,58 @@ import FirebaseFirestore
 //        }.resume()
 //    }
     
+    
+    func catchyDescription(title: String) async -> String? {
+        let prompt = """
+        Your task is to create a catchy, natural description based on the recipe title provided. 
+        The description should be around 200 characters and should sound as humanly as possible. Focus on the main ingredients, the flavor profile, and the type of dish. 
+        Highlight the taste, key ingredients, and style of the dish. Return only the description in plain text.
+        """
+
+        let parameters: [String: Any] = [
+            "model": "gpt-4o-mini",
+            "messages": [
+                ["role": "system", "content": prompt],
+                ["role": "user", "content": title]
+            ],
+            "temperature": 0.2
+        ]
+
+        guard let url = URL(string: "https://api.openai.com/v1/chat/completions") else {
+            print("Invalid URL")
+            return nil
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(self.openAIKey ?? "")", forHTTPHeaderField: "Authorization")
+
+        do {
+            print("body created")
+            request.httpBody = try JSONSerialization.data(withJSONObject: parameters, options: [])
+        } catch {
+            print("Error serializing request body: \(error)")
+            return nil
+        }
+        
+        do {
+            let (data, _) = try await URLSession.shared.data(for: request)
+            
+            guard let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                  let choices = jsonResponse["choices"] as? [[String: Any]],
+                  let message = choices[0]["message"] as? [String: Any],
+                  let content = message["content"] as? String else {
+                print("Unexpected response format")
+                return nil
+            }
+            
+            return content
+            
+        } catch {
+            print("Error querying OpenAI: \(error)")
+            return nil
+        }
+    }
+    
 }
