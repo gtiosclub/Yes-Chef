@@ -8,11 +8,12 @@
 import SwiftUI
 import UIKit
 import Firebase
+import FirebaseFirestore
 
-struct UserBlockView: View {
+struct UserBlockViewDH: View {
+    @ObservedObject var userBlockView: UserBlockViewModelDH
     //Placeholders
     var profilepicture: String = "person.circle.fill"
-    var username: String = "James"
     var signitureDish: String = "Pasta"
 
     var body: some View {
@@ -26,7 +27,7 @@ struct UserBlockView: View {
                 .foregroundStyle(.blue)
             //name
             VStack (alignment: .leading, spacing: 4){
-                Text(username)
+                Text(userBlockView.user?.username ?? "")
                     .font(.headline)
                     .foregroundStyle(.blue)
                 //signiture dish/most famous dish
@@ -48,5 +49,16 @@ struct UserBlockView: View {
 }
 
 #Preview {
-    UserBlockView()
+    let mockUser = User(userId: "1", username: "John", email: "john@example.com")
+    let mockVM = UserBlockViewModelDH(mockUser: mockUser)
+    
+    UserBlockViewDH(userBlockView: mockVM)
 }
+
+//class AppDelegate: NSObject, UIApplicationDelegate {
+//   func application(_ application: UIApplication,
+//                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+//        FirebaseApp.configure()
+//        return true
+//    }
+//}

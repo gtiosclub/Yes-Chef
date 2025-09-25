@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum Allergen: String, Codable {
+enum Allergen: String, Codable, CaseIterable {
     case eggs = "Eggs"
     case soy = "Soy"
     case sesame = "Sesame"
@@ -16,4 +16,8 @@ enum Allergen: String, Codable {
     case fish = "Fish"
     case shellfish = "Shellfish"
     case gluten = "Gluten"
+    
+    static var allAllergenStrings: [String] {
+        return Allergen.allCases.map { $0.rawValue }
+    }
 }
