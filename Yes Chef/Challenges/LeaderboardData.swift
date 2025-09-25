@@ -11,7 +11,7 @@ class LeaderboardData: ObservableObject {
     }
 
     struct LeaderboardEntry: Identifiable, Codable {
-        let id = UUID()
+        let id: UUID
         let rank: Int
         let user: UserTest
         let recipeName: String
@@ -24,19 +24,28 @@ class LeaderboardData: ObservableObject {
         var entries: [LeaderboardEntry]
     }
     
-    @Published var currentLeaderboard: Leaderboard = Leaderboard(
-        id: UUID().uuidString,
-        weekStartDate: Date(),
-        entries: LeaderboardData.sampleEntries()
-    )
+    @Published var currentLeaderboard: Leaderboard
+    
+    init() {
+        self.currentLeaderboard = Leaderboard(
+            id: UUID().uuidString,
+            weekStartDate: Date(),
+            entries: [] // start empty
+        )
+        
+        // Fetch from Firebase after initialization
+        fetchUserRecipes { entries in
+            DispatchQueue.main.async {
+                self.currentLeaderboard.entries = entries
+            }
+        }
+    }
     
     private var db = Firestore.firestore()
    
 
     
-    // Add leaderboard using Firestore completion block
     func addLeaderboard() {
-        resetLeaderboard()
         db.enableNetwork { error in
             if let error = error {
                 print("Failed to re-enable network:", error.localizedDescription)
@@ -44,7 +53,7 @@ class LeaderboardData: ObservableObject {
                 print("Network re-enabled")
             }
         }
-        // Convert Leaderboard to a dictionary
+
         let data: [String: Any] = [
             "id": self.currentLeaderboard.id,
             "weekStartDate": Timestamp(date: self.currentLeaderboard.weekStartDate),
@@ -60,7 +69,6 @@ class LeaderboardData: ObservableObject {
         ]
         
         
-        // Add to Firestore with completion block
         self.db.collection("history").document(self.currentLeaderboard.id).setData(data) { error in
             if let error = error {
                 print("Error writing leaderboard:", error.localizedDescription)
@@ -73,8 +81,7 @@ class LeaderboardData: ObservableObject {
        
     }
     
-    // Sample entries for testing
-    static func sampleEntries() -> [LeaderboardEntry] {
+   /* static func sampleEntries() -> [LeaderboardEntry] {
         return (1...10).map { i in
             let user = UserTest(
                 id: UUID().uuidString,
@@ -89,9 +96,52 @@ class LeaderboardData: ObservableObject {
                 datePosted: Date().addingTimeInterval(-Double(i) * 86400)
             )
         }
-    }
+    }*/
     
-    func resetLeaderboard() {
-        self.currentLeaderboard.entries = []
+    
+    func fetchUserRecipes(completion: @escaping ([LeaderboardEntry]) -> Void) {
+        db.collection("userRecipes").getDocuments { snapshot, error in
+            var entries: [LeaderboardEntry] = []
+            
+            if let error = error {
+                print("Error fetching user recipes:", error.localizedDescription)
+                completion(entries)
+                return
+            }
+            
+            guard let documents = snapshot?.documents else {
+                completion(entries)
+                return
+            }
+            
+            for doc in documents {
+                let data = doc.data()
+                
+                if let idString = data["id"] as? String,
+                   let username = data["username"] as? String,
+                   let rank = data["rank"] as? Int,
+                   let recipeName = data["recipeName"] as? String,
+                   let timestamp = data["datePosted"] as? Timestamp {
+                    
+                    let user = UserTest(
+                        id: idString,
+                        username: username,
+                        profileImageURL: data["profileImageURL"] as? String
+                    )
+                    
+                    let entry = LeaderboardEntry(
+                        id: UUID(uuidString: idString) ?? UUID(),
+                        rank: rank,
+                        user: user,
+                        recipeName: recipeName,
+                        datePosted: timestamp.dateValue()
+                    )
+                    
+                    entries.append(entry)
+                }
+            }
+            
+            completion(entries)
+        }
     }
 }
