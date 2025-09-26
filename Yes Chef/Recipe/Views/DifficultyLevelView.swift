@@ -8,7 +8,6 @@ import SwiftUI
 
 struct DifficultyLevelView: View {
     @Binding var difficulty: Difficulty
-    let OnClick: (Difficulty) -> Void
     
     var body: some View{
         HStack(spacing: 20){
@@ -20,7 +19,6 @@ struct DifficultyLevelView: View {
                                 .frame(width: 80, height: 80) .foregroundColor(difficulty == Difficulty.easy ? .red : .gray)
                                 .onTapGesture {
                                     difficulty = Difficulty.easy
-                                    OnClick(difficulty)
                                 }
                 Text(Difficulty.easy.rawValue).font(.headline)
             }
@@ -32,7 +30,6 @@ struct DifficultyLevelView: View {
                                 .foregroundColor(difficulty == Difficulty.medium ? .red : .gray)
                                 .onTapGesture {
                                     difficulty = Difficulty.medium
-                                    OnClick(difficulty)
                                 }
                 Text(Difficulty.medium.rawValue).font(.headline)
             }
@@ -44,21 +41,16 @@ struct DifficultyLevelView: View {
                                 .foregroundColor(difficulty == Difficulty.hard ? .red : .gray)
                                 .onTapGesture {
                                     difficulty = Difficulty.hard
-                                    OnClick(difficulty)
                                 }
                 Text(Difficulty.hard.rawValue).font(.headline)
             }
         }
     }
 }
-struct DifficultyLevelView_Previews: PreviewProvider {
-    @State static var previewDifficulty: Difficulty = .easy
 
-    static var previews: some View {
-        DifficultyLevelView(difficulty: $previewDifficulty) { level in
-            print("Clicked: \(level.rawValue)")
-        }
+#Preview {
+    @Previewable @State var previewDifficulty: Difficulty = .easy
+    
+    DifficultyLevelView(difficulty: $previewDifficulty)
         .padding()
-        .previewLayout(.sizeThatFits)
-    }
 }

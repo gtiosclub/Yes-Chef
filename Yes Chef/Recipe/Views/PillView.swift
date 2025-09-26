@@ -34,9 +34,9 @@ struct PillView: View {
                         .padding(.vertical, 8)
                         .background(
                             Capsule()
-                                .fill(Color.blue.opacity(0.2))
+                                .fill(Color.gray.opacity(0.2))
                         )
-                        .foregroundColor(.blue)
+                        .foregroundColor(.gray)
                 }
                 .buttonStyle(.plain)
             }
