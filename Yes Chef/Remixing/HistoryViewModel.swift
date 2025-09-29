@@ -8,9 +8,9 @@
 import FirebaseFirestore
 import SwiftUI
 
-
-class HistoryViewModel:ObservableObject {
-    @Published var history: [HistoryBlock] = []
+@Observable
+class HistoryViewModel {
+    var history: [HistoryBlock] = []
     private var db = Firestore.firestore()
 
     
