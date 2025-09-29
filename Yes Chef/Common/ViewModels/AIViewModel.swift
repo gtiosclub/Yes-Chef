@@ -21,7 +21,7 @@ import FirebaseFirestore
                 let document = try await db.collection("APIKEYS").document("OpenAI").getDocument()
                 if let data = document.data(), let key = data["key"] as? String {
                     DispatchQueue.main.async {
-                        self.openaiKey = key
+                       // self.openaiKey = key
                     }
                 } else {
                     print("No key found in document")
