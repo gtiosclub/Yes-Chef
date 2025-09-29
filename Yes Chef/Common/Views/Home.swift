@@ -19,9 +19,9 @@ struct Home: View {
             CommunityView().tabItem {
                 Image(systemName: "magnifyingglass")
             }.tag(TabSelection.search)
-            posting_temp().tabItem {
+            /*posting_temp().tabItem {
                 Image(systemName: "plus.circle")
-            }.tag(TabSelection.post)
+            }.tag(TabSelection.post)*/
             LeaderboardView().tabItem {
                 Image(systemName: "trophy")
             }.tag(TabSelection.leaderboard)
