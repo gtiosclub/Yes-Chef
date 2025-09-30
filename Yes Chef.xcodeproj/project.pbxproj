@@ -219,6 +219,7 @@
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5B2B62142E63388D007A249D /* Products */;
 			projectDirPath = "";
+
 			projectRoot = "";
 			targets = (
 				5B2B62122E63388D007A249D /* Yes Chef */,
