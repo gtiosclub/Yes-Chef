@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct RecipeView: View {
+struct CreateRecipe: View {
     @State private var name = ""
     @State private var description = ""
     @State private var ingredientsInput = ""
@@ -204,5 +204,5 @@ struct RecipeView: View {
 }
 
 #Preview {
-    RecipeView()
+    CreateRecipe()
 }
