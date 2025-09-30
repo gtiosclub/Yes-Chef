@@ -21,7 +21,7 @@ struct Home: View {
             }.tag(TabSelection.search)
             CreateRecipe().tabItem {
                 Image(systemName: "plus.circle")
-            }.tag(TabSelection.post)*/
+            }.tag(TabSelection.post)
             LeaderboardView().tabItem {
                 Image(systemName: "trophy")
             }.tag(TabSelection.leaderboard)
