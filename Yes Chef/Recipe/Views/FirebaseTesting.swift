@@ -14,22 +14,25 @@ struct FirebaseTesting: View {
     var body: some View {
         Section("Backend Methods") {
             Button("Test Create Recipe") {
-                testCreateRecipe()
+                Task {
+                    await testCreateRecipe()
+                }
             }
         }
         
         Section("AI requests") {
             Button("Create Description") {
                 Task {
-                    let description = await aiVM.catchyDescription(title: "Rigatoni Vodka")
+                    let description = await aiVM.catchyDescription(title: "Egg Salad Sandwhich")
                     print(description ?? "No description generated.")
                 }
             }
+            
         }
     }
     
-    private func testCreateRecipe() {
-        let recipeID = recipeVM.createRecipe(
+    private func testCreateRecipe() async {
+        let recipeID = try await recipeVM.createRecipe(
             userId: "test_user_123",
             name: "Chocolate Chip Cookies",
             ingredients: [
@@ -54,6 +57,7 @@ struct FirebaseTesting: View {
         
         print("Recipe created with ID: \(recipeID)")
     }
+   
 }
 
 #Preview {

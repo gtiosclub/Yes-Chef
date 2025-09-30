@@ -196,4 +196,19 @@ enum Tag: Hashable {
         grouped["Time"] = Time.allCases.map { .time($0) }
         return grouped
     }
+    
+    var rawValue: String {
+        switch self {
+        default:
+            if case let .cuisine(val) = self { return val.rawValue }
+            if case let .mealType(val) = self { return val.rawValue }
+            if case let .course(val) = self { return val.rawValue }
+            if case let .dietary(val) = self { return val.rawValue }
+            if case let .flavor(val) = self { return val.rawValue }
+            if case let .method(val) = self { return val.rawValue }
+            if case let .occasion(val) = self { return val.rawValue }
+            if case let .time(val) = self { return val.rawValue }
+            return ""
+        }
+    }
 }
