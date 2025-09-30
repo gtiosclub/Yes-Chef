@@ -287,6 +287,25 @@ enum Ingredient: Hashable {
         return ingredients
     }
     
+    static var allIngredientStrings: [String] {
+        return allIngredients.map { ingredient in
+            switch ingredient {
+            case .protein(let protein):
+                return protein.rawValue
+            case .vegetable(let vegetable):
+                return vegetable.rawValue
+            case .grain(let grain):
+                return grain.rawValue
+            case .dairy(let dairy):
+                return dairy.rawValue
+            case .seasoning(let seasoning):
+                return seasoning.rawValue
+            case .fruit(let fruit):
+                return fruit.rawValue
+            }
+        }
+    }
+    
     static var ingredientsByCategory: [String: [Ingredient]] {
         var grouped: [String: [Ingredient]] = [:]
         grouped["Protein"] = Protein.allCases.map { .protein($0) }
@@ -297,5 +316,18 @@ enum Ingredient: Hashable {
         grouped["Fruit"] = Fruit.allCases.map { .fruit($0) }
         
         return grouped
+    }
+    
+    var rawValue: String {
+        switch self {
+        default:
+            if case let .protein(val) = self { return val.rawValue }
+            if case let .vegetable(val) = self { return val.rawValue }
+            if case let .grain(val) = self { return val.rawValue }
+            if case let .dairy(val) = self { return val.rawValue }
+            if case let .seasoning(val) = self { return val.rawValue }
+            if case let .fruit(val) = self { return val.rawValue }
+            return ""
+        }
     }
 }

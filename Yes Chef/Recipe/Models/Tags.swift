@@ -133,6 +133,21 @@ enum Tag: Hashable {
         return ["Cuisine", "Meal Type", "Course", "Dietary", "Flavor", "Method", "Occasion", "Time"]
     }
     
+    static var allTagStrings: [String] {
+        return allTags.map { tag in
+            switch tag {
+            case .cuisine(let cuisine): return cuisine.rawValue
+            case .mealType(let mealType): return mealType.rawValue
+            case .course(let course): return course.rawValue
+            case .dietary(let dietary): return dietary.rawValue
+            case .flavor(let flavor): return flavor.rawValue
+            case .method(let method): return method.rawValue
+            case .occasion(let occasion): return occasion.rawValue
+            case .time(let time): return time.rawValue
+            }
+        }
+    }
+    
     static func allCases(for category: String) -> [Tag] {
         switch category.lowercased() {
         case "cuisine":
@@ -180,5 +195,20 @@ enum Tag: Hashable {
         grouped["Occasion"] = Occasion.allCases.map { .occasion($0) }
         grouped["Time"] = Time.allCases.map { .time($0) }
         return grouped
+    }
+    
+    var rawValue: String {
+        switch self {
+        default:
+            if case let .cuisine(val) = self { return val.rawValue }
+            if case let .mealType(val) = self { return val.rawValue }
+            if case let .course(val) = self { return val.rawValue }
+            if case let .dietary(val) = self { return val.rawValue }
+            if case let .flavor(val) = self { return val.rawValue }
+            if case let .method(val) = self { return val.rawValue }
+            if case let .occasion(val) = self { return val.rawValue }
+            if case let .time(val) = self { return val.rawValue }
+            return ""
+        }
     }
 }

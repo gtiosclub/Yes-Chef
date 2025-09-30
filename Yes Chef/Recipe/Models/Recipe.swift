@@ -8,7 +8,9 @@
 import Foundation
 import Observation
 
-enum Difficulty: String {
+enum Difficulty: String, CaseIterable, Identifiable {
+    var id: String { self.rawValue }
+    
     case easy = "easy"
     case medium = "medium"
     case hard = "hard"
@@ -27,6 +29,9 @@ enum Difficulty: String {
     var prepTime: Int
     var difficulty: Difficulty
     var media: [String]
+    
+    var likes: Int = 0
+    var comments: [String] = []
     
     init(userId: String, recipeId: String, name: String, ingredients: [String], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, media: [String]) {
         self.userId = userId
