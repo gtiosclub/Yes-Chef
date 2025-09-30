@@ -30,6 +30,9 @@ enum Difficulty: String, CaseIterable, Identifiable {
     var difficulty: Difficulty
     var media: [String]
     
+    var likes: Int = 0
+    var comments: [String] = []
+    
     init(userId: String, recipeId: String, name: String, ingredients: [String], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, media: [String]) {
         self.userId = userId
         self.recipeId = recipeId
