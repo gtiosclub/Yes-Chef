@@ -9,7 +9,7 @@ import FirebaseFirestore
 import SwiftUI
 
 @Observable
-class HistoryViewModel {
+class HistoryViewModel: ObservableObject {
     var history: [HistoryBlock] = []
     private var db = Firestore.firestore()
 
