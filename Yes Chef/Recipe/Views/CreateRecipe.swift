@@ -111,6 +111,7 @@ struct CreateRecipe: View {
 //                        .padding(.bottom, -15)
                     
                     StepsInputView(steps: $steps)
+                    //NewRecipeView(steps: $steps)
                     
                     Text("Prep Time")
                         .font(.title)
