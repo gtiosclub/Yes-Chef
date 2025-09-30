@@ -164,29 +164,31 @@ struct CreateRecipe: View {
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        let ingredients = ingredientsInput
-                            .split(separator: ",")
-                            .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
-                        let allergens = allergensInput
-                            .split(separator: ",")
-                            .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
-                        let tags = tagsInput
-                            .split(separator: ",")
-                            .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
-                        let prepTime = Int(prepTimeInput) ?? 0
-                        
-                        recipeVM.createRecipe(
-                            userId: userIdInput,
-                            name: name,
-                            ingredients: ingredients,
-                            allergens: allergens,
-                            tags: tags,
-                            steps: steps,
-                            description: description,
-                            prepTime: prepTime,
-                            difficulty: difficulty,
-                            media: mediaInputs
-                        )
+                        Task {
+                            let ingredients = ingredientsInput
+                                .split(separator: ",")
+                                .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+                            let allergens = allergensInput
+                                .split(separator: ",")
+                                .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+                            let tags = tagsInput
+                                .split(separator: ",")
+                                .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+                            let prepTime = Int(prepTimeInput) ?? 0
+                            
+                            await recipeVM.createRecipe(
+                                userId: userIdInput,
+                                name: name,
+                                ingredients: ingredients,
+                                allergens: allergens,
+                                tags: tags,
+                                steps: steps,
+                                description: description,
+                                prepTime: prepTime,
+                                difficulty: difficulty,
+                                media: mediaInputs
+                            )
+                        }
                     } label: {
                         Image(systemName: "checkmark")
                             .font(.title2)
