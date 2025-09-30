@@ -9,7 +9,7 @@ import FirebaseFirestore
 import SwiftUI
 
 @Observable
-class HistoryViewModel {
+class HistoryViewModel: ObservableObject {
     var history: [HistoryBlock] = []
     private var db = Firestore.firestore()
 
@@ -28,7 +28,7 @@ class HistoryViewModel {
                     let title = data["Title"] as? String ?? "Unknown"
                     let challengeName = data["Challenge"] as? String ?? "Unknown"
                     
-                    return HistoryBlock(id: doc.documentID, title: title, challengeName: challengeName)
+                    return HistoryBlock(date: title, challengeName: challengeName)
                 } ?? []
             }
         }
