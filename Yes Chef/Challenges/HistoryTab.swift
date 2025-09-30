@@ -27,7 +27,7 @@ struct HistoryTab: View {
 
     var selectedItems: [HistoryBlock] {
         history.filter { historyItem in
-            let matchedSearch = searchText.isEmpty || historyItem.challengeName.localizedCaseInsensitiveContains(searchText)
+            let matchedSearch = (searchText.isEmpty || historyItem.challengeName.localizedCaseInsensitiveContains(searchText)) || (searchText.isEmpty || historyItem.date.localizedCaseInsensitiveContains(searchText))
             let matchedYear = searchDate == nil || historyItem.date.prefix(4).description == searchDate
             return matchedSearch && matchedYear
         }
