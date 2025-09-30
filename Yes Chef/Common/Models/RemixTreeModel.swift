@@ -36,8 +36,12 @@ class RemixTree {
     
     let rootNode: RemixTreeNode
     
-    init(rootNode: RemixTreeNode) {
-        self.rootNode = rootNode
+    init(nodeID: String, parentNode: RemixTreeNode?, rootNodeOfTree: RemixTreeNode, children: [RemixTreeNode], descriptionOfRecipeChanges: String = "") {
+        
+        self.rootNode = RemixTreeNode(currNodeID: nodeID,
+                                          parentNode: nil,
+                                          rootNodeOfTree: rootNodeOfTree,
+                                          children: children)
     }
     
     /**
