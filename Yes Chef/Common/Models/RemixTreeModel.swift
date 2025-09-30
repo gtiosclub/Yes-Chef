@@ -6,6 +6,7 @@
 //
 
 import Foundation
+//node in the remix tree
 class RemixTreeNode  {
     
     let currNodeID: String
@@ -30,7 +31,8 @@ class RemixTreeNode  {
     }
 }
 
-class RemixTreeModel {
+// remix tree itself
+class RemixTree {
     
     let rootNode: RemixTreeNode
     
