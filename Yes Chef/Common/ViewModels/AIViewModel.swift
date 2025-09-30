@@ -115,9 +115,7 @@ import FirebaseFirestore
     
     func catchyDescription(title: String) async -> String? {
         let prompt = """
-        Your task is to create a catchy, natural description based on the recipe title provided. 
-        The description should be around 200 characters and should sound as humanly as possible. Focus on the main ingredients, the flavor profile, and the type of dish. 
-        Highlight the taste, key ingredients, and style of the dish. Return only the description in plain text.
+        You are a friendly food writer. Given a recipe title, write a short, simple, human-sounding description (1–2 sentences). Focus on the main ingredients and flavors. Make it easy to read, casual, and appetizing. Make it sound like a 10th grader. It should be personalized. Add a personalized word before the dish name. Return only the description in plain text. Example. "This pasta will be the greatest dish you have eaten. Must try on any occasion, with the chance to blow your tastebuds out the water"
         """
 
         let parameters: [String: Any] = [
