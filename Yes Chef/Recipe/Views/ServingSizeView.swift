@@ -1,50 +1,48 @@
-//
-//  ServingSizeView.swift
-//  Yes Chef
-//
-//  Created by Asutosh Mishra on 9/30/25.
-//
 import SwiftUI
 
 struct ServingSizeView: View {
-    @Binding var selectedServingSize: ServingSize
-        
-    var body: some View {
-        Menu {
-            Picker("Serving Size", selection: $selectedServingSize) {
-                ForEach(ServingSize.allCases) { serving in
-                    Text("\(serving.rawValue)").tag(serving)
+    @Binding var servingSizeCount: ServingSize
+    let option = ServingSize.allCases
+    @State private var isExpanded = false
+    
+    var body: some View{
+        HStack(spacing: 20){
+            Image(systemName: "person.2.fill").resizable()
+                .scaledToFit()
+                .frame(width: 80, height: 80)
+            VStack(alignment: .leading, spacing: 0) {
+                Button {
+                    withAnimation { isExpanded.toggle() }
+                } label: {
+                    HStack {
+                        Text(servingSizeCount.rawValue)
+                        Spacer()
+                        Image(systemName: "chevron.down")
+                            .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                    }
+                    .padding()
+                    .background(RoundedRectangle(cornerRadius: 8).stroke())
+                }
+                
+                if isExpanded {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(option, id: \.self) { option in
+                            Text(option.rawValue)
+                                .padding()
+                                .onTapGesture {
+                                    servingSizeCount = option
+                                    withAnimation { isExpanded = false }
+                                }
+                        }
+                    }
+                    .background(RoundedRectangle(cornerRadius: 8).stroke())
                 }
             }
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "person.2.fill")
-                    .font(.title2)
-                    .foregroundColor(.primary)
-                
-                Text("\(selectedServingSize.rawValue)")
-                    .font(.title)
-                    .fontWeight(.medium)
-                    .foregroundColor(.primary)
-                
-                Spacer()
-                
-                Image(systemName: "chevron.down")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
-            }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 16)
-            .background(Color(uiColor: .systemGray5))
-            .cornerRadius(15)
-            .overlay(
-                RoundedRectangle(cornerRadius: 15)
-                    .stroke(Color.primary, lineWidth: 2)
-            )
         }
     }
 }
-#Preview {
-    ServingSizeView(selectedServingSize: .constant(ServingSize.five))
+struct ServingSizeView_Previews: PreviewProvider {
+    static var previews: some View {
+        ServingSizeView(servingSizeCount: .constant(ServingSize.five))
+    }
 }
