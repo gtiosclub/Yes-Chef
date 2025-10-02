@@ -8,13 +8,15 @@
 import SwiftUI
 import Foundation
 struct FirebaseTesting: View {
-   // @State private var recipeVM = RecipeVM()
+    @State private var recipeVM = RecipeVM()
     @State private var aiVM = AIViewModel()
     
     var body: some View {
         Section("Backend Methods") {
             Button("Test Create Recipe") {
-                //testCreateRecipe()
+                Task {
+                    await testCreateRecipe()
+                }
             }
         }
         
@@ -25,11 +27,12 @@ struct FirebaseTesting: View {
                     print(description ?? "No description generated.")
                 }
             }
+            
         }
     }
     
-  /*  private func testCreateRecipe() {
-        let recipeID = recipeVM.createRecipe(
+    private func testCreateRecipe() async {
+        let recipeID = try await recipeVM.createRecipe(
             userId: "test_user_123",
             name: "Chocolate Chip Cookies",
             ingredients: [
@@ -54,7 +57,7 @@ struct FirebaseTesting: View {
         
         print("Recipe created with ID: \(recipeID)")
     }
-   */
+   
 }
 
 #Preview {
