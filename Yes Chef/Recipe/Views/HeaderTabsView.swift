@@ -11,7 +11,7 @@ struct HeaderTabsView: View {
     
     var body: some View {
         NavigationStack{
-            VStack{
+            VStack(spacing: 0){
                 HStack{
                     Image(systemName: "xmark").resizable().padding().frame(width: 20, height: 20)
                     Spacer()
@@ -29,12 +29,20 @@ struct HeaderTabsView: View {
                         selectedTab = "AIChef"
                     }
                 }
+            }
+            Divider()
+            VStack {
                 if selectedTab == "EditDetails" {
                     CreateRecipe()
                 } else if selectedTab == "AIChef" {
                     Text("Coming Soon")
+                        .font(.title2)
+                        .foregroundColor(.gray)
+                        .padding()
                 }
+                Spacer() // pushes content to top
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
     }
 }
