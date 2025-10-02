@@ -7,34 +7,44 @@
 import SwiftUI
 
 struct ServingSizeView: View {
-    @Binding var servingSizeCount: ServingSize
-    let option = ServingSize.allCases
-    var body: some View{
-        HStack(spacing: 20){
-            Image(systemName: "person.2.fill").resizable()
-                .scaledToFit()
-                .frame(width: 80, height: 80)
-            VStack(spacing: 20) {
-                        Text("Selected: \(servingSizeCount)")
-
-                        Menu {
-                            ForEach(option, id: \.self) { option in
-                                Button(option.rawValue) {
-                                    servingSizeCount = option
-                                }
-                            }
-                        } label: {
-                            Label("Choose serving size", systemImage: "chevron.down.circle")
-                                .padding()
-                                .background(RoundedRectangle(cornerRadius: 8).stroke())
-                        }
-                    }
-                    .padding()
+    @Binding var selectedServingSize: ServingSize
+        
+    var body: some View {
+        Menu {
+            Picker("Serving Size", selection: $selectedServingSize) {
+                ForEach(ServingSize.allCases) { serving in
+                    Text("\(serving.rawValue)").tag(serving)
                 }
+            }
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "person.2.fill")
+                    .font(.title2)
+                    .foregroundColor(.primary)
+                
+                Text("\(selectedServingSize.rawValue)")
+                    .font(.title)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                Image(systemName: "chevron.down")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 16)
+            .background(Color(uiColor: .systemGray5))
+            .cornerRadius(15)
+            .overlay(
+                RoundedRectangle(cornerRadius: 15)
+                    .stroke(Color.primary, lineWidth: 2)
+            )
         }
-}
-struct ServingSizeView_Previews: PreviewProvider {
-    static var previews: some View {
-        ServingSizeView(servingSizeCount: .constant(ServingSize.five))
     }
+}
+#Preview {
+    ServingSizeView(selectedServingSize: .constant(ServingSize.five))
 }
