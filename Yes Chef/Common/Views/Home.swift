@@ -13,7 +13,7 @@ struct Home: View {
     var body: some View {
         
         TabView(selection: $selectedView) {
-            tempFeed().tabItem {
+            FeedView().tabItem {
                 Image(systemName: "house")
             }.tag(TabSelection.home)
             CommunityView().tabItem {
@@ -30,6 +30,7 @@ struct Home: View {
             }.tag(TabSelection.profile)
         }
     }
+}
 
 
 enum TabSelection {
