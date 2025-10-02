@@ -13,11 +13,15 @@ struct HeaderTabsView: View {
         NavigationStack{
             VStack(spacing: 0){
                 HStack{
-                    Image(systemName: "xmark").resizable().padding().frame(width: 20, height: 20)
+                    Image(systemName: "xmark").font(.title2)
+                        .foregroundStyle(.red)
+                        .bold()
                     Spacer()
                     Text("Add Recipe").font(.title).fontWeight(.bold)
                     Spacer()
-                    Image(systemName: "checkmark").resizable().padding().frame(width: 20, height: 20)
+                    Image(systemName: "checkmark").font(.title2)
+                        .foregroundStyle(.gray)
+                        .bold()
                 }.padding(.horizontal)
                 HStack{
                     Spacer()
@@ -29,6 +33,7 @@ struct HeaderTabsView: View {
                         selectedTab = "AIChef"
                     }
                 }
+                Spacer()
             }
             Divider()
             VStack {
