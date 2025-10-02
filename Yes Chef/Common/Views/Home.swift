@@ -19,7 +19,11 @@ struct Home: View {
             CommunityView().tabItem {
                 Image(systemName: "magnifyingglass")
             }.tag(TabSelection.search)
+<<<<<<< Updated upstream
             CreateRecipe().tabItem {
+=======
+            CommunityView().tabItem {
+>>>>>>> Stashed changes
                 Image(systemName: "plus.circle")
             }.tag(TabSelection.post)
             LeaderboardView().tabItem {
