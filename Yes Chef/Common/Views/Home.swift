@@ -19,7 +19,7 @@ struct Home: View {
             CommunityView().tabItem {
                 Image(systemName: "magnifyingglass")
             }.tag(TabSelection.search)
-            posting_temp().tabItem {
+          //  posting_temp().tabItem {
                 Image(systemName: "plus.circle")
             }.tag(TabSelection.post)
             LeaderboardView().tabItem {
@@ -30,7 +30,7 @@ struct Home: View {
             }.tag(TabSelection.profile)
         }
     }
-}
+
 
 enum TabSelection {
     case home, search, post, leaderboard, profile
