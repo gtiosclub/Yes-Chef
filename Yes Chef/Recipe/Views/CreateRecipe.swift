@@ -150,8 +150,8 @@ struct CreateRecipe: View {
                     .padding(.horizontal)
                 }
             }
-            .navigationTitle("Add Recipe")
-            .navigationBarTitleDisplayMode(.inline)
+//            .navigationTitle("Add Recipe")
+//            .navigationBarTitleDisplayMode(.inline)
 //            .toolbar {
 //                ToolbarItem(placement: .navigationBarLeading) {
 //                    Button {
