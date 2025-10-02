@@ -32,8 +32,8 @@ struct HeaderTabsView: View {
                     Button("AI Chef"){
                         selectedTab = "AIChef"
                     }
+                    Spacer()
                 }
-                Spacer()
             }
             Divider()
             VStack {
