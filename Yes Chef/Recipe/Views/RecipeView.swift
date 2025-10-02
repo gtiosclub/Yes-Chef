@@ -1,10 +1,3 @@
-//
-//  RecipeView.swift
-//  Yes Chef
-//
-//  Created by RushilC on 9/20/25.
-//
-
 import SwiftUI
 
 struct RecipeView: View {
@@ -23,37 +16,18 @@ struct RecipeView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading) {
-                    Text("Name")
-                        .font(.title)
-                        .padding()
-                        .padding(.bottom, -40)
+                    EditableTextField(
+                        title: "Name",
+                        placeholder: "Enter Recipe Name",
+                        text: $name
+                    )
                     
-                    TextField("Enter Recipe Name", text: $name)
-                        .font(.subheadline)
-                        .padding(10)
-                        .foregroundColor(.primary)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(10)
-                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                        .padding()
-                        .foregroundColor(.secondary)
-                    
-                    Text("Description")
-                        .font(.title)
-                        .padding()
-                        .padding(.top,-20)
-                        .padding(.bottom, -38)
-                    
-                    TextField("Enter Recipe Description", text: $description)
-                        .font(.subheadline)
-                        .padding(10)
-                        .padding(.bottom,90)
-                        .foregroundColor(.primary)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(10)
-                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                        .padding()
-                        .foregroundColor(.secondary)
+                    EditableTextEditor(
+                        title: "Description",
+                        placeholder: "Enter Recipe Description",
+                        text: $description,
+                        minHeight: 140
+                    )
                     
                     Text("Ingredients")
                         .font(.title)
@@ -104,14 +78,7 @@ struct RecipeView: View {
                         .padding()
                         .foregroundColor(.secondary)
                     
-//                    Text("Steps")
-//                        .font(.title)
-//                        .padding()
-//                        .padding(.top,-20)
-//                        .padding(.bottom, -15)
-                    
                     StepsInputView(steps: $steps)
-                    //NewRecipeView(steps: $steps)
                     
                     Text("Prep Time")
                         .font(.title)
@@ -158,7 +125,7 @@ struct RecipeView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: {
-                        // delete
+                        
                     }) {
                         Image(systemName: "xmark")
                             .font(.title2)
@@ -188,8 +155,6 @@ struct RecipeView: View {
 
                         let prepTime = Int(prepTimeInput) ?? 0
                         let stepsList = steps
-                        
-                        // TODO: Call recipeVM.createRecipe(...) with stepsList and other fields
                         
                     }) {
                         Image(systemName: "checkmark")
