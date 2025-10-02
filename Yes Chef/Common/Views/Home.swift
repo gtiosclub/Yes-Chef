@@ -25,7 +25,7 @@ struct Home: View {
             LeaderboardView().tabItem {
                 Image(systemName: "trophy")
             }.tag(TabSelection.leaderboard)
-            SettingsView().tabItem {
+            ProfileView(isOwnProfile: true).tabItem {
                 Image(systemName: "person.circle")
             }.tag(TabSelection.profile)
         }
