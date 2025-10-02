@@ -30,7 +30,7 @@ struct Home: View {
             }.tag(TabSelection.profile)
         }
     }
-}
+
 
 enum TabSelection {
     case home, search, post, leaderboard, profile
