@@ -19,7 +19,7 @@ struct Home: View {
             CommunityView().tabItem {
                 Image(systemName: "magnifyingglass")
             }.tag(TabSelection.search)
-            posting_temp().tabItem {
+            CreateRecipe().tabItem {
                 Image(systemName: "plus.circle")
             }.tag(TabSelection.post)
             LeaderboardView().tabItem {
