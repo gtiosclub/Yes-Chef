@@ -45,14 +45,57 @@ struct CommunityView : View {
                         .padding(.trailing, 30) // match the extra padding in TextField
                 }
             }
+            Spacer()
             if !filteredItems.isEmpty {
                 List(filteredItems, id: \.self) { item in Text(item)
                     .onTapGesture {searchText = item}
                 }
                     .listStyle(.plain)
                     .frame(maxHeight: 200)
+            } else {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 25) {
+                        RecipeSection(title: "Trending", items: allItems)
+                        RecipeSection(title: "Top Dinner Picks",items: allItems)
+                        RecipeSection(title: "Top ... Picks",items: allItems)
+                    }
+                    .padding(.bottom, 20)
+                }
+                
             }
             Spacer()
+        }
+    }
+}
+struct RecipeSection: View {
+    let title: String
+    let items: [String]
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text(title)
+                .font(.title)
+                .padding(.horizontal, 20)
+            ScrollView(.horizontal) {
+                HStack(spacing: 15) {
+                    ForEach(items, id: \.self) { index in
+                        RecipeCard(name: index)
+                    }
+                }
+                .padding(.horizontal, 20)
+            }
+        }
+    }
+}
+
+struct RecipeCard: View {
+    let name: String
+    var body: some View {
+        VStack {
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.systemGray6))
+                .frame(width: 160, height: 160)
+                .overlay(Text(name))
+
         }
     }
 }
