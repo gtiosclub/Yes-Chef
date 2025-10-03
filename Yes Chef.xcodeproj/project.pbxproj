@@ -33,6 +33,7 @@
 
 /* Begin PBXFileReference section */
 		3570C0122E7216C7000249C7 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		5B1EEA2B2E81945E00559DA2 /* Yes Chef.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = "Yes Chef.xcodeproj"; sourceTree = "<group>"; };
 		5B2B62132E63388D007A249D /* Yes Chef.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Yes Chef.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B2B62232E63388E007A249D /* Yes ChefTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Yes ChefTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B2B622D2E63388E007A249D /* Yes ChefUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Yes ChefUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -85,6 +86,11 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5B1EEA2D2E81945E00559DA2 /* Products */ = {
+			isa = PBXGroup;
+			name = Products;
+			sourceTree = "<group>";
+		};
 		5B2B620A2E63388D007A249D = {
 			isa = PBXGroup;
 			children = (
@@ -219,7 +225,12 @@
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5B2B62142E63388D007A249D /* Products */;
 			projectDirPath = "";
-
+			projectReferences = (
+				{
+					ProductGroup = 5B1EEA2D2E81945E00559DA2 /* Products */;
+					ProjectRef = 5B1EEA2B2E81945E00559DA2 /* Yes Chef.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				5B2B62122E63388D007A249D /* Yes Chef */,

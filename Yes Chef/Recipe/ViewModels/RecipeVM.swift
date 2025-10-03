@@ -10,31 +10,36 @@ import Observation
 import FirebaseFirestore
 import FirebaseStorage
 
-@Observable class RecipeVM {
-    
-    func createRecipe(userId: String, name: String, ingredients: [String], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, media: [String]) async -> String {
+class RecipeVM: ObservableObject {
+
+    func uploadMediaData(_ data: Data, fileName: String, recipeUUID: String) async -> String? {
+        let storage = Storage.storage()
+        let ref = storage.reference().child("recipes/\(recipeUUID)/\(fileName)")
         
-        let recipeID = UUID()
-        let recipeUUID = recipeID.uuidString
+        do {
+            _ = try await ref.putDataAsync(data)
+            let downloadURL = try await ref.downloadURL()
+            return downloadURL.absoluteString
+        } catch {
+            print("Failed to upload \(fileName): \(error.localizedDescription)")
+            return nil
+        }
+    }
+    let recipeUUID = UUID().uuidString
+
+    func createRecipe(userId: String,
+                      name: String,
+                      ingredients: [String],
+                      allergens: [String],
+                      tags: [String],
+                      steps: [String],
+                      description: String,
+                      prepTime: Int,
+                      difficulty: Difficulty,
+                      media: [String]
+                      ) async -> String {
         
         let db = Firestore.firestore()
-        let storage = Storage.storage()
-        var mediaURLs: [String] = []
-        
-        for file in media {
-            let fileURL = URL(fileURLWithPath: file)
-            let fileName = fileURL.lastPathComponent
-            let ref = storage.reference().child("recipes/\(recipeUUID)/\(fileName)")
-            
-            do {
-                let _ = try await ref.putFileAsync(from: fileURL)
-                let downloadURL = try await ref.downloadURL()
-                
-                mediaURLs.append(downloadURL.absoluteString)
-            } catch {
-                print("Failed to upload \(fileName): \(error.localizedDescription)")
-            }
-        }
         
         let data: [String: Any] = [
             "userId": userId,
@@ -46,14 +51,14 @@ import FirebaseStorage
             "description": description,
             "prepTime": prepTime,
             "difficulty": difficulty.rawValue,
-            "media": mediaURLs
+            "media": media
         ]
         
         do {
             try await db.collection("RECIPES").document(recipeUUID).setData(data)
-            print("Document added successfully!")
+            print("Recipe created successfully with ID: \(recipeUUID)")
         } catch {
-            print("Error adding document: \(error.localizedDescription)")
+            print("Error adding recipe: \(error.localizedDescription)")
         }
         
         return recipeUUID
