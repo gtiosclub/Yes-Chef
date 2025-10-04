@@ -19,6 +19,7 @@ struct CreateRecipe: View {
     @State private var statusMessage = ""
     @State private var steps: [String] = [""]
     @State private var mediaInputs: [String] = [""]
+    @State private var FireBaseDemo = FirebaseDemo()
 
     var body: some View {
         NavigationStack {
@@ -187,6 +188,10 @@ struct CreateRecipe: View {
                                 prepTime: prepTime,
                                 difficulty: difficulty,
                                 media: mediaInputs
+                            )
+                            
+                            await FireBaseDemo.addRecipeToRemixTreeAsRoot(
+                                description: description,
                             )
                         }
                     } label: {

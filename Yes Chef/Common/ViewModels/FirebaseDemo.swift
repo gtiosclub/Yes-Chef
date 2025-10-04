@@ -117,7 +117,25 @@ import Firebase
 
     }
     
-    func addRecipeToRemixTree() {
+    func addRecipeToRemixTreeAsRoot(description: String) async -> String {
+        let postID = UUID()
+        let postUUID = postID.uuidString
         
+        let db = Firestore.firestore()
+        
+        let nodeInfo: [String: Any] = [
+            "postID": postUUID,
+            "childrenID": [],
+            "description": description,
+            "parentID": "",
+            "rootNodeID": postUUID,
+        ]
+        
+        do {
+            try await db.collection("remixTreeNode").document(postUUID).setData(nodeInfo)
+            print("Document added successfully!")
+        } catch {
+            print("Error adding document: \(error.localizedDescription)")
+        }
     }
 }
