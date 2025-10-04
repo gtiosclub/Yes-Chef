@@ -8,12 +8,13 @@
 import SwiftUI
 import PhotosUI
 
-struct SwiftUIView: View {
+struct AddMedia: View {
     @StateObject private var recipeVM = RecipeVM()
     
     @State private var selectedPhotoItems: [PhotosPickerItem] = []
     @State private var selectedImages: [Image] = []
-    @State private var uploadedURLs: [String] = []
+    @State private var localMediaPaths: [URL] = []
+
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -39,13 +40,13 @@ struct SwiftUIView: View {
                     }
                     .onChange(of: selectedPhotoItems) { newItems in
                         Task {
-                            await loadPreviews(from: newItems)
+                            await loadAndSaveMedia(from: newItems)
                         }
                     }
                     
                     Button("Confirm Media") {
                         Task {
-                            await uploadSelectedMedia()
+                            await createRecipeWithMedia()
                         }
                     }
                     .buttonStyle(.borderedProminent)
@@ -63,7 +64,7 @@ struct SwiftUIView: View {
                         }
                     }
                 }
-                .frame(height: 120) 
+                .frame(height: 120)
             }
             
             Spacer()
@@ -73,38 +74,41 @@ struct SwiftUIView: View {
         .background(Color(.systemGroupedBackground))
     }
     
-    private func loadPreviews(from items: [PhotosPickerItem]) async {
+    private func loadAndSaveMedia(from items: [PhotosPickerItem]) async {
         selectedImages.removeAll()
+        localMediaPaths.removeAll()
         
-        for item in items {
-            if let data = try? await item.loadTransferable(type: Data.self),
-               let uiImage = UIImage(data: data) {
-                let image = Image(uiImage: uiImage)
-                selectedImages.append(image)
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("recipe_media_\(UUID().uuidString)")
+        
+        try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        
+        for (index, item) in items.enumerated() {
+            if let data = try? await item.loadTransferable(type: Data.self) {
+                if let uiImage = UIImage(data: data) {
+                    let image = Image(uiImage: uiImage)
+                    selectedImages.append(image)
+                }
+            
+                let fileName = "media_\(index).jpg"
+                let fileURL = tempDir.appendingPathComponent(fileName)
+                
+                do {
+                    try data.write(to: fileURL)
+                    localMediaPaths.append(fileURL)
+                    print("Saved media locally: \(fileURL.path)")
+                } catch {
+                    print("Failed to save media locally: \(error.localizedDescription)")
+                }
             }
         }
     }
     
-    private func uploadSelectedMedia() async {
-        uploadedURLs.removeAll()
-        
-        let recipeUUID = UUID().uuidString
-        
-        for (index, item) in selectedPhotoItems.enumerated() {
-            if let data = try? await item.loadTransferable(type: Data.self) {
-                let fileName = "media_\(index).jpg"
-                
-                if let urlString = await recipeVM.uploadMediaData(
-                    data,
-                    fileName: fileName,
-                    recipeUUID: recipeUUID
-                ) {
-                    uploadedURLs.append(urlString)
-                }
-            }
+    private func createRecipeWithMedia() async {
+        guard !localMediaPaths.isEmpty else {
+            print("No media to upload")
+            return
         }
-        
-        print("Uploaded Media URLs:", uploadedURLs)
         
         let _ = await recipeVM.createRecipe(
             userId: "test",
@@ -116,11 +120,21 @@ struct SwiftUIView: View {
             description: "A sample recipe",
             prepTime: 10,
             difficulty: .easy,
-            media: uploadedURLs
+            media: localMediaPaths
         )
+        
+        cleanupLocalMedia()
+    }
+        
+    private func cleanupLocalMedia() {
+        for path in localMediaPaths {
+            let parentDir = path.deletingLastPathComponent()
+            try? FileManager.default.removeItem(at: parentDir)
+        }
+        localMediaPaths.removeAll()
     }
 }
 
 #Preview {
-    SwiftUIView()
+    AddMedia()
 }
