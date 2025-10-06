@@ -92,10 +92,23 @@ struct PostView: View {
                 ScrollView(.horizontal){
                     HStack{
                         ForEach(Array(recipe.media.enumerated()), id: \.offset){ index, media in
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color(.systemGray3))
-                                .frame(width: screen.width/1.2, height: screen.height/2.5)
-                                .id(index)
+                            
+                            AsyncImage(url: URL(string: media)) { phase in
+                                if let image = phase.image{
+                                    image
+                                        .resizable()
+                                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                                        .frame(width: screen.width/1.2, height: screen.height/2.5)
+                                        .id(index)
+                                        
+                                } else{
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(Color(.systemGray3))
+                                        .frame(width: screen.width/1.2, height: screen.height/2.5)
+                                        .id(index)
+                                }
+                            }
+                            
                         }
                     }
                     .scrollTargetLayout()
@@ -214,7 +227,7 @@ struct BulletPoint: View {
 }
 
 #Preview {
-    let rec = Recipe(userId: "userid", recipeId: "recipeID", name: "Recipe Name", ingredients: ["1 egg", "3 cups of flour","1 teaspoon butter"], allergens: [""], tags: ["american", "keto", "gluten free"], steps: ["Preheat a waffle iron to medium-high. Whisk the eggs in a large bowl until well beaten and smooth.","Coat the waffle iron with nonstick cooking spray, then ladle a heaping 1/4 cup of batter into each section.","Top each chaffle with a pat of butter and drizzle with maple syrup. "], description: "A chaffle is a low-carb, cheese-and-egg-based waffle that's taken the keto world by storm, thanks to its fluffy texture and crispy edges.", prepTime: 120, difficulty: .easy, media: ["","",""])
+    let rec = Recipe(userId: "userid", recipeId: "recipeID", name: "Chaffle", ingredients: ["1 egg", "3 cups of flour","1 teaspoon butter"], allergens: [""], tags: ["american", "keto", "gluten free"], steps: ["Preheat a waffle iron to medium-high. Whisk the eggs in a large bowl until well beaten and smooth.","Coat the waffle iron with nonstick cooking spray, then ladle a heaping 1/4 cup of batter into each section.","Top each chaffle with a pat of butter and drizzle with maple syrup. "], description: "A chaffle is a low-carb, cheese-and-egg-based waffle that's taken the keto world by storm, thanks to its fluffy texture and crispy edges.", prepTime: 120, difficulty: .easy, media: ["https://www.themerchantbaker.com/wp-content/uploads/2019/10/Basic-Chaffles-REV-Total-3-480x480.jpg","https://thebestketorecipes.com/wp-content/uploads/2022/01/Easy-Basic-Chaffle-Recipe-Easy-Keto-Chaffle-5.jpg",""])
     PostView(recipe: rec)
 }
 
