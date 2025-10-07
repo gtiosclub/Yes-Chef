@@ -7,18 +7,8 @@
 import SwiftUI
 
 struct CreateRecipe: View {
-    @State private var userIdInput = ""
-    @State private var name = ""
-    @State private var description = ""
-    @State private var ingredientsInput = ""
-    @State private var allergensInput = ""
-    @State private var tagsInput = ""
-    @State private var prepTimeInput = ""
-    @State private var difficulty: Difficulty = .easy
+    @StateObject private var vm = CreateRecipeScreenVM()
     @State private var recipeVM = RecipeVM()
-    @State private var statusMessage = ""
-    @State private var steps: [String] = [""]
-    @State private var mediaInputs: [String] = [""]
 
     var body: some View {
         NavigationStack {
@@ -28,8 +18,8 @@ struct CreateRecipe: View {
                         .font(.title)
                         .padding()
                         .padding(.bottom, -40)
-                    
-                    TextField("Enter Recipe Name", text: $name)
+
+                    TextField("Enter Recipe Name", text: $vm.name)
                         .font(.subheadline)
                         .padding(10)
                         .foregroundColor(.primary)
@@ -38,14 +28,14 @@ struct CreateRecipe: View {
                         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
                         .padding()
                         .foregroundColor(.secondary)
-                    
+
                     Text("Description")
                         .font(.title)
                         .padding()
                         .padding(.top,-20)
                         .padding(.bottom, -38)
-                    
-                    TextField("Enter Recipe Description", text: $description)
+
+                    TextField("Enter Recipe Description", text: $vm.description)
                         .font(.subheadline)
                         .padding(10)
                         .padding(.bottom,90)
@@ -55,66 +45,74 @@ struct CreateRecipe: View {
                         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
                         .padding()
                         .foregroundColor(.secondary)
-                    
+
                     Text("Ingredients")
                         .font(.title)
                         .padding()
                         .padding(.top,-20)
                         .padding(.bottom, -38)
-                    
-                    TextField("Enter Ingredients (Comma Separated)", text: $ingredientsInput)
-                        .font(.subheadline)
-                        .padding(10)
-                        .padding(.bottom,30)
-                        .foregroundColor(.primary)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(10)
-                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                        .padding()
-                        .foregroundColor(.secondary)
-                    
+
+                    TextField(
+                        "Enter Ingredients (Comma Separated)",
+                        text: Binding(get: { vm.ingredientsInput }, set: { vm.onIngredientsChanged($0) })
+                    )
+                    .font(.subheadline)
+                    .padding(10)
+                    .padding(.bottom,30)
+                    .foregroundColor(.primary)
+                    .background(Color.gray.opacity(0.2))
+                    .cornerRadius(10)
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
+                    .padding()
+                    .foregroundColor(.secondary)
+
                     Text("Allergens")
                         .font(.title)
                         .padding()
                         .padding(.top,-20)
                         .padding(.bottom, -38)
-                    
-                    TextField("Enter Allergens (Comma Separated)", text: $allergensInput)
-                        .font(.subheadline)
-                        .padding(10)
-                        .foregroundColor(.primary)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(10)
-                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                        .padding()
-                        .foregroundColor(.secondary)
-                    
+
+                    TextField(
+                        "Enter Allergens (Comma Separated)",
+                        text: Binding(get: { vm.allergensInput }, set: { vm.onAllergensChanged($0) })
+                    )
+                    .font(.subheadline)
+                    .padding(10)
+                    .foregroundColor(.primary)
+                    .background(Color.gray.opacity(0.2))
+                    .cornerRadius(10)
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
+                    .padding()
+                    .foregroundColor(.secondary)
+
                     Text("Tags")
                         .font(.title)
                         .padding()
                         .padding(.top,-20)
                         .padding(.bottom, -38)
-                    
-                    TextField("Enter Tags (Comma Separated)", text: $tagsInput)
-                        .font(.subheadline)
-                        .padding(10)
-                        .foregroundColor(.primary)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(10)
-                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                        .padding()
-                        .foregroundColor(.secondary)
-                    
-                    StepsInputView(steps: $steps)
-                    //NewRecipeView(steps: $steps)
-                    
+
+                    TextField(
+                        "Enter Tags (Comma Separated)",
+                        text: Binding(get: { vm.tagsInput }, set: { vm.onTagsChanged($0) })
+                    )
+                    .font(.subheadline)
+                    .padding(10)
+                    .foregroundColor(.primary)
+                    .background(Color.gray.opacity(0.2))
+                    .cornerRadius(10)
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
+                    .padding()
+                    .foregroundColor(.secondary)
+
+                    StepsInputView(steps: $vm.steps)
+
                     Text("Prep Time")
                         .font(.title)
                         .padding()
                         .padding(.top,-20)
                         .padding(.bottom, -38)
-                    
-                    TextField("Enter Prep Time in Minutes", text: $prepTimeInput)
+
+                    TextField("Enter Prep Time in Minutes", text: $vm.prepTimeInput)
                         .keyboardType(.numberPad)
                         .font(.subheadline)
                         .padding(10)
@@ -124,19 +122,19 @@ struct CreateRecipe: View {
                         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
                         .padding()
                         .foregroundColor(.secondary)
-                    
+
                     Text("Media")
                         .font(.title)
                         .padding()
                         .padding(.top,-20)
-                    
+
                     Text("Difficulty")
                         .font(.title)
                         .padding()
                         .padding(.top,-20)
                         .padding(.bottom,-20)
-                    
-                    Picker("Choose a Difficulty", selection: $difficulty) {
+
+                    Picker("Choose a Difficulty", selection: $vm.difficulty) {
                         ForEach(Difficulty.allCases, id: \.self) { level in
                             Text(level.rawValue).tag(level)
                         }
@@ -154,8 +152,7 @@ struct CreateRecipe: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                    } label: {
+                    Button {} label: {
                         Image(systemName: "xmark")
                             .font(.title2)
                             .foregroundStyle(.red)
@@ -165,28 +162,17 @@ struct CreateRecipe: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         Task {
-                            let ingredients = ingredientsInput
-                                .split(separator: ",")
-                                .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
-                            let allergens = allergensInput
-                                .split(separator: ",")
-                                .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
-                            let tags = tagsInput
-                                .split(separator: ",")
-                                .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
-                            let prepTime = Int(prepTimeInput) ?? 0
-                            
                             await recipeVM.createRecipe(
-                                userId: userIdInput,
-                                name: name,
-                                ingredients: ingredients,
-                                allergens: allergens,
-                                tags: tags,
-                                steps: steps,
-                                description: description,
-                                prepTime: prepTime,
-                                difficulty: difficulty,
-                                media: mediaInputs
+                                userId: vm.userIdInput,
+                                name: vm.name,
+                                ingredients: vm.ingredients,
+                                allergens: vm.allergens,
+                                tags: vm.tags,
+                                steps: vm.steps,
+                                description: vm.description,
+                                prepTime: vm.prepTime,
+                                difficulty: vm.difficulty,
+                                media: vm.mediaInputs
                             )
                         }
                     } label: {
@@ -201,6 +187,4 @@ struct CreateRecipe: View {
     }
 }
 
-#Preview {
-    CreateRecipe()
-}
+#Preview { CreateRecipe() }
