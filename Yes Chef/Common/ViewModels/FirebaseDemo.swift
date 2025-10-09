@@ -137,5 +137,6 @@ import Firebase
         } catch {
             print("Error adding document: \(error.localizedDescription)")
         }
+        return postUUID
     }
 }
