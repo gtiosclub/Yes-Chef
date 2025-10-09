@@ -12,15 +12,12 @@ struct AddMedia: View {
     @StateObject private var recipeVM = RecipeVM()
     
     @State private var selectedPhotoItems: [PhotosPickerItem] = []
-    @State private var selectedImages: [Image] = []
-    @State private var localMediaPaths: [URL] = []
+    @Binding var selectedImages: [Image]
+    @Binding var localMediaPaths: [URL]
 
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Spacer()
-            Text("Add Media")
-                .font(.headline)
             
             HStack(alignment: .top, spacing: 20) {
                 VStack(spacing: 12) {
@@ -67,11 +64,9 @@ struct AddMedia: View {
                 .frame(height: 120)
             }
             
-            Spacer()
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.systemGroupedBackground))
     }
     
     private func loadAndSaveMedia(from items: [PhotosPickerItem]) async {
@@ -136,5 +131,7 @@ struct AddMedia: View {
 }
 
 #Preview {
-    AddMedia()
+    @State var imgs: [Image] = []
+    @State var urls: [URL] = []
+    return AddMedia(selectedImages: $imgs, localMediaPaths: $urls)
 }

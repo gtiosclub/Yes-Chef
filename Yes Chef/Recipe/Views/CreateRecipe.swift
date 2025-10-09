@@ -19,7 +19,9 @@ struct CreateRecipe: View {
     @State private var statusMessage = ""
     @State private var steps: [String] = [""]
     @State private var mediaInputs: [String] = [""]
-
+    @State private var selectedImages: [Image] = []
+    @State private var localMediaPaths: [URL] = []
+    
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -129,6 +131,9 @@ struct CreateRecipe: View {
                         .font(.title)
                         .padding()
                         .padding(.top,-20)
+                    AddMedia(selectedImages: $selectedImages, localMediaPaths: $localMediaPaths)
+                        .padding(.horizontal)
+
                     
                     Text("Difficulty")
                         .font(.title)
