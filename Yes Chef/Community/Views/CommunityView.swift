@@ -8,6 +8,7 @@ import SwiftUI
 
 struct CommunityView : View {
     @State private var searchText = ""
+    @State private var viewModel = SearchViewModel()
     
     let allItems = ["Pizza", "Pasta", "Salad", "Soup", "Sandwich", "Cake", "Curry"]
 
@@ -15,7 +16,7 @@ struct CommunityView : View {
         if searchText.isEmpty {
             return []
         } else {
-            return allItems.filter { $0.localizedCaseInsensitiveContains(searchText) }
+            return viewModel.usernames.filter { $0.localizedCaseInsensitiveContains(searchText) }
         }
     }
     
@@ -64,6 +65,9 @@ struct CommunityView : View {
                 
             }
             Spacer()
+        }
+        .task {
+            await viewModel.getAllUsernames()
         }
     }
 }
