@@ -1,4 +1,3 @@
-//
 //  RecipeView.swift
 //  Yes Chef
 //
@@ -8,6 +7,7 @@
 import SwiftUI
 
 struct CreateRecipe: View {
+    @State private var userIdInput = ""
     @State private var name = ""
     @State private var description = ""
     @State private var ingredientsInput = ""
@@ -18,6 +18,7 @@ struct CreateRecipe: View {
     @State private var recipeVM = RecipeVM()
     @State private var statusMessage = ""
     @State private var steps: [String] = [""]
+    @State private var mediaInputs: [String] = [""]
 
     var body: some View {
         NavigationStack {
@@ -59,58 +60,32 @@ struct CreateRecipe: View {
                         .font(.title)
                         .padding()
                         .padding(.top,-20)
-                        .padding(.bottom, -38)
+                        .padding(.bottom, -23)
                     
-                    TextField("Enter Ingredients (Comma Separated)", text: $ingredientsInput)
-                        .font(.subheadline)
-                        .padding(10)
-                        .padding(.bottom,30)
-                        .foregroundColor(.primary)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(10)
-                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                        .padding()
-                        .foregroundColor(.secondary)
+                    SearchableDropdownView(
+                        viewModel: SearchableDropdownVM(options: Ingredient.allIngredients)
+                    )
                     
                     Text("Allergens")
                         .font(.title)
                         .padding()
-                        .padding(.top,-20)
-                        .padding(.bottom, -38)
+                        .padding(.bottom, -23)
                     
-                    TextField("Enter Allergens (Comma Separated)", text: $allergensInput)
-                        .font(.subheadline)
-                        .padding(10)
-                        .foregroundColor(.primary)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(10)
-                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                        .padding()
-                        .foregroundColor(.secondary)
+                    SearchableDropdownView(
+                        viewModel: SearchableDropdownVM(options: Allergen.allCases)
+                    )
                     
                     Text("Tags")
                         .font(.title)
                         .padding()
-                        .padding(.top,-20)
-                        .padding(.bottom, -38)
+                        .padding(.bottom, -23)
                     
-                    TextField("Enter Tags (Comma Separated)", text: $tagsInput)
-                        .font(.subheadline)
-                        .padding(10)
-                        .foregroundColor(.primary)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(10)
-                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                        .padding()
-                        .foregroundColor(.secondary)
-                    
-//                    Text("Steps")
-//                        .font(.title)
-//                        .padding()
-//                        .padding(.top,-20)
-//                        .padding(.bottom, -15)
+                    SearchableDropdownView(
+                        viewModel: SearchableDropdownVM(options: Tag.allTags)
+                    )
                     
                     StepsInputView(steps: $steps)
+                    //NewRecipeView(steps: $steps)
                     
                     Text("Prep Time")
                         .font(.title)
@@ -141,7 +116,7 @@ struct CreateRecipe: View {
                         .padding(.bottom,-20)
                     
                     Picker("Choose a Difficulty", selection: $difficulty) {
-                        ForEach(Difficulty.allCases) { level in
+                        ForEach(Difficulty.allCases, id: \.self) { level in
                             Text(level.rawValue).tag(level)
                         }
                     }
@@ -154,43 +129,46 @@ struct CreateRecipe: View {
                     .padding(.horizontal)
                 }
             }
+            .navigationTitle("Add Recipe")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: {
-                        // delete
-                    }) {
+                    Button {
+                    } label: {
                         Image(systemName: "xmark")
                             .font(.title2)
-                            .foregroundStyle(.gray)
+                            .foregroundStyle(.red)
                             .bold()
                     }
                 }
-                
-                ToolbarItem(placement: .principal) {
-                    Text("Add Recipe")
-                        .font(.largeTitle)
-                }
-                
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        let ingredients = ingredientsInput
-                            .split(separator: ",")
-                            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-
-                        let allergens = allergensInput
-                            .split(separator: ",")
-                            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-
-                        let tags = tagsInput
-                            .split(separator: ",")
-                            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-
-                        let prepTime = Int(prepTimeInput) ?? 0
-                        let stepsList = steps
-                        
-                        // TODO: Call recipeVM.createRecipe(...) with stepsList and other fields
-                        
-                    }) {
+                    Button {
+                        Task {
+                            let ingredients = ingredientsInput
+                                .split(separator: ",")
+                                .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+                            let allergens = allergensInput
+                                .split(separator: ",")
+                                .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+                            let tags = tagsInput
+                                .split(separator: ",")
+                                .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+                            let prepTime = Int(prepTimeInput) ?? 0
+                            
+                            await recipeVM.createRecipe(
+                                userId: userIdInput,
+                                name: name,
+                                ingredients: ingredients,
+                                allergens: allergens,
+                                tags: tags,
+                                steps: steps,
+                                description: description,
+                                prepTime: prepTime,
+                                difficulty: difficulty,
+                                media: mediaInputs
+                            )
+                        }
+                    } label: {
                         Image(systemName: "checkmark")
                             .font(.title2)
                             .foregroundStyle(.gray)
