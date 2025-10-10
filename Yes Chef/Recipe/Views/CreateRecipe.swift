@@ -7,8 +7,7 @@
 import SwiftUI
 
 struct CreateRecipe: View {
-    @StateObject private var vm = CreateRecipeScreenVM()
-    @State private var recipeVM = RecipeVM()
+    @State private var recipeVM = CreateRecipeVM()
 
     var body: some View {
         NavigationStack {
@@ -19,7 +18,7 @@ struct CreateRecipe: View {
                         .padding()
                         .padding(.bottom, -40)
 
-                    TextField("Enter Recipe Name", text: $vm.name)
+                    TextField("Enter Recipe Name", text: $recipeVM.name)
                         .font(.subheadline)
                         .padding(10)
                         .foregroundColor(.primary)
@@ -35,7 +34,7 @@ struct CreateRecipe: View {
                         .padding(.top,-20)
                         .padding(.bottom, -38)
 
-                    TextField("Enter Recipe Description", text: $vm.description)
+                    TextField("Enter Recipe Description", text: $recipeVM.description)
                         .font(.subheadline)
                         .padding(10)
                         .padding(.bottom,90)
@@ -54,7 +53,7 @@ struct CreateRecipe: View {
 
                     TextField(
                         "Enter Ingredients (Comma Separated)",
-                        text: Binding(get: { vm.ingredientsInput }, set: { vm.onIngredientsChanged($0) })
+                        text: Binding(get: { recipeVM.ingredientsInput }, set: { recipeVM.onIngredientsChanged($0) })
                     )
                     .font(.subheadline)
                     .padding(10)
@@ -74,7 +73,7 @@ struct CreateRecipe: View {
 
                     TextField(
                         "Enter Allergens (Comma Separated)",
-                        text: Binding(get: { vm.allergensInput }, set: { vm.onAllergensChanged($0) })
+                        text: Binding(get: { recipeVM.allergensInput }, set: { recipeVM.onAllergensChanged($0) })
                     )
                     .font(.subheadline)
                     .padding(10)
@@ -93,7 +92,7 @@ struct CreateRecipe: View {
 
                     TextField(
                         "Enter Tags (Comma Separated)",
-                        text: Binding(get: { vm.tagsInput }, set: { vm.onTagsChanged($0) })
+                        text: Binding(get: { recipeVM.tagsInput }, set: { recipeVM.onTagsChanged($0) })
                     )
                     .font(.subheadline)
                     .padding(10)
@@ -104,7 +103,7 @@ struct CreateRecipe: View {
                     .padding()
                     .foregroundColor(.secondary)
 
-                    StepsInputView(steps: $vm.steps)
+                    StepsInputView(steps: $recipeVM.steps)
 
                     Text("Prep Time")
                         .font(.title)
@@ -112,7 +111,7 @@ struct CreateRecipe: View {
                         .padding(.top,-20)
                         .padding(.bottom, -38)
 
-                    TextField("Enter Prep Time in Minutes", text: $vm.prepTimeInput)
+                    TextField("Enter Prep Time in Minutes", text: $recipeVM.prepTimeInput)
                         .keyboardType(.numberPad)
                         .font(.subheadline)
                         .padding(10)
@@ -134,7 +133,7 @@ struct CreateRecipe: View {
                         .padding(.top,-20)
                         .padding(.bottom,-20)
 
-                    Picker("Choose a Difficulty", selection: $vm.difficulty) {
+                    Picker("Choose a Difficulty", selection: $recipeVM.difficulty) {
                         ForEach(Difficulty.allCases, id: \.self) { level in
                             Text(level.rawValue).tag(level)
                         }
@@ -163,16 +162,16 @@ struct CreateRecipe: View {
                     Button {
                         Task {
                             await recipeVM.createRecipe(
-                                userId: vm.userIdInput,
-                                name: vm.name,
-                                ingredients: vm.ingredients,
-                                allergens: vm.allergens,
-                                tags: vm.tags,
-                                steps: vm.steps,
-                                description: vm.description,
-                                prepTime: vm.prepTime,
-                                difficulty: vm.difficulty,
-                                media: vm.mediaInputs
+                                userId: recipeVM.userIdInput,
+                                name: recipeVM.name,
+                                ingredients: recipeVM.ingredients,
+                                allergens: recipeVM.allergens,
+                                tags: recipeVM.tags,
+                                steps: recipeVM.steps,
+                                description: recipeVM.description,
+                                prepTime: recipeVM.prepTime,
+                                difficulty: recipeVM.difficulty,
+                                media: recipeVM.mediaInputs
                             )
                         }
                     } label: {
