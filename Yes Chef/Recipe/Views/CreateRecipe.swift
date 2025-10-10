@@ -173,6 +173,10 @@ struct CreateRecipe: View {
                                 difficulty: recipeVM.difficulty,
                                 media: recipeVM.mediaInputs
                             )
+                            
+                            await FireBaseDemo.addRecipeToRemixTreeAsRoot(
+                                description: description,
+                            )
                         }
                     } label: {
                         Image(systemName: "checkmark")
