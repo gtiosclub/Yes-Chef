@@ -9,8 +9,6 @@ import SwiftUI
 import PhotosUI
 
 struct AddMedia: View {
-    @StateObject private var recipeVM = RecipeVM()
-    
     @State private var selectedPhotoItems: [PhotosPickerItem] = []
     @Binding var selectedImages: [Image]
     @Binding var localMediaPaths: [URL]
@@ -84,28 +82,6 @@ struct AddMedia: View {
         }
     }
     
-    private func createRecipeWithMedia() async {
-        guard !localMediaPaths.isEmpty else {
-            print("No media to upload")
-            return
-        }
-        
-        let _ = await recipeVM.createRecipe(
-            userId: "test",
-            name: "Test Recipe",
-            ingredients: ["Ingredient1"],
-            allergens: [],
-            tags: ["Tag1"],
-            steps: ["Step 1"],
-            description: "A sample recipe",
-            prepTime: 10,
-            difficulty: .easy,
-            media: localMediaPaths
-        )
-        
-        cleanupLocalMedia()
-    }
-        
     private func cleanupLocalMedia() {
         for path in localMediaPaths {
             let parentDir = path.deletingLastPathComponent()
