@@ -10,9 +10,9 @@ struct CreateRecipe: View {
     @State private var userIdInput = ""
     @State private var name = ""
     @State private var description = ""
-    @State private var selectedIngredients: [Ingredient] = []
-    @State private var selectedAllergens: [Allergen] = []
-    @State private var selectedTags: [Tag] = []
+    @State private var selectedIngredients: [SearchableValue<Ingredient>] = []
+    @State private var selectedAllergens: [SearchableValue<Allergen>] = []
+    @State private var selectedTags: [SearchableValue<Tag>] = []
     @State private var prepTimeInput = ""
     @State private var difficulty: Difficulty = .easy
     @State private var recipeVM = RecipeVM()
@@ -57,27 +57,32 @@ struct CreateRecipe: View {
                         .foregroundColor(.secondary)
                     
                     SectionHeader(title: "Ingredients")
-                    
+                                        
                     SearchableDropdown(
                         options: Ingredient.allIngredients,
-                        selectedOptions: $selectedIngredients,
-                        placeholder: "Add ingredients..."
+                        selectedValues: $selectedIngredients,
+                        placeholder: "Add ingredients...",
+                        allowCustom: true
                     )
                     
+                    // Allergens
                     SectionHeader(title: "Allergens")
                     
                     SearchableDropdown(
                         options: Allergen.allCases,
-                        selectedOptions: $selectedAllergens,
-                        placeholder: "Add allergens..."
+                        selectedValues: $selectedAllergens,
+                        placeholder: "Add allergens...",
+                        allowCustom: true
                     )
                     
+                    // Tags
                     SectionHeader(title: "Tags")
                     
                     SearchableDropdown(
                         options: Tag.allTags,
-                        selectedOptions: $selectedTags,
-                        placeholder: "Add tags..."
+                        selectedValues: $selectedTags,
+                        placeholder: "Add tags...",
+                        allowCustom: true
                     )
                     
                     StepsInputView(steps: $steps)

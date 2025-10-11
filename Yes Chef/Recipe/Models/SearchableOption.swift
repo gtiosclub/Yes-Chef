@@ -14,3 +14,18 @@ extension SearchableOption {
     var id: String { displayName }
 }
 
+enum SearchableValue<T: SearchableOption>: Hashable, Identifiable {
+    case predefined(T)
+    case custom(String)
+    
+    var displayName: String {
+        switch self {
+        case .predefined(let option):
+            return option.displayName
+        case .custom(let value):
+            return value
+        }
+    }
+    
+    var id: String { displayName }
+}

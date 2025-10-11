@@ -8,23 +8,36 @@ import SwiftUI
 
 struct SearchableDropdown<Option: SearchableOption>: View {
     let options: [Option]
-    @Binding var selectedOptions: [Option]
+    @Binding var selectedValues: [SearchableValue<Option>]
     let placeholder: String
+    let allowCustom: Bool
     
     @State private var searchQuery = ""
-    @State private var isExpanded = false
     
     private var filteredOptions: [Option] {
         guard !searchQuery.isEmpty else { return [] }
+        let selectedDisplayNames = Set(selectedValues.map { $0.displayName.lowercased() })
         return options.filter { option in
-            !selectedOptions.contains(option) &&
+            !selectedDisplayNames.contains(option.displayName.lowercased()) &&
             option.displayName.lowercased().contains(searchQuery.lowercased())
         }
     }
     
+    private var shouldShowCustomOption: Bool {
+        guard allowCustom && !searchQuery.isEmpty else { return false }
+        let query = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return false }
+        
+        let selectedDisplayNames = Set(selectedValues.map { $0.displayName.lowercased() })
+        if selectedDisplayNames.contains(query.lowercased()) {
+            return false
+        }
+        
+        return !options.contains { $0.displayName.lowercased() == query.lowercased() }
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Search field
             HStack {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(.gray)
@@ -51,12 +64,12 @@ struct SearchableDropdown<Option: SearchableOption>: View {
             )
             .padding(.horizontal)
             
-            if !filteredOptions.isEmpty {
+            if !(filteredOptions.isEmpty && !shouldShowCustomOption) {
                 ScrollView {
                     VStack(spacing: 2) {
                         ForEach(filteredOptions, id: \.id) { option in
                             Button(action: {
-                                toggleSelection(option)
+                                selectPredefined(option)
                             }) {
                                 HStack(spacing: 12) {
                                     Text(option.displayName)
@@ -74,6 +87,22 @@ struct SearchableDropdown<Option: SearchableOption>: View {
                                     .padding(.leading, 16)
                             }
                         }
+                        
+                        if shouldShowCustomOption {
+                            Button(action: {
+                                selectCustom(searchQuery)
+                            }) {
+                                HStack(spacing: 12) {
+                                    Text(searchQuery)
+                                        .font(.system(size: 15))
+                                        .foregroundColor(.primary)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
+                                .background(Color(.systemBackground))
+                            }
+                        }
                     }
                 }
                 .frame(maxHeight: 200)
@@ -84,14 +113,12 @@ struct SearchableDropdown<Option: SearchableOption>: View {
                 .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .top)))
             }
             
-            if !selectedOptions.isEmpty {
+            if !selectedValues.isEmpty {
                 FlowLayout() {
-                    ForEach(selectedOptions, id: \.id) { option in
-                        if let acceptedType = toAcceptedType(option) {
+                    ForEach(selectedValues, id: \.id) { value in
+                        if let acceptedType = toAcceptedType(value) {
                             PillView(value: acceptedType) {
-                                withAnimation {
-                                    removeSelection(option)
-                                }
+                                removeSelection(value)
                             }
                         }
                     }
@@ -103,22 +130,36 @@ struct SearchableDropdown<Option: SearchableOption>: View {
         .animation(.easeInOut(duration: 0.2), value: filteredOptions.isEmpty)
     }
     
-    private func toggleSelection(_ option: Option) {
-        selectedOptions.append(option)
+    private func selectPredefined(_ option: Option) {
+        selectedValues.append(.predefined(option))
+        print(selectedValues)
+        searchQuery = ""
+    }
+        
+    private func selectCustom(_ value: String) {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        selectedValues.append(.custom(trimmed))
+        print(selectedValues)
         searchQuery = ""
     }
     
-    private func removeSelection(_ option: Option) {
-        selectedOptions.removeAll { $0 == option }
+    private func removeSelection(_ value: SearchableValue<Option>) {
+        selectedValues.removeAll { $0 == value }
     }
     
-    private func toAcceptedType(_ option: Option) -> AcceptedTypes? {
-        if let ingredient = option as? Ingredient {
-            return .ingredients(ingredient)
-        } else if let allergen = option as? Allergen {
-            return .allergens(allergen)
-        } else if let tag = option as? Tag {
-            return .tags(tag)
+    private func toAcceptedType(_ value: SearchableValue<Option>) -> AcceptedTypes? {
+        switch value {
+        case .predefined(let option):
+            if let ingredient = option as? Ingredient {
+                return .ingredients(ingredient)
+            } else if let allergen = option as? Allergen {
+                return .allergens(allergen)
+            } else if let tag = option as? Tag {
+                return .tags(tag)
+            }
+        case .custom(let string):
+            return .customString(string)
         }
         return nil
     }
