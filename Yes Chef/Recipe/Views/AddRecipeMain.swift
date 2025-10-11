@@ -6,8 +6,9 @@
 //
 import SwiftUI
 
-struct HeaderTabsView: View {
+struct AddRecipeMain: View {
     @State private var selectedTab: String = "EditDetails"
+    @State private var recipeVM = CreateRecipeVM()
     
     var body: some View {
         NavigationStack{
@@ -49,7 +50,7 @@ struct HeaderTabsView: View {
                         Image(systemName: "checkmark")
                             .resizable()
                             .frame(width: 20, height: 20)
-                            .bold()
+                            .foregroundStyle(.black)
                     }
                 }
                 .padding(.horizontal, 10)
@@ -62,7 +63,7 @@ struct HeaderTabsView: View {
             }
             VStack {
                 if selectedTab == "EditDetails" {
-                    CreateRecipe()
+                    CreateRecipe(recipeVM: recipeVM)
                 } else if selectedTab == "AIChef" {
                     Text("Coming Soon")
                         .font(.title2)
@@ -113,13 +114,10 @@ struct TabShape: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
         
-        // Start at bottom left
         path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
         
-        // Line up to top left corner curve
         path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + cornerRadius))
         
-        // Top left corner arc
         path.addArc(
             center: CGPoint(x: rect.minX + cornerRadius, y: rect.minY + cornerRadius),
             radius: cornerRadius,
@@ -128,10 +126,8 @@ struct TabShape: Shape {
             clockwise: false
         )
         
-        // Line across the top
         path.addLine(to: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY))
         
-        // Top right corner arc
         path.addArc(
             center: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY + cornerRadius),
             radius: cornerRadius,
@@ -140,10 +136,8 @@ struct TabShape: Shape {
             clockwise: false
         )
         
-        // Line down to bottom right
         path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
         
-        // Line across the bottom (flat)
         path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
         
         return path
@@ -156,13 +150,10 @@ struct TabBorder: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
         
-        // Start at bottom left (don't draw bottom border)
         path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
         
-        // Line up the left side
         path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + cornerRadius))
         
-        // Top left corner arc
         path.addArc(
             center: CGPoint(x: rect.minX + cornerRadius, y: rect.minY + cornerRadius),
             radius: cornerRadius,
@@ -171,10 +162,8 @@ struct TabBorder: Shape {
             clockwise: false
         )
         
-        // Line across the top
         path.addLine(to: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY))
         
-        // Top right corner arc
         path.addArc(
             center: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY + cornerRadius),
             radius: cornerRadius,
@@ -183,15 +172,12 @@ struct TabBorder: Shape {
             clockwise: false
         )
         
-        // Line down the right side
         path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
         
         return path
     }
 }
 
-struct HeaderTabsView_Previews: PreviewProvider {
-    static var previews: some View {
-        HeaderTabsView()
-    }
+#Preview {
+    AddRecipeMain()
 }

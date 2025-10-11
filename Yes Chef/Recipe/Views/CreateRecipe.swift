@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct CreateRecipe: View {
-    @State private var recipeVM = CreateRecipeVM()
+    @State var recipeVM: CreateRecipeVM
 
     var body: some View {
         NavigationStack {
@@ -125,6 +125,6 @@ struct SectionHeader: View {
     }
 }
 
-#Preview {
-    CreateRecipe()
-}
+//#Preview {
+//    CreateRecipe()
+//}
