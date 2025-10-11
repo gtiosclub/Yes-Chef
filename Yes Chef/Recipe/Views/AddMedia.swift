@@ -17,56 +17,41 @@ struct AddMedia: View {
 
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            
-            HStack(alignment: .top, spacing: 20) {
-                VStack(spacing: 12) {
-                    PhotosPicker(
-                        selection: $selectedPhotoItems,
-                        matching: .any(of: [.images, .videos]),
-                        photoLibrary: .shared()
-                    ) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 25)
-                                .fill(Color.gray)
-                                .frame(width: 100, height: 100)
-                            Image(systemName: "plus")
-                                .foregroundColor(.white)
-                                .font(.system(size: 30, weight: .bold))
-                        }
-                    }
-                    .onChange(of: selectedPhotoItems) { newItems in
-                        Task {
-                            await loadAndSaveMedia(from: newItems)
-                        }
-                    }
-                    
-                    Button("Confirm Media") {
-                        Task {
-                            await createRecipeWithMedia()
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
+        HStack(alignment: .top) {
+            PhotosPicker(
+                selection: $selectedPhotoItems,
+                matching: .any(of: [.images, .videos]),
+                photoLibrary: .shared()
+            ) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.gray)
+                        .frame(width: 120, height: 120)
+                    Image(systemName: "plus")
+                        .foregroundColor(.white)
+                        .font(.system(size: 30, weight: .bold))
                 }
-                
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 10) {
-                        ForEach(selectedImages.indices, id: \.self) { index in
-                            selectedImages[index]
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 100, height: 100)
-                                .cornerRadius(10)
-                                .clipped()
-                        }
-                    }
+            }
+            .onChange(of: selectedPhotoItems) { newItems in
+                Task {
+                    await loadAndSaveMedia(from: newItems)
                 }
-                .frame(height: 120)
             }
             
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(selectedImages.indices, id: \.self) { index in
+                        selectedImages[index]
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 120, height: 120)
+                            .cornerRadius(10)
+                            .clipped()
+                    }
+                }
+            }
+            .frame(height: 120)
         }
-        .padding()
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     private func loadAndSaveMedia(from items: [PhotosPickerItem]) async {

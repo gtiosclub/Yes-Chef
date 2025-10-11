@@ -18,7 +18,6 @@ struct CreateRecipe: View {
     @State private var recipeVM = RecipeVM()
     @State private var statusMessage = ""
     @State private var steps: [String] = [""]
-    @State private var mediaInputs: [String] = [""]
     @State private var selectedImages: [Image] = []
     @State private var localMediaPaths: [URL] = []
     
@@ -108,7 +107,6 @@ struct CreateRecipe: View {
                         .foregroundColor(.secondary)
                     
                     StepsInputView(steps: $steps)
-                    //NewRecipeView(steps: $steps)
                     
                     Text("Prep Time")
                         .font(.title)
@@ -131,6 +129,7 @@ struct CreateRecipe: View {
                         .font(.title)
                         .padding()
                         .padding(.top,-20)
+                    
                     AddMedia(selectedImages: $selectedImages, localMediaPaths: $localMediaPaths)
                         .padding(.horizontal)
 
@@ -170,29 +169,29 @@ struct CreateRecipe: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         Task {
-//                            let ingredients = ingredientsInput
-//                                .split(separator: ",")
-//                                .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
-//                            let allergens = allergensInput
-//                                .split(separator: ",")
-//                                .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
-//                            let tags = tagsInput
-//                                .split(separator: ",")
-//                                .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
-//                            let prepTime = Int(prepTimeInput) ?? 0
-//                            
-//                            await recipeVM.createRecipe(
-//                                userId: userIdInput,
-//                                name: name,
-//                                ingredients: ingredients,
-//                                allergens: allergens,
-//                                tags: tags,
-//                                steps: steps,
-//                                description: description,
-//                                prepTime: prepTime,
-//                                difficulty: difficulty,
-//                                media: mediaInputs
-//                            )
+                            let ingredients = ingredientsInput
+                                .split(separator: ",")
+                                .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+                            let allergens = allergensInput
+                                .split(separator: ",")
+                                .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+                            let tags = tagsInput
+                                .split(separator: ",")
+                                .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+                            let prepTime = Int(prepTimeInput) ?? 0
+                            
+                            await recipeVM.createRecipe(
+                                userId: userIdInput,
+                                name: name,
+                                ingredients: ingredients,
+                                allergens: allergens,
+                                tags: tags,
+                                steps: steps,
+                                description: description,
+                                prepTime: prepTime,
+                                difficulty: difficulty,
+                                media: localMediaPaths
+                            )
                         }
                     } label: {
                         Image(systemName: "checkmark")
