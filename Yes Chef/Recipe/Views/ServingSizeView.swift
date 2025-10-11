@@ -7,44 +7,49 @@
 import SwiftUI
 
 struct ServingSizeView: View {
-    @Binding var selectedServingSize: ServingSize
-        
+    @Binding var selectedServingSize: Int
     var body: some View {
-        Menu {
-            Picker("Serving Size", selection: $selectedServingSize) {
-                ForEach(ServingSize.allCases) { serving in
-                    Text("\(serving.rawValue)").tag(serving)
-                }
-            }
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "person.2.fill")
-                    .font(.title2)
-                    .foregroundColor(.primary)
-                
-                Text("\(selectedServingSize.rawValue)")
-                    .font(.title)
-                    .fontWeight(.medium)
-                    .foregroundColor(.primary)
-                
-                Spacer()
-                
-                Image(systemName: "chevron.down")
+        HStack(spacing: 12) {
+            Button(action: {
+                selectedServingSize = max(0, selectedServingSize - 1)
+            }) {
+                Image(systemName: "minus")
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
+                    .frame(width: 44, height: 44)
             }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 16)
-            .background(Color(uiColor: .systemGray5))
-            .cornerRadius(15)
-            .overlay(
-                RoundedRectangle(cornerRadius: 15)
-                    .stroke(Color.primary, lineWidth: 2)
-            )
+            
+            Spacer()
+            
+            Text("\(selectedServingSize)")
+                .font(.title)
+                .fontWeight(.medium)
+                .foregroundColor(.primary)
+            
+            Spacer()
+            
+            Button(action: {
+                selectedServingSize += 1
+            }) {
+                Image(systemName: "plus")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+                    .frame(width: 44, height: 44)
+            }
         }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 16)
+        .background(Color(uiColor: .systemGray5))
+        .cornerRadius(15)
+        .overlay(
+            RoundedRectangle(cornerRadius: 15)
+                .stroke(Color.primary, lineWidth: 2)
+        )
     }
 }
+
 #Preview {
-    ServingSizeView(selectedServingSize: .constant(ServingSize.five))
+    ServingSizeView(selectedServingSize: .constant(5))
 }
