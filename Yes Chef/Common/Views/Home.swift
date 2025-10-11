@@ -5,13 +5,12 @@
 //  Created by Krish Prasad on 9/11/25.
 //
 
-import Foundation
 import SwiftUI
 
 struct Home: View {
-    @State var selectedView: TabSelection = .home
+    @State private var selectedView: TabSelection = .home
+
     var body: some View {
-        
         TabView(selection: $selectedView) {
             FeedView().tabItem {
                 Image(systemName: "house")
@@ -19,7 +18,7 @@ struct Home: View {
             CommunityView().tabItem {
                 Image(systemName: "magnifyingglass")
             }.tag(TabSelection.search)
-            CreateRecipe().tabItem {
+            AddRecipeMain().tabItem {
                 Image(systemName: "plus.circle")
             }.tag(TabSelection.post)
             LeaderboardView().tabItem {
@@ -32,8 +31,7 @@ struct Home: View {
     }
 }
 
-
-enum TabSelection {
+enum TabSelection: Hashable {
     case home, search, post, leaderboard, profile
 }
 
