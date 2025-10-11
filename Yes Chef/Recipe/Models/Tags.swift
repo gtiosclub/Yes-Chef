@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum Tag: Hashable {
+enum Tag: Hashable, Codable {
     case cuisine(Cuisine)
     case mealType(MealType)
     case course(Course)
@@ -17,7 +17,7 @@ enum Tag: Hashable {
     case occasion(Occasion)
     case time(Time)
 
-    enum Cuisine: String, CaseIterable {
+    enum Cuisine: String, CaseIterable, Codable {
         case american = "American"
         case italian = "Italian"
         case mexican = "Mexican"
@@ -39,16 +39,16 @@ enum Tag: Hashable {
         case latinAmerican = "Latin American"
     }
 
-    enum Course: String, CaseIterable {
+    enum Course: String, CaseIterable, Codable {
         case breakfast = "Breakfast"
         case brunch = "Brunch"
         case lunch = "Lunch"
         case dinner = "Dinner"
         case snack = "Snack"
-        case dessert = "Dessert"      
+        case dessert = "Dessert"
     }
 
-    enum MealType: String, CaseIterable {
+    enum MealType: String, CaseIterable, Codable {
         case beverage = "Beverage"
         case appetizer = "Appetizer"
         case soup = "Soup"
@@ -58,7 +58,7 @@ enum Tag: Hashable {
         case condiment = "Condiment"
     }
 
-    enum Dietary: String, CaseIterable {
+    enum Dietary: String, CaseIterable, Codable {
         case vegetarian = "Vegetarian"
         case vegan = "Vegan"
         case pescatarian = "Pescatarian"
@@ -75,7 +75,7 @@ enum Tag: Hashable {
         case kosher = "Kosher"
     }
 
-    enum Flavor: String, CaseIterable {
+    enum Flavor: String, CaseIterable, Codable {
         case spicy = "Spicy"
         case mild = "Mild"
         case sweet = "Sweet"
@@ -89,7 +89,7 @@ enum Tag: Hashable {
         case citrusy = "Citrusy"
     }
 
-    enum Method: String, CaseIterable {
+    enum Method: String, CaseIterable, Codable {
         case grilled = "Grilled"
         case baked = "Baked"
         case fried = "Fried"
@@ -106,7 +106,7 @@ enum Tag: Hashable {
         case raw = "Raw"
     }
 
-    enum Occasion: String, CaseIterable {
+    enum Occasion: String, CaseIterable, Codable {
         case kidFriendly = "Kid-Friendly"
         case healthy = "Healthy"
         case comfortFood = "Comfort Food"
@@ -120,7 +120,7 @@ enum Tag: Hashable {
         case crowdPleaser = "Crowd-Pleaser"
     }
 
-    enum Time: String, CaseIterable {
+    enum Time: String, CaseIterable, Codable {
         case quick = "Quick (≤30m)"
         case weeknight = "Weeknight-Friendly"
         case makeAhead = "Make-Ahead"
@@ -134,81 +134,61 @@ enum Tag: Hashable {
     }
     
     static var allTagStrings: [String] {
-        return allTags.map { tag in
-            switch tag {
-            case .cuisine(let cuisine): return cuisine.rawValue
-            case .mealType(let mealType): return mealType.rawValue
-            case .course(let course): return course.rawValue
-            case .dietary(let dietary): return dietary.rawValue
-            case .flavor(let flavor): return flavor.rawValue
-            case .method(let method): return method.rawValue
-            case .occasion(let occasion): return occasion.rawValue
-            case .time(let time): return time.rawValue
-            }
-        }
+        return allTags.map { $0.rawValue }
     }
     
     static func allCases(for category: String) -> [Tag] {
         switch category.lowercased() {
-        case "cuisine":
-            return Cuisine.allCases.map { .cuisine($0) }
-        case "meal type", "mealtype":
-            return MealType.allCases.map { .mealType($0) }
-        case "course":
-            return Course.allCases.map { .course($0) }
-        case "dietary":
-            return Dietary.allCases.map { .dietary($0) }
-        case "flavor":
-            return Flavor.allCases.map { .flavor($0) }
-        case "method":
-            return Method.allCases.map { .method($0) }
-        case "occasion":
-            return Occasion.allCases.map { .occasion($0) }
-        case "time":
-            return Time.allCases.map { .time($0) }
-        default:
-            return []
+        case "cuisine": return Cuisine.allCases.map { .cuisine($0) }
+        case "meal type", "mealtype": return MealType.allCases.map { .mealType($0) }
+        case "course": return Course.allCases.map { .course($0) }
+        case "dietary": return Dietary.allCases.map { .dietary($0) }
+        case "flavor": return Flavor.allCases.map { .flavor($0) }
+        case "method": return Method.allCases.map { .method($0) }
+        case "occasion": return Occasion.allCases.map { .occasion($0) }
+        case "time": return Time.allCases.map { .time($0) }
+        default: return []
         }
     }
     
     static var allTags: [Tag] {
-        var tags: [Tag] = []
-        tags.append(contentsOf: Cuisine.allCases.map { .cuisine($0) })
-        tags.append(contentsOf: MealType.allCases.map { .mealType($0) })
-        tags.append(contentsOf: Course.allCases.map { .course($0) })
-        tags.append(contentsOf: Dietary.allCases.map { .dietary($0) })
-        tags.append(contentsOf: Flavor.allCases.map { .flavor($0) })
-        tags.append(contentsOf: Method.allCases.map { .method($0) })
-        tags.append(contentsOf: Occasion.allCases.map { .occasion($0) })
-        tags.append(contentsOf: Time.allCases.map { .time($0) })
-        return tags
+        return Cuisine.allCases.map { .cuisine($0) }
+            + MealType.allCases.map { .mealType($0) }
+            + Course.allCases.map { .course($0) }
+            + Dietary.allCases.map { .dietary($0) }
+            + Flavor.allCases.map { .flavor($0) }
+            + Method.allCases.map { .method($0) }
+            + Occasion.allCases.map { .occasion($0) }
+            + Time.allCases.map { .time($0) }
     }
     
     static var tagsByCategory: [String: [Tag]] {
-        var grouped: [String: [Tag]] = [:]
-        grouped["Cuisine"] = Cuisine.allCases.map { .cuisine($0) }
-        grouped["Meal Type"] = MealType.allCases.map { .mealType($0) }
-        grouped["Course"] = Course.allCases.map { .course($0) }
-        grouped["Dietary"] = Dietary.allCases.map { .dietary($0) }
-        grouped["Flavor"] = Flavor.allCases.map { .flavor($0) }
-        grouped["Method"] = Method.allCases.map { .method($0) }
-        grouped["Occasion"] = Occasion.allCases.map { .occasion($0) }
-        grouped["Time"] = Time.allCases.map { .time($0) }
-        return grouped
+        return [
+            "Cuisine": Cuisine.allCases.map { .cuisine($0) },
+            "Meal Type": MealType.allCases.map { .mealType($0) },
+            "Course": Course.allCases.map { .course($0) },
+            "Dietary": Dietary.allCases.map { .dietary($0) },
+            "Flavor": Flavor.allCases.map { .flavor($0) },
+            "Method": Method.allCases.map { .method($0) },
+            "Occasion": Occasion.allCases.map { .occasion($0) },
+            "Time": Time.allCases.map { .time($0) }
+        ]
     }
     
     var rawValue: String {
         switch self {
-        default:
-            if case let .cuisine(val) = self { return val.rawValue }
-            if case let .mealType(val) = self { return val.rawValue }
-            if case let .course(val) = self { return val.rawValue }
-            if case let .dietary(val) = self { return val.rawValue }
-            if case let .flavor(val) = self { return val.rawValue }
-            if case let .method(val) = self { return val.rawValue }
-            if case let .occasion(val) = self { return val.rawValue }
-            if case let .time(val) = self { return val.rawValue }
-            return ""
+        case .cuisine(let val): return val.rawValue
+        case .mealType(let val): return val.rawValue
+        case .course(let val): return val.rawValue
+        case .dietary(let val): return val.rawValue
+        case .flavor(let val): return val.rawValue
+        case .method(let val): return val.rawValue
+        case .occasion(let val): return val.rawValue
+        case .time(let val): return val.rawValue
         }
     }
+}
+
+extension Tag: SearchableOption {
+    var displayName: String { rawValue }
 }

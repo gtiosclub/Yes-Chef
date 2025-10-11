@@ -48,8 +48,22 @@ class RemixTree {
     Should delete a node from the remix tree. If a node is deleted and it has children, the parent of the children get reassigned to the parent of the deleted node.
      */
     func deleteNode(node: RemixTreeNode) {
+        guard let parent = node.parentNode else {
+            print("Cannot delete root node")
+            return
+        }
         
+        for child in node.children {
+            child.parentNode = parent
+            parent.children.append(child)
+        }
         
+        if let index = parent.children.firstIndex(where: { child in child === node }) {
+            parent.children.remove(at: index)
+        }
+        
+        node.children.removeAll()
+        node.parentNode = nil
     }
     
     func addNode(nodeID: String, parentNode: RemixTreeNode?, rootNodeOfTree: RemixTreeNode, children: [RemixTreeNode], descriptionOfRecipeChanges: String = "") {

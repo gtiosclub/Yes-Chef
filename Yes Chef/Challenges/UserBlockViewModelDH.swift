@@ -33,11 +33,6 @@ class UserBlockViewModelDH: ObservableObject {
             DispatchQueue.main.async {
                 self.user = User(userId: dbID, username: dbUsername, email: dbemail)
             }
-            
-            //let dbID = snap.get("id") as! String
-            //let dbUsername = change.document.get("name") as! String
-            //let dbemail = document.get("email") as! String
-            //DispatchQueue.main.sync {self.user = User(userId: dbID, username: dbUsername, email: dbemail)}
         }
     }
     

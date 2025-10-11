@@ -57,25 +57,25 @@ struct StepsInputView: View {
                             onDelete: { steps.remove(at: index) }
                         )
                         .padding(.horizontal)
-                        .onDrag {
-                            draggingIndex = index
-                            return NSItemProvider(object: "\(index)" as NSString)
-                        }
-                        .onDrop(
-                            of: [dragUTType],
-                            delegate: StepReorderDropDelegate(
-                                itemIndex: index,
-                                steps: $steps,
-                                draggingIndex: $draggingIndex
-                            )
-                        )
+//                        .onDrag {
+//                            draggingIndex = index
+//                            return NSItemProvider(object: "\(index)" as NSString)
+//                        }
+//                        .onDrop(
+//                            of: [dragUTType],
+//                            delegate: StepReorderDropDelegate(
+//                                itemIndex: index,
+//                                steps: $steps,
+//                                draggingIndex: $draggingIndex
+//                            )
+//                        )
                     }
 
                     if isEditing {
                         HStack {
                             Spacer()
                             Button {
-                                withAnimation { steps.append("") }
+                               steps.append("")
                             } label: {
                                 Circle()
                                     .fill(Color.gray.opacity(0.3))
@@ -122,7 +122,7 @@ private struct StepRow: View {
             if isEditing && canDelete {
                 Button(action: onDelete) {
                     Circle()
-                        .fill(Color.gray.opacity(0.3))
+                        .fill(Color(.gray.opacity(0.3)))
                         .frame(width: 34, height: 34)
                         .overlay(Image(systemName: "minus").foregroundColor(.black).font(.title3))
                 }
@@ -139,35 +139,35 @@ private struct StepRow: View {
     }
 }
 
-private struct StepReorderDropDelegate: DropDelegate {
-    let itemIndex: Int
-    @Binding var steps: [String]
-    @Binding var draggingIndex: Int?
-
-    func dropEntered(info: DropInfo) {
-        guard let from = draggingIndex, from != itemIndex else { return }
-        let to = (from < itemIndex) ? itemIndex + 1 : itemIndex
-
-        withAnimation(.spring(response: 0.25, dampingFraction: 0.9)) {
-            steps.move(fromOffsets: IndexSet(integer: from), toOffset: to)
-            let newIndex = (from < itemIndex) ? (to - 1) : to
-            draggingIndex = newIndex
-        }
-    }
-
-    func dropUpdated(info: DropInfo) -> DropProposal? {
-        DropProposal(operation: .move)
-    }
-
-    func validateDrop(info: DropInfo) -> Bool {
-        info.hasItemsConforming(to: [.plainText])
-    }
-
-    func performDrop(info: DropInfo) -> Bool {
-        draggingIndex = nil
-        return true
-    }
-}
+//private struct StepReorderDropDelegate: DropDelegate {
+//    let itemIndex: Int
+//    @Binding var steps: [String]
+//    @Binding var draggingIndex: Int?
+//
+//    func dropEntered(info: DropInfo) {
+//        guard let from = draggingIndex, from != itemIndex else { return }
+//        let to = (from < itemIndex) ? itemIndex + 1 : itemIndex
+//
+//        withAnimation(.spring(response: 0.25, dampingFraction: 0.9)) {
+//            steps.move(fromOffsets: IndexSet(integer: from), toOffset: to)
+//            let newIndex = (from < itemIndex) ? (to - 1) : to
+//            draggingIndex = newIndex
+//        }
+//    }
+//
+//    func dropUpdated(info: DropInfo) -> DropProposal? {
+//        DropProposal(operation: .move)
+//    }
+//
+//    func validateDrop(info: DropInfo) -> Bool {
+//        info.hasItemsConforming(to: [.plainText])
+//    }
+//
+//    func performDrop(info: DropInfo) -> Bool {
+//        draggingIndex = nil
+//        return true
+//    }
+//}
 
 struct StepEditor: View {
     @Binding var text: String
@@ -192,7 +192,7 @@ struct StepEditor: View {
                 .disabled(!isEditing)
                 .opacity(isEditing ? 1 : 0.6)
         }
-        .background(Color.gray.opacity(0.2))
+        .background(Color(.systemGray6))
         .cornerRadius(10)
         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
     }
