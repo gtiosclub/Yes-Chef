@@ -59,6 +59,90 @@ struct SettingsView: View {
     }
 }
 
+struct FeedView: View {
+    @State private var viewModel = PostViewModel()
+    
+    let columns = [
+        GridItem(.flexible()),
+        GridItem(.flexible())
+    ]
+    
+    var body: some View {
+        NavigationView {
+            VStack(alignment: .leading) {
+                
+                Text("Welcome Text!")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .padding(20)
+                
+                HStack {
+                    Button("For You") {}
+                        .frame(width: 120, height: 20)
+                        .padding()
+                        .background(Color.gray.opacity(0.75))
+                        .cornerRadius(40)
+                        .foregroundColor(.white)
+                    
+                    Button("Following") {}
+                        .frame(width: 120, height: 20)
+                        .padding()
+                        .background(Color.gray.opacity(0.75))
+                        .cornerRadius(40)
+                        .foregroundColor(.white)
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+                
+                
+                ScrollView {
+                    if viewModel.recipes.isEmpty {
+                        Text("No recipes available.")
+                            .foregroundColor(.gray)
+                            .padding(.top, 50)
+                    } else {
+                        LazyVGrid(columns: columns, spacing: 16) {
+                            ForEach(viewModel.recipes) { recipe in
+                                VStack {
+                                    if let firstImage = recipe.media.first,
+                                       let url = URL(string: firstImage) {
+                                        AsyncImage(url: url) { image in
+                                            image
+                                                .resizable()
+                                                .scaledToFill()
+                                        } placeholder: {
+                                            Color.gray.opacity(0.3)
+                                        }
+                                        .frame(height: 150)
+                                        .clipped()
+                                        .cornerRadius(10)
+                                    } else {
+                                        Color.gray.opacity(0.3)
+                                            .frame(height: 150)
+                                            .cornerRadius(10)
+                                    }
+                                    
+                                    Text(recipe.name)
+                                        .font(.headline)
+                                        .multilineTextAlignment(.center)
+                                        .padding(.top, 5)
+                                }
+                            }
+                        }
+                        .padding()
+                    }
+                }
+            }
+            .task {
+                do {
+                    try await viewModel.fetchPosts()
+                } catch {
+                    print("Failed to fetch recipes: \(error)")
+                }
+            }
+        }
+    }
+}
+
 #Preview {
-    SettingsView()
+    FeedView()
 }

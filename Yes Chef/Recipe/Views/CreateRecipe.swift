@@ -7,26 +7,15 @@
 import SwiftUI
 
 struct CreateRecipe: View {
-    @State private var userIdInput = ""
-    @State private var name = ""
-    @State private var description = ""
-    @State private var selectedIngredients: [SearchableValue<Ingredient>] = []
-    @State private var selectedAllergens: [SearchableValue<Allergen>] = []
-    @State private var selectedTags: [SearchableValue<Tag>] = []
-    @State private var prepTimeInput = ""
-    @State private var difficulty: Difficulty = .easy
-    @State private var recipeVM = RecipeVM()
-    @State private var statusMessage = ""
-    @State private var steps: [String] = [""]
-    @State private var mediaInputs: [String] = [""]
+    @State private var recipeVM = CreateRecipeVM()
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading) {
                     SectionHeader(title: "Name")
-                
-                    TextField("Enter Recipe Name", text: $name)
+
+                    TextField("Enter Recipe Name", text: $recipeVM.name)
                         .font(.subheadline)
                         .padding(10)
                         .foregroundColor(.primary)
@@ -37,8 +26,8 @@ struct CreateRecipe: View {
                         .foregroundColor(.secondary)
                     
                     SectionHeader(title: "Description")
-                    
-                    TextField("Enter Recipe Description", text: $description)
+
+                    TextField("Enter Recipe Description", text: $recipeVM.description)
                         .font(.subheadline)
                         .padding(10)
                         .padding(.bottom,90)
@@ -78,7 +67,7 @@ struct CreateRecipe: View {
                         allowCustom: true
                     )
                     
-                    StepsInputView(steps: $steps)
+                    StepsInputView(steps: $recipeVM.steps)
                     //NewRecipeView(steps: $steps)
                     
                     Text("Prep Time")
@@ -86,8 +75,8 @@ struct CreateRecipe: View {
                         .padding()
                         .padding(.top,-20)
                         .padding(.bottom, -38)
-                    
-                    TextField("Enter Prep Time in Minutes", text: $prepTimeInput)
+
+                    TextField("Enter Prep Time in Minutes", text: $recipeVM.prepTimeInput)
                         .keyboardType(.numberPad)
                         .font(.subheadline)
                         .padding(10)
@@ -97,19 +86,19 @@ struct CreateRecipe: View {
                         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
                         .padding()
                         .foregroundColor(.secondary)
-                    
+
                     Text("Media")
                         .font(.title)
                         .padding()
                         .padding(.top,-20)
-                    
+
                     Text("Difficulty")
                         .font(.title)
                         .padding()
                         .padding(.top,-20)
                         .padding(.bottom,-20)
-                    
-                    Picker("Choose a Difficulty", selection: $difficulty) {
+
+                    Picker("Choose a Difficulty", selection: $recipeVM.difficulty) {
                         ForEach(Difficulty.allCases, id: \.self) { level in
                             Text(level.rawValue).tag(level)
                         }
@@ -127,8 +116,7 @@ struct CreateRecipe: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                    } label: {
+                    Button {} label: {
                         Image(systemName: "xmark")
                             .font(.title2)
                             .foregroundStyle(.red)
@@ -144,16 +132,20 @@ struct CreateRecipe: View {
                             let prepTime = Int(prepTimeInput) ?? 0
                             
                             await recipeVM.createRecipe(
-                                userId: userIdInput,
-                                name: name,
-                                ingredients: ingredients,
-                                allergens: allergens,
-                                tags: tags,
-                                steps: steps,
+                                userId: recipeVM.userIdInput,
+                                name: recipeVM.name,
+                                ingredients: recipeVM.ingredients,
+                                allergens: recipeVM.allergens,
+                                tags: recipeVM.tags,
+                                steps: recipeVM.steps,
+                                description: recipeVM.description,
+                                prepTime: recipeVM.prepTime,
+                                difficulty: recipeVM.difficulty,
+                                media: recipeVM.mediaInputs
+                            )
+                            
+                            await FireBaseDemo.addRecipeToRemixTreeAsRoot(
                                 description: description,
-                                prepTime: prepTime,
-                                difficulty: difficulty,
-                                media: mediaInputs
                             )
                         }
                     } label: {

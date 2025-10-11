@@ -7,7 +7,8 @@
 import SwiftUI
 
 struct HistoryBlock: Identifiable, Equatable {
-    let id: String
-    var title: String
+    let id = UUID()
+    var date: String
     var challengeName: String
+    
 }
