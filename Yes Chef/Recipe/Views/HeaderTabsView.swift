@@ -13,25 +13,31 @@ struct HeaderTabsView: View {
         NavigationStack{
             VStack(spacing: 0){
                 HStack{
-                    Image(systemName: "xmark").font(.title2)
-                        .foregroundStyle(.red)
-                        .bold()
+                    Image(systemName: "xmark")
+                        .resizable()
+                        .frame(width:20, height:20)
+                        .foregroundStyle(.black)
                     Spacer()
-                    Text("Add Recipe").font(.custom("Georgia", size: 32)).fontWeight(.bold)
+                    
+                    Text("Add Recipe")
+                        .font(.custom("Georgia", size: 30))
+                        .foregroundStyle(Color(hex: "#453736"))
+                        .fontWeight(.bold)
+                    
                     Spacer()
-                    Image(systemName: "checkmark").font(.title2)
-                        .foregroundStyle(.gray)
-                        .bold()
-                }.padding(.horizontal)
+                    
+                    Image(systemName: "checkmark")
+                        .resizable()
+                        .frame(width:20, height:20)
+                        .foregroundStyle(.black)
+                }
+                .padding(.horizontal, 10)
+                .padding()
+                
                 HStack{
                     curvedTab(title: "Edit Details", tag: "EditDetails", leftSide: true)
                     curvedTab(title: "AI Chef", tag: "AIChef", leftSide: false)
                 }.frame(height: 50)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(Color.gray.opacity(0.4), lineWidth: 1)
-                    )
             }
             VStack {
                 if selectedTab == "EditDetails" {
@@ -42,71 +48,123 @@ struct HeaderTabsView: View {
                         .foregroundColor(.gray)
                         .padding()
                 }
-                Spacer() // pushes content to top
+                Spacer()
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
     }
     private func curvedTab(title: String, tag: String, leftSide: Bool) -> some View {
-        Button(action: {
-                    selectedTab = tag
-                }) {
-                    Text(title)
-                        .font(.headline)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(
-                            Group {
-                                if selectedTab == tag {
-                                    Color.white
-                                } else {
-                                    Color(.systemBrown).opacity(0.25) // Tan-like
-                                }
+        ZStack {
+            Button(action: {
+                selectedTab = tag
+            }) {
+                Text(title)
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(
+                        Group {
+                            if selectedTab == tag {
+                                Color.white
+                            } else {
+                                Color(.systemBrown).opacity(0.25)
                             }
-                        )
-                        .foregroundColor(.black)
-                        .clipShape(
-                            RoundedCornerShape(
-                                topLeft: 0,
-                                topRight: 0,
-                                bottomLeft: leftSide ? 16 : 0,
-                                bottomRight: leftSide ? 0 : 16
-                            )
-                        )
-                }
-                .buttonStyle(.plain)
+                        }
+                    )
+                    .foregroundColor(.black)
+                    .clipShape(
+                        TabShape()
+                    )
+                    .overlay(
+                        TabBorder(cornerRadius: 16)
+                                    .stroke(Color.gray, lineWidth: 1)
+                    )
+                
             }
+            .buttonStyle(.plain)
+        }
+    }
 }
-// MARK: - Custom shape for selective corners
-struct RoundedCornerShape: Shape {
-    var topLeft: CGFloat = 0
-    var topRight: CGFloat = 0
-    var bottomLeft: CGFloat = 0
-    var bottomRight: CGFloat = 0
 
+// MARK: - Custom shape for selective corners
+struct TabShape: Shape {
+    var cornerRadius: CGFloat = 12
+    
     func path(in rect: CGRect) -> Path {
         var path = Path()
+        
+        // Start at bottom left
+        path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
+        
+        // Line up to top left corner curve
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + cornerRadius))
+        
+        // Top left corner arc
+        path.addArc(
+            center: CGPoint(x: rect.minX + cornerRadius, y: rect.minY + cornerRadius),
+            radius: cornerRadius,
+            startAngle: Angle(degrees: 180),
+            endAngle: Angle(degrees: 270),
+            clockwise: false
+        )
+        
+        // Line across the top
+        path.addLine(to: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY))
+        
+        // Top right corner arc
+        path.addArc(
+            center: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY + cornerRadius),
+            radius: cornerRadius,
+            startAngle: Angle(degrees: 270),
+            endAngle: Angle(degrees: 0),
+            clockwise: false
+        )
+        
+        // Line down to bottom right
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        
+        // Line across the bottom (flat)
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        
+        return path
+    }
+}
 
-        path.move(to: CGPoint(x: rect.minX + topLeft, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX - topRight, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - bottomRight))
-        path.addArc(center: CGPoint(x: rect.maxX - bottomRight, y: rect.maxY - bottomRight),
-                    radius: bottomRight,
-                    startAngle: Angle(degrees: 0),
-                    endAngle: Angle(degrees: 90),
-                    clockwise: false)
-        path.addLine(to: CGPoint(x: rect.minX + bottomLeft, y: rect.maxY))
-        path.addArc(center: CGPoint(x: rect.minX + bottomLeft, y: rect.maxY - bottomLeft),
-                    radius: bottomLeft,
-                    startAngle: Angle(degrees: 90),
-                    endAngle: Angle(degrees: 180),
-                    clockwise: false)
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + topLeft))
-        path.addArc(center: CGPoint(x: rect.minX + topLeft, y: rect.minY + topLeft),
-                    radius: topLeft,
-                    startAngle: Angle(degrees: 180),
-                    endAngle: Angle(degrees: 270),
-                    clockwise: false)
-
+struct TabBorder: Shape {
+    var cornerRadius: CGFloat = 12
+    
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        
+        // Start at bottom left (don't draw bottom border)
+        path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
+        
+        // Line up the left side
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + cornerRadius))
+        
+        // Top left corner arc
+        path.addArc(
+            center: CGPoint(x: rect.minX + cornerRadius, y: rect.minY + cornerRadius),
+            radius: cornerRadius,
+            startAngle: Angle(degrees: 180),
+            endAngle: Angle(degrees: 270),
+            clockwise: false
+        )
+        
+        // Line across the top
+        path.addLine(to: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY))
+        
+        // Top right corner arc
+        path.addArc(
+            center: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY + cornerRadius),
+            radius: cornerRadius,
+            startAngle: Angle(degrees: 270),
+            endAngle: Angle(degrees: 0),
+            clockwise: false
+        )
+        
+        // Line down the right side
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        
         return path
     }
 }
