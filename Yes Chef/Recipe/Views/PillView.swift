@@ -12,14 +12,16 @@ enum AcceptedTypes {
     case tags(Tag)
     case allergens(Allergen)
     case ingredients(Ingredient)
+    case customString(String)
     
     var displayName: String {
-            switch self {
-            case .tags(let tag): return tag.rawValue.capitalized
-            case .ingredients(let ingredient): return ingredient.rawValue.capitalized
-            case .allergens(let allergen): return allergen.rawValue.capitalized
-            }
+        switch self {
+        case .tags(let tag): return tag.rawValue.capitalized
+        case .ingredients(let ingredient): return ingredient.rawValue.capitalized
+        case .allergens(let allergen): return allergen.rawValue.capitalized
+        case .customString(let string): return string
         }
+    }
 }
 
 struct PillView: View {
@@ -28,19 +30,21 @@ struct PillView: View {
     
     var body: some View {
         Button(action: onClick) {
-                Text(value.displayName)
+            Text(value.displayName)
                 .font(.system(size: 14, weight: .semibold))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(
-                            Capsule()
-                                .fill(Color.gray.opacity(0.2))
-                        )
-                        .foregroundColor(.gray)
-                }
-                .buttonStyle(.plain)
-            }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    Capsule()
+                        .fill(Color.gray.opacity(0.2))
+                )
+                .foregroundColor(.gray)
+        }
+        .buttonStyle(.plain)
     }
+}
+
+
 struct PillView_Previews: PreviewProvider {
     static var previews: some View {
         VStack(spacing: 12) {

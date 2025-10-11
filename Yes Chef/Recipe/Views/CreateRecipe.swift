@@ -13,98 +13,60 @@ struct CreateRecipe: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading) {
-                    Text("Name")
-                        .font(.title)
-                        .padding()
-                        .padding(.bottom, -40)
+                    SectionHeader(title: "Name")
 
                     TextField("Enter Recipe Name", text: $recipeVM.name)
                         .font(.subheadline)
                         .padding(10)
                         .foregroundColor(.primary)
-                        .background(Color.gray.opacity(0.2))
+                        .background(Color(.systemGray6))
                         .cornerRadius(10)
                         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                        .padding()
+                        .padding(.horizontal)
                         .foregroundColor(.secondary)
-
-                    Text("Description")
-                        .font(.title)
-                        .padding()
-                        .padding(.top,-20)
-                        .padding(.bottom, -38)
+                    
+                    SectionHeader(title: "Description")
 
                     TextField("Enter Recipe Description", text: $recipeVM.description)
                         .font(.subheadline)
                         .padding(10)
                         .padding(.bottom,90)
                         .foregroundColor(.primary)
-                        .background(Color.gray.opacity(0.2))
+                        .background(Color(.systemGray6))
                         .cornerRadius(10)
                         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                        .padding()
+                        .padding(.horizontal)
                         .foregroundColor(.secondary)
-
-                    Text("Ingredients")
-                        .font(.title)
-                        .padding()
-                        .padding(.top,-20)
-                        .padding(.bottom, -38)
-
-                    TextField(
-                        "Enter Ingredients (Comma Separated)",
-                        text: Binding(get: { recipeVM.ingredientsInput }, set: { recipeVM.onIngredientsChanged($0) })
+                    
+                    SectionHeader(title: "Ingredients")
+                                        
+                    SearchableDropdown(
+                        options: Ingredient.allIngredients,
+                        selectedValues: $recipeVM.selectedIngredients,
+                        placeholder: "Add ingredients...",
+                        allowCustom: true
                     )
-                    .font(.subheadline)
-                    .padding(10)
-                    .padding(.bottom,30)
-                    .foregroundColor(.primary)
-                    .background(Color.gray.opacity(0.2))
-                    .cornerRadius(10)
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                    .padding()
-                    .foregroundColor(.secondary)
-
-                    Text("Allergens")
-                        .font(.title)
-                        .padding()
-                        .padding(.top,-20)
-                        .padding(.bottom, -38)
-
-                    TextField(
-                        "Enter Allergens (Comma Separated)",
-                        text: Binding(get: { recipeVM.allergensInput }, set: { recipeVM.onAllergensChanged($0) })
+                    
+                    SectionHeader(title: "Allergens")
+                    
+                    SearchableDropdown(
+                        options: Allergen.allCases,
+                        selectedValues: $recipeVM.selectedAllergens,
+                        placeholder: "Add allergens...",
+                        allowCustom: true
                     )
-                    .font(.subheadline)
-                    .padding(10)
-                    .foregroundColor(.primary)
-                    .background(Color.gray.opacity(0.2))
-                    .cornerRadius(10)
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                    .padding()
-                    .foregroundColor(.secondary)
-
-                    Text("Tags")
-                        .font(.title)
-                        .padding()
-                        .padding(.top,-20)
-                        .padding(.bottom, -38)
-
-                    TextField(
-                        "Enter Tags (Comma Separated)",
-                        text: Binding(get: { recipeVM.tagsInput }, set: { recipeVM.onTagsChanged($0) })
+                
+                    SectionHeader(title: "Tags")
+                    
+                    SearchableDropdown(
+                        options: Tag.allTags,
+                        selectedValues: $recipeVM.selectedTags,
+                        placeholder: "Add tags...",
+                        allowCustom: false
                     )
-                    .font(.subheadline)
-                    .padding(10)
-                    .foregroundColor(.primary)
-                    .background(Color.gray.opacity(0.2))
-                    .cornerRadius(10)
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                    .padding()
-                    .foregroundColor(.secondary)
-
+                    
                     StepsInputView(steps: $recipeVM.steps)
-
+                    
                     Text("Prep Time")
                         .font(.title)
                         .padding()
@@ -116,7 +78,7 @@ struct CreateRecipe: View {
                         .font(.subheadline)
                         .padding(10)
                         .foregroundColor(.primary)
-                        .background(Color.gray.opacity(0.2))
+                        .background(Color(.systemGray6))
                         .cornerRadius(10)
                         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
                         .padding()
@@ -174,9 +136,9 @@ struct CreateRecipe: View {
                                 media: recipeVM.mediaInputs
                             )
                             
-                            await FireBaseDemo.addRecipeToRemixTreeAsRoot(
-                                description: description,
-                            )
+//                            await FirebaseDemo.addRecipeToRemixTreeAsRoot(
+//                                description: recipeVM.description,
+//                            )
                         }
                     } label: {
                         Image(systemName: "checkmark")
@@ -190,4 +152,18 @@ struct CreateRecipe: View {
     }
 }
 
-#Preview { CreateRecipe() }
+struct SectionHeader: View {
+    let title: String
+    
+    var body: some View {
+        Text(title)
+            .font(.title2)
+            .fontWeight(.semibold)
+            .padding(.horizontal)
+            .padding(.top, 4)
+    }
+}
+
+#Preview {
+    CreateRecipe()
+}

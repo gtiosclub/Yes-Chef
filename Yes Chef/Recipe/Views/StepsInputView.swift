@@ -122,7 +122,7 @@ private struct StepRow: View {
             if isEditing && canDelete {
                 Button(action: onDelete) {
                     Circle()
-                        .fill(Color.gray.opacity(0.3))
+                        .fill(Color(.gray.opacity(0.3)))
                         .frame(width: 34, height: 34)
                         .overlay(Image(systemName: "minus").foregroundColor(.black).font(.title3))
                 }
@@ -192,7 +192,7 @@ struct StepEditor: View {
                 .disabled(!isEditing)
                 .opacity(isEditing ? 1 : 0.6)
         }
-        .background(Color.gray.opacity(0.2))
+        .background(Color(.systemGray6))
         .cornerRadius(10)
         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
     }

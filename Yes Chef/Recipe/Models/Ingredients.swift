@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum Ingredient: Hashable {
+enum Ingredient: Hashable, Codable {
     case protein(Protein)
     case vegetable(Vegetable)
     case grain(Grain)
@@ -253,25 +253,18 @@ enum Ingredient: Hashable {
     }
     
     static var allCategories: [String] {
-        return ["Protein", "Vegetable", "Grain", "Dairy", "Seasoning"]
+        return ["Protein", "Vegetable", "Grain", "Dairy", "Seasoning", "Fruit"]
     }
     
     static func allCases(for category: String) -> [Ingredient] {
         switch category.lowercased() {
-        case "protein":
-            return Protein.allCases.map { .protein($0) }
-        case "vegetable":
-            return Vegetable.allCases.map { .vegetable($0) }
-        case "grain":
-            return Grain.allCases.map { .grain($0) }
-        case "dairy":
-            return Dairy.allCases.map { .dairy($0) }
-        case "seasoning":
-            return Seasoning.allCases.map { .seasoning($0) }
-        case "fruit":
-            return Fruit.allCases.map { .fruit($0) }
-        default:
-            return []
+        case "protein": return Protein.allCases.map { .protein($0) }
+        case "vegetable": return Vegetable.allCases.map { .vegetable($0) }
+        case "grain": return Grain.allCases.map { .grain($0) }
+        case "dairy": return Dairy.allCases.map { .dairy($0) }
+        case "seasoning": return Seasoning.allCases.map { .seasoning($0) }
+        case "fruit": return Fruit.allCases.map { .fruit($0) }
+        default: return []
         }
     }
     
@@ -283,27 +276,11 @@ enum Ingredient: Hashable {
         ingredients.append(contentsOf: Dairy.allCases.map { .dairy($0) })
         ingredients.append(contentsOf: Seasoning.allCases.map { .seasoning($0) })
         ingredients.append(contentsOf: Fruit.allCases.map { .fruit($0) })
-
         return ingredients
     }
     
     static var allIngredientStrings: [String] {
-        return allIngredients.map { ingredient in
-            switch ingredient {
-            case .protein(let protein):
-                return protein.rawValue
-            case .vegetable(let vegetable):
-                return vegetable.rawValue
-            case .grain(let grain):
-                return grain.rawValue
-            case .dairy(let dairy):
-                return dairy.rawValue
-            case .seasoning(let seasoning):
-                return seasoning.rawValue
-            case .fruit(let fruit):
-                return fruit.rawValue
-            }
-        }
+        return allIngredients.map { $0.rawValue }
     }
     
     static var ingredientsByCategory: [String: [Ingredient]] {
@@ -314,20 +291,74 @@ enum Ingredient: Hashable {
         grouped["Dairy"] = Dairy.allCases.map { .dairy($0) }
         grouped["Seasoning"] = Seasoning.allCases.map { .seasoning($0) }
         grouped["Fruit"] = Fruit.allCases.map { .fruit($0) }
-        
         return grouped
     }
     
     var rawValue: String {
         switch self {
-        default:
-            if case let .protein(val) = self { return val.rawValue }
-            if case let .vegetable(val) = self { return val.rawValue }
-            if case let .grain(val) = self { return val.rawValue }
-            if case let .dairy(val) = self { return val.rawValue }
-            if case let .seasoning(val) = self { return val.rawValue }
-            if case let .fruit(val) = self { return val.rawValue }
-            return ""
+        case .protein(let val): return val.rawValue
+        case .vegetable(let val): return val.rawValue
+        case .grain(let val): return val.rawValue
+        case .dairy(let val): return val.rawValue
+        case .seasoning(let val): return val.rawValue
+        case .fruit(let val): return val.rawValue
         }
     }
+}
+
+extension Ingredient {
+    enum CodingKeys: String, CodingKey {
+        case category, value
+    }
+}
+
+extension Ingredient {
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let category = try container.decode(String.self, forKey: .category)
+        let value = try container.decode(String.self, forKey: .value)
+
+        switch category {
+        case "Protein": self = .protein(Protein(rawValue: value)!)
+        case "Vegetable": self = .vegetable(Vegetable(rawValue: value)!)
+        case "Grain": self = .grain(Grain(rawValue: value)!)
+        case "Dairy": self = .dairy(Dairy(rawValue: value)!)
+        case "Seasoning": self = .seasoning(Seasoning(rawValue: value)!)
+        case "Fruit": self = .fruit(Fruit(rawValue: value)!)
+        default:
+            throw DecodingError.dataCorruptedError(
+                forKey: .category,
+                in: container,
+                debugDescription: "Unknown ingredient category: \(category)"
+            )
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        switch self {
+        case .protein(let p):
+            try container.encode("Protein", forKey: .category)
+            try container.encode(p.rawValue, forKey: .value)
+        case .vegetable(let v):
+            try container.encode("Vegetable", forKey: .category)
+            try container.encode(v.rawValue, forKey: .value)
+        case .grain(let g):
+            try container.encode("Grain", forKey: .category)
+            try container.encode(g.rawValue, forKey: .value)
+        case .dairy(let d):
+            try container.encode("Dairy", forKey: .category)
+            try container.encode(d.rawValue, forKey: .value)
+        case .seasoning(let s):
+            try container.encode("Seasoning", forKey: .category)
+            try container.encode(s.rawValue, forKey: .value)
+        case .fruit(let f):
+            try container.encode("Fruit", forKey: .category)
+            try container.encode(f.rawValue, forKey: .value)
+        }
+    }
+}
+
+extension Ingredient: SearchableOption {
+    var displayName: String { rawValue }
 }
