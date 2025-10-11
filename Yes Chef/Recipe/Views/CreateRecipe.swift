@@ -68,11 +68,7 @@ struct CreateRecipe: View {
 
                     StepsInputView(steps: $recipeVM.steps)
                     
-                    Text("Prep Time")
-                        .font(.title)
-                        .padding()
-                        .padding(.top,-20)
-                        .padding(.bottom, -38)
+                    SectionHeader(title: "Prep Time")
 
                     TextField("Enter Prep Time in Minutes", text: $recipeVM.prepTimeInput)
                         .keyboardType(.numberPad)
@@ -82,37 +78,18 @@ struct CreateRecipe: View {
                         .background(Color(.systemGray6))
                         .cornerRadius(10)
                         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                        .padding()
                         .foregroundColor(.secondary)
 
-                    Text("Media")
-                        .font(.title)
-                        .padding()
-                        .padding(.top,-20)
+                    SectionHeader(title: "Media")
                     
                     AddMedia(selectedImages: $recipeVM.selectedImages, localMediaPaths: $recipeVM.localMediaPaths)
                         .padding(.horizontal)
 
                     
 
-                    Text("Difficulty")
-                        .font(.title)
-                        .padding()
-                        .padding(.top,-20)
-                        .padding(.bottom,-20)
+                    SectionHeader(title: "Difficulty")
 
-                    Picker("Choose a Difficulty", selection: $recipeVM.difficulty) {
-                        ForEach(Difficulty.allCases, id: \.self) { level in
-                            Text(level.rawValue).tag(level)
-                        }
-                    }
-                    .pickerStyle(MenuPickerStyle())
-                    .padding(5)
-                    .frame(maxWidth: .infinity)
-                    .background(Color.gray.opacity(0.2))
-                    .cornerRadius(10)
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                    .padding(.horizontal)
+                    DifficultyLevelView(difficulty: $recipeVM.difficulty)
                 }
             }
         }
@@ -124,13 +101,15 @@ struct SectionHeader: View {
     
     var body: some View {
         Text(title)
-            .font(.title2)
+            .font(.custom("Georgia", size: 24))
+            .foregroundStyle(Color(hex: "#453736"))
             .fontWeight(.semibold)
             .padding(.horizontal)
             .padding(.top, 4)
+            .padding(.bottom, -2)
     }
 }
 
 //#Preview {
-//    CreateRecipe()
+//    CreateRecipe(recipeVM: recipeVM)
 //}

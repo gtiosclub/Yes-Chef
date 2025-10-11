@@ -18,8 +18,8 @@ struct StepsInputView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Steps")
-                    .font(.title)
+                SectionHeader(title: "Steps")
+                    .padding(.leading, -8)
                 Spacer()
                 Button {
                     withAnimation(.easeInOut(duration: 0.15)) {
@@ -110,7 +110,9 @@ private struct StepRow: View {
     var body: some View {
         HStack(alignment: .center, spacing: 10) {
             Text(String(format: "%02d", index + 1))
-                .font(.title)
+                .font(.custom("Georgia", size: 24))
+                .foregroundStyle(Color(hex: "#453736"))
+                .fontWeight(.semibold)
                 .frame(width: 40, alignment: .center)
 
             StepEditor(
@@ -188,7 +190,7 @@ struct StepEditor: View {
                 .font(.subheadline)
                 .frame(minHeight: 40, maxHeight: 100)
                 .padding(.horizontal, 4)
-                .padding(.vertical, 8)
+                .padding(.vertical, 2)
                 .disabled(!isEditing)
                 .opacity(isEditing ? 1 : 0.6)
         }
