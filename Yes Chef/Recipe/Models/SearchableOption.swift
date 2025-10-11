@@ -14,4 +14,3 @@ extension SearchableOption {
     var id: String { displayName }
 }
 
-

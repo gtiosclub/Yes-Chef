@@ -10,9 +10,9 @@ struct CreateRecipe: View {
     @State private var userIdInput = ""
     @State private var name = ""
     @State private var description = ""
-    @State private var ingredientsInput = ""
-    @State private var allergensInput = ""
-    @State private var tagsInput = ""
+    @State private var selectedIngredients: [Ingredient] = []
+    @State private var selectedAllergens: [Allergen] = []
+    @State private var selectedTags: [Tag] = []
     @State private var prepTimeInput = ""
     @State private var difficulty: Difficulty = .easy
     @State private var recipeVM = RecipeVM()
@@ -56,32 +56,28 @@ struct CreateRecipe: View {
                         .padding()
                         .foregroundColor(.secondary)
                     
-                    Text("Ingredients")
-                        .font(.title)
-                        .padding()
-                        .padding(.top,-20)
-                        .padding(.bottom, -23)
+                    SectionHeader(title: "Ingredients")
                     
-                    SearchableDropdownView(
-                        viewModel: SearchableDropdownVM(options: Ingredient.allIngredients)
+                    SearchableDropdown(
+                        options: Ingredient.allIngredients,
+                        selectedOptions: $selectedIngredients,
+                        placeholder: "Add ingredients..."
                     )
                     
-                    Text("Allergens")
-                        .font(.title)
-                        .padding()
-                        .padding(.bottom, -23)
+                    SectionHeader(title: "Allergens")
                     
-                    SearchableDropdownView(
-                        viewModel: SearchableDropdownVM(options: Allergen.allCases)
+                    SearchableDropdown(
+                        options: Allergen.allCases,
+                        selectedOptions: $selectedAllergens,
+                        placeholder: "Add allergens..."
                     )
                     
-                    Text("Tags")
-                        .font(.title)
-                        .padding()
-                        .padding(.bottom, -23)
+                    SectionHeader(title: "Tags")
                     
-                    SearchableDropdownView(
-                        viewModel: SearchableDropdownVM(options: Tag.allTags)
+                    SearchableDropdown(
+                        options: Tag.allTags,
+                        selectedOptions: $selectedTags,
+                        placeholder: "Add tags..."
                     )
                     
                     StepsInputView(steps: $steps)
@@ -144,15 +140,9 @@ struct CreateRecipe: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         Task {
-                            let ingredients = ingredientsInput
-                                .split(separator: ",")
-                                .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
-                            let allergens = allergensInput
-                                .split(separator: ",")
-                                .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
-                            let tags = tagsInput
-                                .split(separator: ",")
-                                .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+                            let ingredients = selectedIngredients.map { $0.displayName }
+                            let allergens = selectedAllergens.map { $0.displayName }
+                            let tags = selectedTags.map { $0.displayName }
                             let prepTime = Int(prepTimeInput) ?? 0
                             
                             await recipeVM.createRecipe(
@@ -177,6 +167,34 @@ struct CreateRecipe: View {
                 }
             }
         }
+    }
+}
+
+struct CustomTextFieldStyle: TextFieldStyle {
+    func _body(configuration: TextField<Self._Label>) -> some View {
+        configuration
+            .font(.system(size: 15))
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(Color(.systemGray6))
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color(.systemGray4), lineWidth: 1)
+            )
+            .padding(.horizontal)
+    }
+}
+
+struct SectionHeader: View {
+    let title: String
+    
+    var body: some View {
+        Text(title)
+            .font(.title2)
+            .fontWeight(.semibold)
+            .padding(.horizontal)
+            .padding(.top, 4)
     }
 }
 
