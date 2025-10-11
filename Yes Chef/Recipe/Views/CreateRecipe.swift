@@ -65,6 +65,7 @@ struct CreateRecipe: View {
                         allowCustom: false
                     )
                     
+
                     StepsInputView(steps: $recipeVM.steps)
                     
                     Text("Prep Time")
@@ -88,6 +89,11 @@ struct CreateRecipe: View {
                         .font(.title)
                         .padding()
                         .padding(.top,-20)
+                    
+                    AddMedia(selectedImages: $recipeVM.selectedImages, localMediaPaths: $recipeVM.localMediaPaths)
+                        .padding(.horizontal)
+
+                    
 
                     Text("Difficulty")
                         .font(.title)

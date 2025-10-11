@@ -39,7 +39,7 @@ struct AddRecipeMain: View {
                                 description: recipeVM.description,
                                 prepTime: recipeVM.prepTime,
                                 difficulty: recipeVM.difficulty,
-                                media: recipeVM.mediaInputs
+                                media: recipeVM.localMediaPaths
                             )
                             
 //                            await FirebaseDemo.addRecipeToRemixTreeAsRoot(
