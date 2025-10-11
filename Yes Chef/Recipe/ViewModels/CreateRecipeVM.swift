@@ -14,58 +14,99 @@ import FirebaseStorage
     var userIdInput: String = ""
     var name: String = ""
     var description: String = ""
-    var ingredientsInput: String = ""
-    var allergensInput: String = ""
-    var tagsInput: String = ""
+    var selectedIngredients: [SearchableValue<Ingredient>] = []
+    var selectedAllergens: [SearchableValue<Allergen>] = []
+    var selectedTags: [SearchableValue<Tag>] = []
     var prepTimeInput: String = ""
     var difficulty: Difficulty = .easy
     var steps: [String] = [""]
     var mediaInputs: [String] = [""]
-
-    private(set) var ingredients: [String] = []
-    private(set) var allergens: [String] = []
-    private(set) var tags: [String] = []
-
-    private func normalizedArray(from text: String) -> [String] {
-        text.split(separator: ",")
-            .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
+    
+    var ingredients: [String] {
+        selectedIngredients.map { $0.displayName }
     }
-
-    func onIngredientsChanged(_ text: String) { ingredientsInput = text; ingredients = normalizedArray(from: text) }
-    func onAllergensChanged(_ text: String)  { allergensInput  = text; allergens  = normalizedArray(from: text) }
-    func onTagsChanged(_ text: String)       { tagsInput       = text; tags       = normalizedArray(from: text) }
+    
+    var allergens: [String] {
+        selectedAllergens.map { $0.displayName }
+    }
+    
+    var tags: [String] {
+        selectedTags.map { $0.displayName }
+    }
 
     var prepTime: Int { Int(prepTimeInput) ?? 0 }
 
     func applyChanges(item: String, removing: [String], adding: [String]) {
-        switch item.lowercased() {
-        case "title":
-            if let newTitle = adding.first { name = newTitle }
-        case "ingredients":
-            var set = Set(ingredients.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
-            let removingKeys = Set(removing.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
-            var next = ingredients.filter { !removingKeys.contains($0.lowercased()) }
-            for add in adding {
-                let key = add.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-                if !set.contains(key) { next.append(add); set.insert(key) }
+            switch item.lowercased() {
+            case "title":
+                if let newTitle = adding.first {
+                    name = newTitle
+                }
+                
+            case "ingredients":
+                let removingSet = Set(removing.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
+                selectedIngredients.removeAll { value in
+                    removingSet.contains(value.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines))
+                }
+                
+                let existingSet = Set(selectedIngredients.map { $0.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
+                for add in adding {
+                    let key = add.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !existingSet.contains(key) {
+                        if let matchingIngredient = Ingredient.allIngredients.first(where: {
+                            $0.displayName.lowercased() == key
+                        }) {
+                            selectedIngredients.append(.predefined(matchingIngredient))
+                        } else {
+                            selectedIngredients.append(.custom(add.trimmingCharacters(in: .whitespacesAndNewlines)))
+                        }
+                    }
+                }
+                
+            case "allergens":
+                let removingSet = Set(removing.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
+                selectedAllergens.removeAll { value in
+                    removingSet.contains(value.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines))
+                }
+                
+                let existingSet = Set(selectedAllergens.map { $0.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
+                for add in adding {
+                    let key = add.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !existingSet.contains(key) {
+                        if let matchingAllergen = Allergen.allCases.first(where: {
+                            $0.displayName.lowercased() == key
+                        }) {
+                            selectedAllergens.append(.predefined(matchingAllergen))
+                        } else {
+                            selectedAllergens.append(.custom(add.trimmingCharacters(in: .whitespacesAndNewlines)))
+                        }
+                    }
+                }
+                
+            case "tags":
+                let removingSet = Set(removing.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
+                selectedTags.removeAll { value in
+                    removingSet.contains(value.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines))
+                }
+                
+                let existingSet = Set(selectedTags.map { $0.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
+                for add in adding {
+                    let key = add.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !existingSet.contains(key) {
+                        if let matchingTag = Tag.allTags.first(where: {
+                            $0.displayName.lowercased() == key
+                        }) {
+                            selectedTags.append(.predefined(matchingTag))
+                        } else {
+                            selectedTags.append(.custom(add.trimmingCharacters(in: .whitespacesAndNewlines)))
+                        }
+                    }
+                }
+                
+            default:
+                break
             }
-            ingredients = next
-            ingredientsInput = next.joined(separator: ", ")
-        case "allergens":
-            var set = Set(allergens.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
-            let removingKeys = Set(removing.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
-            var next = allergens.filter { !removingKeys.contains($0.lowercased()) }
-            for add in adding {
-                let key = add.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-                if !set.contains(key) { next.append(add); set.insert(key) }
-            }
-            allergens = next
-            allergensInput = next.joined(separator: ", ")
-        default:
-            break
         }
-    }
     
     func createRecipe(userId: String, name: String, ingredients: [String], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, media: [String]) async -> String {
         

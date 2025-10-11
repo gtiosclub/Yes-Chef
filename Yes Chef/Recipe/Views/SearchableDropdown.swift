@@ -132,7 +132,6 @@ struct SearchableDropdown<Option: SearchableOption>: View {
     
     private func selectPredefined(_ option: Option) {
         selectedValues.append(.predefined(option))
-        print(selectedValues)
         searchQuery = ""
     }
         
@@ -140,7 +139,6 @@ struct SearchableDropdown<Option: SearchableOption>: View {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         selectedValues.append(.custom(trimmed))
-        print(selectedValues)
         searchQuery = ""
     }
     

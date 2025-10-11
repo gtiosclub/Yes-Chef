@@ -42,33 +42,30 @@ struct CreateRecipe: View {
                                         
                     SearchableDropdown(
                         options: Ingredient.allIngredients,
-                        selectedValues: $selectedIngredients,
+                        selectedValues: $recipeVM.selectedIngredients,
                         placeholder: "Add ingredients...",
                         allowCustom: true
                     )
                     
-                    // Allergens
                     SectionHeader(title: "Allergens")
                     
                     SearchableDropdown(
                         options: Allergen.allCases,
-                        selectedValues: $selectedAllergens,
+                        selectedValues: $recipeVM.selectedAllergens,
                         placeholder: "Add allergens...",
                         allowCustom: true
                     )
-                    
-                    // Tags
+                
                     SectionHeader(title: "Tags")
                     
                     SearchableDropdown(
                         options: Tag.allTags,
-                        selectedValues: $selectedTags,
+                        selectedValues: $recipeVM.selectedTags,
                         placeholder: "Add tags...",
-                        allowCustom: true
+                        allowCustom: false
                     )
                     
                     StepsInputView(steps: $recipeVM.steps)
-                    //NewRecipeView(steps: $steps)
                     
                     Text("Prep Time")
                         .font(.title)
@@ -126,11 +123,6 @@ struct CreateRecipe: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         Task {
-                            let ingredients = selectedIngredients.map { $0.displayName }
-                            let allergens = selectedAllergens.map { $0.displayName }
-                            let tags = selectedTags.map { $0.displayName }
-                            let prepTime = Int(prepTimeInput) ?? 0
-                            
                             await recipeVM.createRecipe(
                                 userId: recipeVM.userIdInput,
                                 name: recipeVM.name,
@@ -144,9 +136,9 @@ struct CreateRecipe: View {
                                 media: recipeVM.mediaInputs
                             )
                             
-                            await FireBaseDemo.addRecipeToRemixTreeAsRoot(
-                                description: description,
-                            )
+//                            await FirebaseDemo.addRecipeToRemixTreeAsRoot(
+//                                description: recipeVM.description,
+//                            )
                         }
                     } label: {
                         Image(systemName: "checkmark")
