@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct CreateRecipe: View {
-    @State private var recipeVM = CreateRecipeVM()
+    @State var recipeVM: CreateRecipeVM
 
     var body: some View {
         NavigationStack {
@@ -109,45 +109,6 @@ struct CreateRecipe: View {
                     .padding(.horizontal)
                 }
             }
-            .navigationTitle("Add Recipe")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {} label: {
-                        Image(systemName: "xmark")
-                            .font(.title2)
-                            .foregroundStyle(.red)
-                            .bold()
-                    }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        Task {
-                            await recipeVM.createRecipe(
-                                userId: recipeVM.userIdInput,
-                                name: recipeVM.name,
-                                ingredients: recipeVM.ingredients,
-                                allergens: recipeVM.allergens,
-                                tags: recipeVM.tags,
-                                steps: recipeVM.steps,
-                                description: recipeVM.description,
-                                prepTime: recipeVM.prepTime,
-                                difficulty: recipeVM.difficulty,
-                                media: recipeVM.mediaInputs
-                            )
-                            
-//                            await FirebaseDemo.addRecipeToRemixTreeAsRoot(
-//                                description: recipeVM.description,
-//                            )
-                        }
-                    } label: {
-                        Image(systemName: "checkmark")
-                            .font(.title2)
-                            .foregroundStyle(.gray)
-                            .bold()
-                    }
-                }
-            }
         }
     }
 }
@@ -164,6 +125,6 @@ struct SectionHeader: View {
     }
 }
 
-#Preview {
-    CreateRecipe()
-}
+//#Preview {
+//    CreateRecipe()
+//}
