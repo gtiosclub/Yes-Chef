@@ -50,7 +50,7 @@ struct StepsInputView: View {
                         .font(.subheadline)
                         .padding(10)
                         .foregroundColor(.primary)
-                        .background(Color.gray.opacity(0.2))
+                        .background(Color(.systemGray6))
                         .cornerRadius(10)
                         .overlay(
                             RoundedRectangle(cornerRadius: 10)

@@ -60,7 +60,7 @@ struct SearchableDropdown<Option: SearchableOption>: View {
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color(.systemGray4), lineWidth: 1)
+                    .stroke(Color(.black), lineWidth: 1)
             )
             .padding(.horizontal)
             

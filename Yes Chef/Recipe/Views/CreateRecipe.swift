@@ -24,36 +24,29 @@ struct CreateRecipe: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading) {
-                    Text("Name")
-                        .font(.title)
-                        .padding()
-                        .padding(.bottom, -40)
-                    
+                    SectionHeader(title: "Name")
+                
                     TextField("Enter Recipe Name", text: $name)
                         .font(.subheadline)
                         .padding(10)
                         .foregroundColor(.primary)
-                        .background(Color.gray.opacity(0.2))
+                        .background(Color(.systemGray6))
                         .cornerRadius(10)
                         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                        .padding()
+                        .padding(.horizontal)
                         .foregroundColor(.secondary)
                     
-                    Text("Description")
-                        .font(.title)
-                        .padding()
-                        .padding(.top,-20)
-                        .padding(.bottom, -38)
+                    SectionHeader(title: "Description")
                     
                     TextField("Enter Recipe Description", text: $description)
                         .font(.subheadline)
                         .padding(10)
                         .padding(.bottom,90)
                         .foregroundColor(.primary)
-                        .background(Color.gray.opacity(0.2))
+                        .background(Color(.systemGray6))
                         .cornerRadius(10)
                         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                        .padding()
+                        .padding(.horizontal)
                         .foregroundColor(.secondary)
                     
                     SectionHeader(title: "Ingredients")
@@ -99,7 +92,7 @@ struct CreateRecipe: View {
                         .font(.subheadline)
                         .padding(10)
                         .foregroundColor(.primary)
-                        .background(Color.gray.opacity(0.2))
+                        .background(Color(.systemGray6))
                         .cornerRadius(10)
                         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
                         .padding()
@@ -172,22 +165,6 @@ struct CreateRecipe: View {
                 }
             }
         }
-    }
-}
-
-struct CustomTextFieldStyle: TextFieldStyle {
-    func _body(configuration: TextField<Self._Label>) -> some View {
-        configuration
-            .font(.system(size: 15))
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-            .background(Color(.systemGray6))
-            .cornerRadius(12)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color(.systemGray4), lineWidth: 1)
-            )
-            .padding(.horizontal)
     }
 }
 
