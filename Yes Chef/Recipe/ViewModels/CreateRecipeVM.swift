@@ -9,6 +9,7 @@ import Foundation
 import Observation
 import FirebaseFirestore
 import FirebaseStorage
+import SwiftUI
 
 @Observable class CreateRecipeVM {
     var userIdInput: String = ""
@@ -20,7 +21,8 @@ import FirebaseStorage
     var prepTimeInput: String = ""
     var difficulty: Difficulty = .easy
     var steps: [String] = [""]
-    var mediaInputs: [String] = [""]
+    var selectedImages: [Image] = []
+    var localMediaPaths: [URL] = []
     
     var ingredients: [String] {
         selectedIngredients.map { $0.displayName }
@@ -108,29 +110,48 @@ import FirebaseStorage
             }
         }
     
-    func createRecipe(userId: String, name: String, ingredients: [String], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, media: [String]) async -> String {
+    private func uploadMediaFromLocalPath(_ localPath: URL, fileName: String, recipeUUID: String) async -> String? {
+        let storage = Storage.storage()
+        let ref = storage.reference().child("recipes/\(recipeUUID)/\(fileName)")
+        
+        do {
+            let data = try Data(contentsOf: localPath)
+            
+            let metadata = StorageMetadata()
+            metadata.contentType = "image/jpeg"
+            
+            let _ = try await ref.putDataAsync(data, metadata: metadata)
+            let downloadURL = try await ref.downloadURL()
+            
+            print("Uploaded \(fileName) successfully")
+            return downloadURL.absoluteString
+        } catch {
+            print("Failed to upload \(fileName): \(error.localizedDescription)")
+            return nil
+        }
+    }
+    
+    func createRecipe(userId: String, name: String, ingredients: [String], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, media: [URL]) async -> String {
         
         let recipeID = UUID()
         let recipeUUID = recipeID.uuidString
         
         let db = Firestore.firestore()
-        let storage = Storage.storage()
-        var mediaURLs: [String] = []
+        var uploadedURLs: [String] = []
         
-        for file in media {
-            let fileURL = URL(fileURLWithPath: file)
-            let fileName = fileURL.lastPathComponent
-            let ref = storage.reference().child("recipes/\(recipeUUID)/\(fileName)")
+        for (index, localPath) in media.enumerated() {
+            let fileName = "media_\(index).jpg"
             
-            do {
-                let _ = try await ref.putFileAsync(from: fileURL)
-                let downloadURL = try await ref.downloadURL()
-                
-                mediaURLs.append(downloadURL.absoluteString)
-            } catch {
-                print("Failed to upload \(fileName): \(error.localizedDescription)")
+            if let urlString = await uploadMediaFromLocalPath(
+                localPath,
+                fileName: fileName,
+                recipeUUID: recipeUUID
+            ) {
+                uploadedURLs.append(urlString)
             }
         }
+        
+        print("All uploaded media URLs: \(uploadedURLs)")
         
         let data: [String: Any] = [
             "userId": userId,
@@ -142,7 +163,7 @@ import FirebaseStorage
             "description": description,
             "prepTime": prepTime,
             "difficulty": difficulty.rawValue,
-            "media": mediaURLs
+            "media": uploadedURLs
         ]
         
         do {
