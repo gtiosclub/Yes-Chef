@@ -26,10 +26,31 @@ struct HeaderTabsView: View {
                     
                     Spacer()
                     
-                    Image(systemName: "checkmark")
-                        .resizable()
-                        .frame(width:20, height:20)
-                        .foregroundStyle(.black)
+                    Button {
+                        Task {
+                            await recipeVM.createRecipe(
+                                userId: recipeVM.userIdInput,
+                                name: recipeVM.name,
+                                ingredients: recipeVM.ingredients,
+                                allergens: recipeVM.allergens,
+                                tags: recipeVM.tags,
+                                steps: recipeVM.steps,
+                                description: recipeVM.description,
+                                prepTime: recipeVM.prepTime,
+                                difficulty: recipeVM.difficulty,
+                                media: recipeVM.mediaInputs
+                            )
+                            
+//                            await FirebaseDemo.addRecipeToRemixTreeAsRoot(
+//                                description: recipeVM.description,
+//                            )
+                        }
+                    } label: {
+                        Image(systemName: "checkmark")
+                            .resizable()
+                            .frame(width: 20, height: 20)
+                            .bold()
+                    }
                 }
                 .padding(.horizontal, 10)
                 .padding()
