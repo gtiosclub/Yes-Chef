@@ -30,11 +30,12 @@ enum Difficulty: String, CaseIterable, Identifiable {
     var difficulty: Difficulty
     var servingSize: Int
     var media: [String]
+    var chefsNotes: String
     
     var likes: Int = 0
     var comments: [String] = []
     
-    init(userId: String, recipeId: String, name: String, ingredients: [String], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, servingSize: Int, media: [String]) {
+    init(userId: String, recipeId: String, name: String, ingredients: [String], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, servingSize: Int, media: [String], chefsNotes: String) {
         self.userId = userId
         self.recipeId = recipeId
         self.name = name
@@ -47,5 +48,6 @@ enum Difficulty: String, CaseIterable, Identifiable {
         self.difficulty = difficulty
         self.servingSize = servingSize
         self.media = media
+        self.chefsNotes = chefsNotes
     }
 }

@@ -95,7 +95,8 @@ class SavedPosts {
             let prepTime = dict["prepTime"] as? Int,
             let difficultyRaw = dict["difficulty"] as? String,
             let difficulty = Difficulty(rawValue: difficultyRaw),
-            let media = dict["media"] as? [String]
+            let media = dict["media"] as? [String],
+            let chefsNotes = dict["chefsNotes"] as? String
         else {
             return nil
         }
@@ -112,7 +113,8 @@ class SavedPosts {
             prepTime: prepTime,
             difficulty: difficulty,
             servingSize: servingSize,
-            media: media
+            media: media,
+            chefsNotes: chefsNotes
         )
         
         recipe.likes = dict["likes"] as? Int ?? 0

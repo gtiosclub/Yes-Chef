@@ -75,7 +75,7 @@ struct CreateRecipe: View {
                     
                     SectionHeader(title: "Chef's Notes")
                     
-                    StyledTextField(placeholder: "What else would you like your chef to know?", text: $recipeVM.prepTimeInput, height: 40)
+                    StyledTextField(placeholder: "What else would you like your chef to know?", text: $recipeVM.chefsNotes, height: 40)
                 }
             }
         }

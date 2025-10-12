@@ -34,6 +34,7 @@ class PostViewModel {
             let servingSize = 1
             let prepTime = 0
             let difficulty = Difficulty.easy
+            let chefsNotes = ""
             
             return Recipe(
                 userId: userId,
@@ -47,7 +48,8 @@ class PostViewModel {
                 prepTime: prepTime,
                 difficulty: difficulty,
                 servingSize: servingSize,
-                media: media
+                media: media,
+                chefsNotes: chefsNotes
             )
         }
     }

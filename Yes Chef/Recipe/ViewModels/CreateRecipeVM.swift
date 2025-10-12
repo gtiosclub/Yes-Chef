@@ -24,6 +24,7 @@ import SwiftUI
     var steps: [String] = [""]
     var selectedImages: [Image] = []
     var localMediaPaths: [URL] = []
+    var chefsNotes = ""
     
     var ingredients: [String] {
         selectedIngredients.map { $0.displayName }
@@ -132,7 +133,7 @@ import SwiftUI
         }
     }
     
-    func createRecipe(userId: String, name: String, ingredients: [String], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, servingSize: Int, media: [URL]) async -> String {
+    func createRecipe(userId: String, name: String, ingredients: [String], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, servingSize: Int, media: [URL], chefsNotes: String) async -> String {
         
         let recipeID = UUID()
         let recipeUUID = recipeID.uuidString
@@ -165,7 +166,8 @@ import SwiftUI
             "prepTime": prepTime,
             "difficulty": difficulty.rawValue,
             "servingSize": servingSize,
-            "media": uploadedURLs
+            "media": uploadedURLs,
+            "chefsNotes": chefsNotes
         ]
         
         do {
