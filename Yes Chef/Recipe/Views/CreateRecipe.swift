@@ -19,7 +19,7 @@ struct CreateRecipe: View {
                     
                     SectionHeader(title: "Recipe Description")
 
-                    StyledTextField(placeholder: "Enter Recipe Description", text: $recipeVM.description, height: 120)
+                    StyledTextField(placeholder: "Enter Recipe Description", text: $recipeVM.description, height: 60)
                     
                     SectionHeader(title: "Add Media")
                     
@@ -72,7 +72,10 @@ struct CreateRecipe: View {
                         ServingSizeView(selectedServingSize: $recipeVM.servingSize)
                     }
                     .padding(.horizontal)
-
+                    
+                    SectionHeader(title: "Chef's Notes")
+                    
+                    StyledTextField(placeholder: "What else would you like your chef to know?", text: $recipeVM.prepTimeInput, height: 40)
                 }
             }
         }
@@ -93,6 +96,6 @@ struct SectionHeader: View {
     }
 }
 
-//#Preview {
-//    CreateRecipe(recipeVM: recipeVM)
-//}
+#Preview {
+    CreateRecipe(recipeVM: CreateRecipeVM())
+}
