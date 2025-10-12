@@ -19,7 +19,7 @@ struct StepsInputView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 SectionHeader(title: "Steps")
-                    .padding(.leading, -8)
+                    .padding(.leading, -12)
                 Spacer()
                 Button {
                     withAnimation(.easeInOut(duration: 0.15)) {

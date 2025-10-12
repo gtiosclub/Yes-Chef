@@ -91,6 +91,7 @@ class SavedPosts {
             let tags = dict["tags"] as? [String],
             let steps = dict["steps"] as? [String],
             let description = dict["description"] as? String,
+            let servingSize = dict["servingSize"] as? Int,
             let prepTime = dict["prepTime"] as? Int,
             let difficultyRaw = dict["difficulty"] as? String,
             let difficulty = Difficulty(rawValue: difficultyRaw),
@@ -110,6 +111,7 @@ class SavedPosts {
             description: description,
             prepTime: prepTime,
             difficulty: difficulty,
+            servingSize: servingSize,
             media: media
         )
         

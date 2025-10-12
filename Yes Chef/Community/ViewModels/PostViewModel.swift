@@ -31,6 +31,7 @@ class PostViewModel {
             let tags: [String] = []
             let steps: [String] = []
             let description = ""
+            let servingSize = 1
             let prepTime = 0
             let difficulty = Difficulty.easy
             
@@ -45,6 +46,7 @@ class PostViewModel {
                 description: description,
                 prepTime: prepTime,
                 difficulty: difficulty,
+                servingSize: servingSize,
                 media: media
             )
         }

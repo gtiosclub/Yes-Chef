@@ -13,30 +13,18 @@ struct CreateRecipe: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading) {
-                    SectionHeader(title: "Name")
+                    SectionHeader(title: "Recipe Name")
 
-                    TextField("Enter Recipe Name", text: $recipeVM.name)
-                        .font(.subheadline)
-                        .padding(10)
-                        .foregroundColor(.primary)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(10)
-                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                        .padding(.horizontal)
-                        .foregroundColor(.secondary)
+                    StyledTextField(placeholder: "Enter Recipe Name", text: $recipeVM.name)
                     
-                    SectionHeader(title: "Description")
+                    SectionHeader(title: "Recipe Description")
 
-                    TextField("Enter Recipe Description", text: $recipeVM.description)
-                        .font(.subheadline)
-                        .padding(10)
-                        .padding(.bottom,90)
-                        .foregroundColor(.primary)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(10)
-                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
+                    StyledTextField(placeholder: "Enter Recipe Description", text: $recipeVM.description, height: 120)
+                    
+                    SectionHeader(title: "Add Media")
+                    
+                    AddMedia(selectedImages: $recipeVM.selectedImages, localMediaPaths: $recipeVM.localMediaPaths)
                         .padding(.horizontal)
-                        .foregroundColor(.secondary)
                     
                     SectionHeader(title: "Ingredients")
                                         
@@ -70,26 +58,21 @@ struct CreateRecipe: View {
                     
                     SectionHeader(title: "Prep Time")
 
-                    TextField("Enter Prep Time in Minutes", text: $recipeVM.prepTimeInput)
-                        .keyboardType(.numberPad)
-                        .font(.subheadline)
-                        .padding(10)
-                        .foregroundColor(.primary)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(10)
-                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                        .foregroundColor(.secondary)
-
-                    SectionHeader(title: "Media")
+                    StyledTextField(placeholder: "Enter Prep Time in Minutes", text: $recipeVM.prepTimeInput, keyboardType: .numberPad)
                     
-                    AddMedia(selectedImages: $recipeVM.selectedImages, localMediaPaths: $recipeVM.localMediaPaths)
-                        .padding(.horizontal)
-
+                    HStack {
+                        SectionHeader(title: "Difficulty")
+                        Spacer(minLength: 40)
+                        SectionHeader(title: "Serving Size")
+                    }
                     
+                    HStack {
+                        DifficultyLevelView(difficulty: $recipeVM.difficulty)
+                        Spacer(minLength: 50)
+                        ServingSizeView(selectedServingSize: $recipeVM.servingSize)
+                    }
+                    .padding(.horizontal)
 
-                    SectionHeader(title: "Difficulty")
-
-                    DifficultyLevelView(difficulty: $recipeVM.difficulty)
                 }
             }
         }
@@ -106,7 +89,7 @@ struct SectionHeader: View {
             .fontWeight(.semibold)
             .padding(.horizontal)
             .padding(.top, 4)
-            .padding(.bottom, -2)
+            .padding(.bottom, -0.5)
     }
 }
 

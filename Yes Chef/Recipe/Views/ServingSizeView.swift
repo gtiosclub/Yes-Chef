@@ -9,21 +9,21 @@ import SwiftUI
 struct ServingSizeView: View {
     @Binding var selectedServingSize: Int
     var body: some View {
-        HStack(spacing: 12) {
+        HStack() {
             Button(action: {
                 selectedServingSize = max(0, selectedServingSize - 1)
             }) {
                 Image(systemName: "minus")
                     .font(.title)
-                    .fontWeight(.bold)
+                    .fontWeight(.medium)
                     .foregroundColor(.primary)
-                    .frame(width: 44, height: 44)
+                    .frame(width: 25, height: 25)
             }
             
             Spacer()
             
             Text("\(selectedServingSize)")
-                .font(.title)
+                .font(.title2)
                 .fontWeight(.medium)
                 .foregroundColor(.primary)
             
@@ -34,13 +34,13 @@ struct ServingSizeView: View {
             }) {
                 Image(systemName: "plus")
                     .font(.title)
-                    .fontWeight(.bold)
+                    .fontWeight(.medium)
                     .foregroundColor(.primary)
-                    .frame(width: 44, height: 44)
+                    .frame(width: 25, height: 25)
             }
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 16)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
         .background(Color(uiColor: .systemGray5))
         .cornerRadius(15)
         .overlay(

@@ -12,7 +12,7 @@ struct AddRecipeMain: View {
     
     var body: some View {
         NavigationStack{
-            VStack(spacing: 0){
+            VStack(){
                 HStack{
                     Image(systemName: "xmark")
                         .resizable()
@@ -39,6 +39,7 @@ struct AddRecipeMain: View {
                                 description: recipeVM.description,
                                 prepTime: recipeVM.prepTime,
                                 difficulty: recipeVM.difficulty,
+                                servingSize: recipeVM.servingSize,
                                 media: recipeVM.localMediaPaths
                             )
                             
@@ -61,6 +62,8 @@ struct AddRecipeMain: View {
                     curvedTab(title: "AI Chef", tag: "AIChef", leftSide: false)
                 }.frame(height: 50)
             }
+            .background(Color(hex: "#fffdf5"))
+            
             VStack {
                 if selectedTab == "EditDetails" {
                     CreateRecipe(recipeVM: recipeVM)
@@ -69,12 +72,15 @@ struct AddRecipeMain: View {
                         .font(.title2)
                         .foregroundColor(.gray)
                         .padding()
+                    
+                    Spacer()
                 }
-                Spacer()
             }
+            .background(Color(hex: "#fffdf5"))
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
     }
+    
     private func curvedTab(title: String, tag: String, leftSide: Bool) -> some View {
         ZStack {
             Button(action: {
@@ -86,9 +92,9 @@ struct AddRecipeMain: View {
                     .background(
                         Group {
                             if selectedTab == tag {
-                                Color.white
+                                Color(hex: "#fffdf5")
                             } else {
-                                Color(.systemBrown).opacity(0.25)
+                                Color(hex: "#cdc2ba")
                             }
                         }
                     )
