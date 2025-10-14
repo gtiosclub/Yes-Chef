@@ -38,6 +38,14 @@ struct PostView: View {
                     Image(systemName: "ellipsis")
                         .font(Font.title2)
                         .frame(alignment: .trailing)
+                    Button {
+                        RemixTree
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(Font.title2)
+                            .frame(alignment: .trailing)
+                            .foregroundStyle(.black)
+                    }
                     
                 }
                 .padding(.bottom, screen.width/50)
