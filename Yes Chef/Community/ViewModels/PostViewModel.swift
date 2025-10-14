@@ -31,8 +31,10 @@ class PostViewModel {
             let tags: [String] = []
             let steps: [String] = []
             let description = ""
+            let servingSize = 1
             let prepTime = 0
             let difficulty = Difficulty.easy
+            let chefsNotes = ""
             
             return Recipe(
                 userId: userId,
@@ -45,8 +47,33 @@ class PostViewModel {
                 description: description,
                 prepTime: prepTime,
                 difficulty: difficulty,
-                media: media
+                servingSize: servingSize,
+                media: media,
+                chefsNotes: chefsNotes
             )
+        }
+    }
+    
+    //updates the number of likes for a specific recipe in the firestore
+    //recipeId is the identifier of the recipe 
+    func likePost(recipeId: String) async throws {
+        let recipeRef = db.collection("userRecipes").document(recipeId)
+        
+        _ = try await db.runTransaction { transaction, errorPointer -> Any? in
+            do {
+                let snapshot = try transaction.getDocument(recipeRef)
+                let currentLikes = snapshot.data()?["likes"] as? Int ?? 0
+                transaction.updateData(["likes": currentLikes + 1], forDocument: recipeRef)
+            } catch {
+                errorPointer?.pointee = error as NSError
+                return nil
+            }
+            return nil
+        }
+        
+        // Update the local UI to display the changes
+        if let index = recipes.firstIndex(where: { $0.recipeId == recipeId }) {
+            recipes[index].likes += 1
         }
     }
 }

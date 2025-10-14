@@ -21,3 +21,7 @@ enum Allergen: String, Codable, CaseIterable {
         return Allergen.allCases.map { $0.rawValue }
     }
 }
+
+extension Allergen: SearchableOption {
+    var displayName: String { rawValue }
+}

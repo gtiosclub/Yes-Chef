@@ -10,39 +10,41 @@ struct DifficultyLevelView: View {
     @Binding var difficulty: Difficulty
     
     var body: some View{
-        HStack(spacing: 20){
+        HStack(spacing: 8){
             VStack(spacing: 10){
-                
                 Image(systemName: "flame.fill")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 80, height: 80) .foregroundColor(difficulty == Difficulty.easy ? .red : .gray)
-                                .onTapGesture {
-                                    difficulty = Difficulty.easy
-                                }
-                Text(Difficulty.easy.rawValue).font(.headline)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 42, height: 42) .foregroundColor(difficulty == Difficulty.easy ? .red : .gray)
+                    .onTapGesture {
+                        difficulty = Difficulty.easy
+                    }
+                Text(Difficulty.easy.rawValue)
+                    .font(.caption)
             }
             VStack(spacing: 10){
                 Image(systemName: "flame.fill")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 80, height: 80)
-                                .foregroundColor(difficulty == Difficulty.medium ? .red : .gray)
-                                .onTapGesture {
-                                    difficulty = Difficulty.medium
-                                }
-                Text(Difficulty.medium.rawValue).font(.headline)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 42, height: 42)
+                    .foregroundColor(difficulty == Difficulty.medium ? .red : .gray)
+                    .onTapGesture {
+                        difficulty = Difficulty.medium
+                    }
+                Text(Difficulty.medium.rawValue)
+                    .font(.caption)
             }
             VStack(spacing: 10){
                 Image(systemName: "flame.fill")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 80, height: 80)
-                                .foregroundColor(difficulty == Difficulty.hard ? .red : .gray)
-                                .onTapGesture {
-                                    difficulty = Difficulty.hard
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 42, height: 42)
+                    .foregroundColor(difficulty == Difficulty.hard ? .red : .gray)
+                    .onTapGesture {
+                        difficulty = Difficulty.hard
                                 }
-                Text(Difficulty.hard.rawValue).font(.headline)
+                Text(Difficulty.hard.rawValue)
+                    .font(.caption)
             }
         }
     }
