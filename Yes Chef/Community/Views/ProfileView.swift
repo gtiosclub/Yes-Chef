@@ -3,14 +3,16 @@ import SwiftUI
 struct ProfileView: View {
     @State private var selectedTab = 0
     @State private var isFollowing = false
-    
+    //@Environment var authVM: AuthenticationVM
+    let user: User
     // Simple boolean to toggle between own profile vs other's profile for UI demo
     let isOwnProfile: Bool
     
-    init(isOwnProfile: Bool = true) {
-        self.isOwnProfile = isOwnProfile
+    init(user: User, isOwnProfile: Bool = false) {
+        self.user = user;
+        self.isOwnProfile = isOwnProfile;
     }
-    
+    //let user: User = User(userId: "test", username: "test", email: "test", bio: "test")
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
@@ -33,22 +35,12 @@ struct ProfileView: View {
                 contentGrid
             }
         }
-        .navigationBarHidden(true)
+        .navigationBarHidden(false)
     }
     
     // MARK: - Header
     private var headerView: some View {
         HStack {
-            if !isOwnProfile {
-                Button(action: {}) {
-                    Image(systemName: "chevron.left")
-                        .font(.title2)
-                        .foregroundColor(.black)
-                }
-            } else {
-                Spacer()
-            }
-            
             Spacer()
             
             if isOwnProfile {
@@ -66,7 +58,7 @@ struct ProfileView: View {
     // MARK: - Profile Info
     private var profileInfoSection: some View {
         VStack(spacing: 12) {
-            Text("@username")
+            Text("@\(user.username)")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
@@ -76,12 +68,12 @@ struct ProfileView: View {
                 .frame(width: 120, height: 120)
             
             // Display Name
-            Text("Display Name")
+            Text(user.username)
                 .font(.title2)
                 .fontWeight(.semibold)
             
             // Bio
-            Text("new to all of this, trying my best")
+            Text(user.bio ?? "")
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -94,7 +86,7 @@ struct ProfileView: View {
     private var statsSection: some View {
         HStack(spacing: 40) {
             VStack(spacing: 4) {
-                Text("821")
+                Text("\(user.followers.count)")
                     .font(.title2)
                     .fontWeight(.semibold)
                 Text("Followers")
@@ -103,7 +95,7 @@ struct ProfileView: View {
             }
             
             VStack(spacing: 4) {
-                Text("1.2k")
+                Text("\(user.following.count)")
                     .font(.title2)
                     .fontWeight(.semibold)
                 Text("Following")
@@ -112,7 +104,7 @@ struct ProfileView: View {
             }
             
             VStack(spacing: 4) {
-                Text("34")
+                Text("\(user.myRecipes.count)")
                     .font(.title2)
                     .fontWeight(.semibold)
                 Text("Recipes")
@@ -216,16 +208,33 @@ struct ProfileView: View {
 }
 
 // MARK: - Preview
+/*
 struct ProfileView_Previews: PreviewProvider {
     static var previews: some View {
-        NavigationView {
-            ProfileView(isOwnProfile: true)
-        }
-        .previewDisplayName("Own Profile")
+        let mockOwnUser = User(
+            userId: "001",
+            username: "kushi",
+            email: "kushi@example.com",
+            bio: "Lover of food, code, and community!"
+        )
         
-        NavigationView {
-            ProfileView(isOwnProfile: false)
+        let mockOtherUser = User(
+            userId: "002",
+            username: "foodie123",
+            email: "foodie@example.com",
+            bio: "Always experimenting with flavors 🍜"
+        )
+        
+        Group {
+            NavigationView {
+                ProfileView(isOwnProfile: true)
+            }
+            .previewDisplayName("Own Profile")
+            
+            NavigationView {
+                ProfileView(user: mockOtherUser, isOwnProfile: false)
+            }
+            .previewDisplayName("Other User Profile")
         }
-        .previewDisplayName("Other User Profile")
     }
-}
+}*/
