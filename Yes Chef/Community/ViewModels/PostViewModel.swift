@@ -8,48 +8,72 @@ import Foundation
 import Observation
 import FirebaseFirestore
 
-@Observable class PostViewModel   {
-    var posts: [Recipe] = []
-    private var db = Firestore.firestore()
+@Observable
+class PostViewModel {
+    var recipes: [Recipe] = []
+    
+    private let db = Firestore.firestore()
     
     func fetchPosts() async throws {
-        //get all the posts in the collection RECIPES
-        db.collection("RECIPES").getDocuments { snapshot, error in
-            if let error = error {
-                print("Error fetching recipes: \(error)")
-                return
+        let snapshot = try await db.collection("userRecipes").getDocuments()
+        
+        self.recipes = snapshot.documents.compactMap { document in
+            let data = document.data()
+            
+            let userId = data["username"] as? String ?? "Unknown"
+            let recipeId = data["id"] as? String ?? UUID().uuidString
+            let name = data["recipeName"] as? String ?? "Untitled"
+            let mediaURL = data["profileImageURL"] as? String
+            let media = mediaURL != nil ? [mediaURL!] : []
+            
+            let ingredients: [String] = []
+            let allergens: [String] = []
+            let tags: [String] = []
+            let steps: [String] = []
+            let description = ""
+            let servingSize = 1
+            let prepTime = 0
+            let difficulty = Difficulty.easy
+            let chefsNotes = ""
+            
+            return Recipe(
+                userId: userId,
+                recipeId: recipeId,
+                name: name,
+                ingredients: ingredients,
+                allergens: allergens,
+                tags: tags,
+                steps: steps,
+                description: description,
+                prepTime: prepTime,
+                difficulty: difficulty,
+                servingSize: servingSize,
+                media: media,
+                chefsNotes: chefsNotes
+            )
+        }
+    }
+    
+    //updates the number of likes for a specific recipe in the firestore
+    //recipeId is the identifier of the recipe 
+    func likePost(recipeId: String) async throws {
+        let recipeRef = db.collection("userRecipes").document(recipeId)
+        
+        _ = try await db.runTransaction { transaction, errorPointer -> Any? in
+            do {
+                let snapshot = try transaction.getDocument(recipeRef)
+                let currentLikes = snapshot.data()?["likes"] as? Int ?? 0
+                transaction.updateData(["likes": currentLikes + 1], forDocument: recipeRef)
+            } catch {
+                errorPointer?.pointee = error as NSError
+                return nil
             }
-            DispatchQueue.main.async {
-                self.posts = snapshot?.documents.compactMap{ doc in
-                    let data = doc.data()
-                    
-                    let allergens = data["allergens"] as? [String] ?? []
-                    let description = data["description"] as? String ?? "Unknown"
-                    let difficultystr = data["difficulty"] as? String ?? "Unknown"
-                    let ingredients = data["ingredients"] as? [String] ?? []
-                    let media = data["media"] as? [String] ?? []
-                    let name = data["name"] as? String ?? "Unknown"
-                    let prepTime = data["prepTime"] as? Int ?? 0
-                    let steps = data["steps"] as? [String] ?? []
-                    let tags = data["tags"] as? [String] ?? []
-                    let userId = data["userId"] as? String ?? "Unknown"
-                    
-                    let difficulty = Difficulty(rawValue: difficultystr.lowercased()) ?? .easy
-                    return Recipe (
-                        userId: userId,
-                        recipeId: doc.documentID,
-                        name: name,
-                        ingredients: ingredients,
-                        allergens: allergens,
-                        tags: tags,
-                        steps: steps,
-                        description: description,
-                        prepTime: prepTime,
-                        difficulty: difficulty,
-                        media: media
-                    )
-                } ?? []
-            }
+            return nil
+        }
+        
+        // Update the local UI to display the changes
+        if let index = recipes.firstIndex(where: { $0.recipeId == recipeId }) {
+            recipes[index].likes += 1
         }
     }
     

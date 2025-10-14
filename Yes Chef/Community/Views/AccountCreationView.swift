@@ -122,9 +122,9 @@ struct AccountCreationView : View {
                     errorMessage = "Please enter a valid phone number."
                 } else {
                     errorMessage = nil
-                    viewModel.register(email: emailText, password: passwordText)
+                    viewModel.register(email: emailText, password: passwordText, username: usernameText)
                 }
-                viewModel.register(email: emailText, password: passwordText)
+                viewModel.register(email: emailText, password: passwordText, username: usernameText)
             }
             .bold()
             .padding(.top, 5)
