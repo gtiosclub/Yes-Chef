@@ -9,6 +9,7 @@ import SwiftUI
 
 struct Home: View {
     @State private var selectedView: TabSelection = .home
+    @State var authViewModel = AuthenticationVM()
     var body: some View {
         TabView(selection: $selectedView) {
             FeedView().tabItem {
@@ -24,9 +25,15 @@ struct Home: View {
             LeaderboardView().tabItem {
                 Image(systemName: "trophy")
             }.tag(TabSelection.leaderboard)
-            ProfileView(isOwnProfile:true).tabItem {
-                Image(systemName: "person.circle")
+            if let currentUser = authViewModel.currentUser {
+                ProfileView(user: currentUser, isOwnProfile:true).tabItem {
+                    Image(systemName: "person.circle")
                 }.tag(TabSelection.profile)
+            } else {
+                ProgressView().tabItem {
+                    Image(systemName: "person.circle")
+                }.tag(TabSelection.profile)
+            }
             
         }
     }
