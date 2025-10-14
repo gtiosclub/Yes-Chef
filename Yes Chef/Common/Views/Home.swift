@@ -9,7 +9,7 @@ import SwiftUI
 
 struct Home: View {
     @State private var selectedView: TabSelection = .home
-
+    @State var authVM = AuthenticationVM()
     var body: some View {
         TabView(selection: $selectedView) {
             FeedView().tabItem {
@@ -19,12 +19,13 @@ struct Home: View {
                 Image(systemName: "magnifyingglass")
             }.tag(TabSelection.search)
             AddRecipeMain().tabItem {
+
                 Image(systemName: "plus.circle")
             }.tag(TabSelection.post)
             LeaderboardView().tabItem {
                 Image(systemName: "trophy")
             }.tag(TabSelection.leaderboard)
-            ProfileView(isOwnProfile: true).tabItem {
+            ProfileView(user: authVM.currentUser!, isOwnProfile: true).tabItem {
                 Image(systemName: "person.circle")
             }.tag(TabSelection.profile)
         }

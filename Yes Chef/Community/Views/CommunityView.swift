@@ -8,6 +8,7 @@ import SwiftUI
 
 struct CommunityView : View {
     @State private var searchText = ""
+    @State private var viewModel = SearchViewModel()
     
     let allItems = ["Pizza", "Pasta", "Salad", "Soup", "Sandwich", "Cake", "Curry"]
 
@@ -15,55 +16,69 @@ struct CommunityView : View {
         if searchText.isEmpty {
             return []
         } else {
-            return allItems.filter { $0.localizedCaseInsensitiveContains(searchText) }
+            let allSearchableItems = allItems + viewModel.usernames
+            return allSearchableItems.filter { $0.localizedCaseInsensitiveContains(searchText)}
         }
     }
     
     var body: some View {
-        VStack {
-            Text("What's for Dinner?")
-                .font(.largeTitle)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding([.top, .leading], 20)
-                .padding(.bottom, 5)
-            ZStack {
-                TextField("Search through the cookbook...", text: $searchText)
-                    .padding(10)
-                    .padding(.trailing, 30) // extra space for the icon
-                    .background(Color(.systemGray6))
-                    .cornerRadius(10)
-                    .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.black, lineWidth: 1)
-                            )
-                    .padding(.horizontal)
+        NavigationStack {
+            VStack {
+                Text("Hi Chef!")
+                    .font(.largeTitle)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding([.top, .leading], 20)
+                    .padding(.bottom, 5)
+                ZStack {
+                    TextField("Search...", text: $searchText)
+                        .padding(10)
+                        .padding(.trailing, 30) // extra space for the icon
+                        .background(Color(.systemGray6))
+                        .cornerRadius(10)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.black, lineWidth: 1)
+                        )
+                        .padding(.horizontal)
                     
-                HStack {
-                    Spacer()
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(.gray)
-                        .padding(.trailing, 30) // match the extra padding in TextField
+                    HStack {
+                        Spacer()
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.gray)
+                            .padding(.trailing, 30) // match the extra padding in TextField
+                    }
                 }
-            }
-            Spacer()
-            if !filteredItems.isEmpty {
-                List(filteredItems, id: \.self) { item in Text(item)
-                    .onTapGesture {searchText = item}
-                }
+                if !filteredItems.isEmpty {
+                    List(filteredItems, id: \.self) { item in
+                        if let selectedUser = viewModel.users.first(where: { $0.username == item }) {
+                            NavigationLink(destination: ProfileView(user: selectedUser)) {
+                                Text(item)
+                            }
+                        } else {
+                            Text(item)
+                            .onTapGesture {searchText = item}
+                        }
+                    }
                     .listStyle(.plain)
                     .frame(maxHeight: 200)
-            } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 25) {
-                        RecipeSection(title: "Trending", items: allItems)
-                        RecipeSection(title: "Top Dinner Picks",items: allItems)
-                        RecipeSection(title: "Top ... Picks",items: allItems)
+                    Spacer()
+                } else {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 25) {
+                            RecipeSection(title: "Trending", items: allItems)
+                            RecipeSection(title: "Top Dinner Picks",items: allItems)
+                            RecipeSection(title: "Top ... Picks",items: allItems)
+                        }
+                        .padding(.bottom, 20)
                     }
-                    .padding(.bottom, 20)
+                    
                 }
-                
+                Spacer()
             }
-            Spacer()
+            .task {
+                await viewModel.getAllUsers()
+                await viewModel.getAllUsernames()
+            }
         }
     }
 }

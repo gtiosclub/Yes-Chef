@@ -76,4 +76,34 @@ class PostViewModel {
             recipes[index].likes += 1
         }
     }
+    
+    func fetchComments(for recipeId: String) async throws -> [Comment] {
+        let snapshot = try await db.collection("COMMENTS")
+                .whereField("recipeID", isEqualTo: recipeId)
+                .getDocuments()
+        return snapshot.documents.compactMap { doc in
+                let data = doc.data()
+                return Comment(
+                    poster: data["poster"] as? String ?? "Unknown",
+                    recipeID: data["recipeID"] as? String ?? recipeId,
+                    text: data["text"] as? String ?? "",
+                    timestamp: (data["timestamp"] as? Timestamp)?.dateValue()
+                )
+            }
+    }
+    
+    func postComments(poster: String, recipeID: String, text: String) async throws {
+        let commentData: [String : Any] = [
+            "poster": poster,
+            "recipeID": recipeID,
+            "text": text,
+            "timestamp": FieldValue.serverTimestamp()
+        ]
+        db.collection("COMMENTS").addDocument(data: commentData) { err in
+            if let err = err {
+                print("Error adding document: \(err)")
+            }
+        }
+    }
+    
 }

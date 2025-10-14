@@ -31,9 +31,9 @@ struct SmartSuggestionDemoView: View {
                             description: "Weeknight spicy noodle bowl.",
                             prepTime: 25,
                             difficulty: .easy,
-                            servingSize: 1,
+                            servingSize: 3,
                             media: [],
-                            chefsNotes: ""
+                            chefsNotes: "Notes go here..."
                         )
 
                         let s = try await vm.smartSuggestion(recipe: recipe, userMessage: msg)
