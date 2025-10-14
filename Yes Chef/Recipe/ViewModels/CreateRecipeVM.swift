@@ -39,6 +39,58 @@ import SwiftUI
     }
 
     var prepTime: Int { Int(prepTimeInput) ?? 0 }
+    
+    // Default initializer
+    init() {}
+    
+    // Initializer for remixing - populates fields from existing recipe
+    init(fromRecipe recipe: Recipe) {
+        self.userIdInput = recipe.userId
+        self.name = recipe.name
+        self.description = recipe.description
+        self.prepTimeInput = String(recipe.prepTime)
+        self.difficulty = recipe.difficulty
+        self.servingSize = recipe.servingSize
+        self.steps = recipe.steps.isEmpty ? [""] : recipe.steps
+        self.chefsNotes = recipe.chefsNotes
+        
+        // Convert ingredients to SearchableValue
+        self.selectedIngredients = recipe.ingredients.map { ingredient in
+            if let matchingIngredient = Ingredient.allIngredients.first(where: {
+                $0.displayName.lowercased() == ingredient.lowercased()
+            }) {
+                return .predefined(matchingIngredient)
+            } else {
+                return .custom(ingredient)
+            }
+        }
+        
+        // Convert allergens to SearchableValue
+        self.selectedAllergens = recipe.allergens.filter { !$0.isEmpty }.map { allergen in
+            if let matchingAllergen = Allergen.allCases.first(where: {
+                $0.displayName.lowercased() == allergen.lowercased()
+            }) {
+                return .predefined(matchingAllergen)
+            } else {
+                return .custom(allergen)
+            }
+        }
+        
+        // Convert tags to SearchableValue
+        self.selectedTags = recipe.tags.map { tag in
+            if let matchingTag = Tag.allTags.first(where: {
+                $0.displayName.lowercased() == tag.lowercased()
+            }) {
+                return .predefined(matchingTag)
+            } else {
+                return .custom(tag)
+            }
+        }
+        
+        // Note: Media URLs from Firebase can't be directly used as local paths
+        // You may want to download these images or handle them differently
+        // For now, they won't be populated in localMediaPaths
+    }
 
     func applyChanges(item: String, removing: [String], adding: [String]) {
             switch item.lowercased() {
@@ -111,6 +163,7 @@ import SwiftUI
                 break
             }
         }
+    
     
     private func uploadMediaFromLocalPath(_ localPath: URL, fileName: String, recipeUUID: String) async -> String? {
         let storage = Storage.storage()

@@ -16,16 +16,13 @@ struct PostViewRemix: View {
     var poster: User?
 
     @State private var mediaItem: Int? = 0
-    @State private var showRemixSheet = false
-    @State private var remixVM: CreateRecipeVM? = nil
-
+    @State private var goToAddRecipe = false
 
     var body: some View {
         ScrollView {
             VStack(spacing: 6) {
                 // Header
                 HStack(spacing: 6) {
-                    // Back
                     ZStack {
                         Image(systemName: "chevron.backward")
                             .font(.title2)
@@ -182,38 +179,30 @@ struct PostViewRemix: View {
             .padding(15)
             .padding(.bottom, 80)
         }
-        // ---- Floating Remix Button (bottom-right) ----
+        // Floating Remix Button + Navigation
         .overlay(alignment: .bottomTrailing) {
+            NavigationLink("", isActive: $goToAddRecipe) {
+                AddRecipeMain(remixRecipe: recipe)
+            }
+            .hidden()
+
             Button {
-                remixVM = CreateRecipeVM.from(recipe: recipe)  // ⬅️ prefilled VM
-                showRemixSheet = true
+                goToAddRecipe = true
             } label: {
                 HStack(spacing: 8) {
-                    Image(systemName: "wand.and.stars")
+                    Image(systemName: "sparkles").font(.headline)
                     Text("Remix").fontWeight(.semibold)
                 }
-                .padding(.vertical, 12)
                 .padding(.horizontal, 16)
-                .background(Capsule().fill(.black.opacity(0.9)))
+                .padding(.vertical, 12)
+                .background(Capsule().fill(Color.black))
                 .foregroundColor(.white)
-                .shadow(radius: 8)
+                .shadow(radius: 4, y: 2)
+                .padding(.trailing, 16)
+                .padding(.bottom, 16)
             }
-            .padding(.trailing, 18)
-            .padding(.bottom, 18)
+            .accessibilityLabel("Remix recipe")
         }
-        .sheet(isPresented: $showRemixSheet) {
-            if let vm = remixVM {
-                NavigationStack {
-                    CreateRecipe(recipeVM: vm)
-                        .navigationTitle("Remix Recipe")
-                        .navigationBarTitleDisplayMode(.inline)
-                }
-            } else {
-                ProgressView("Loading…")
-            }
-        }
-
-
     }
 }
 
@@ -235,80 +224,6 @@ struct BulletPointRemix: View {
                 .font(.body)
                 .padding(.bottom, UIConst.screen.height/100)
             Spacer()
-        }
-    }
-}
-
-// MARK: - Simple Remix Editor (prefilled from original recipe)
-struct RemixEditor: View {
-    let original: Recipe
-
-    @Environment(\.dismiss) private var dismiss
-
-    @State private var name: String
-    @State private var description: String
-    @State private var ingredients: String
-    @State private var steps: String
-    @State private var tags: String
-    @State private var prepTime: String
-    @State private var difficulty: Difficulty
-
-    init(original: Recipe) {
-        self.original = original
-        _name = State(initialValue: original.name + " (Remix)")
-        _description = State(initialValue: original.description)
-        _ingredients = State(initialValue: original.ingredients.joined(separator: ", "))
-        _steps = State(initialValue: original.steps.enumerated().map { "\($0+1). \($1)" }.joined(separator: "\n"))
-        _tags = State(initialValue: original.tags.joined(separator: ", "))
-        _prepTime = State(initialValue: "\(original.prepTime)")
-        _difficulty = State(initialValue: original.difficulty)
-    }
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section("Basics") {
-                    TextField("Name", text: $name)
-                    TextField("Description", text: $description, axis: .vertical)
-                        .lineLimit(3...6)
-                }
-                Section("Ingredients (comma-separated)") {
-                    TextField("e.g. 2 eggs, 1 cup flour", text: $ingredients, axis: .vertical)
-                }
-                Section("Steps (one per line)") {
-                    TextEditor(text: $steps)
-                        .frame(minHeight: 120)
-                }
-                Section("Metadata") {
-                    TextField("Tags (comma-separated)", text: $tags)
-                    TextField("Prep time (mins)", text: $prepTime)
-                        .keyboardType(.numberPad)
-                    Picker("Difficulty", selection: $difficulty) {
-                        Text("Easy").tag(Difficulty.easy)
-                        Text("Medium").tag(Difficulty.medium)
-                        Text("Hard").tag(Difficulty.hard)
-                    }
-                }
-                Section {
-                    Button(role: .none) {
-                        // TODO: Wire to your save flow / view model.
-                        // You can parse the strings back into arrays:
-                        // let newIngredients = ingredients.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-                        // let newSteps = steps.split(separator: "\n").map(String.init)
-                        // let newTags = tags.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-                        dismiss()
-                    } label: {
-                        Label("Post Remix", systemImage: "sparkles")
-                            .fontWeight(.semibold)
-                    }
-                }
-            }
-            .navigationTitle("Remix Recipe")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-            }
         }
     }
 }
@@ -337,5 +252,7 @@ struct RemixEditor: View {
         ],
         chefsNotes: ""
     )
-    PostViewRemix(recipe: rec, poster: nil)
+    NavigationStack {
+        PostViewRemix(recipe: rec, poster: nil)
+    }
 }

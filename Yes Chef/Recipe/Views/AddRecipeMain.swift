@@ -8,7 +8,15 @@ import SwiftUI
 
 struct AddRecipeMain: View {
     @State private var selectedTab: String = "EditDetails"
-    @State private var recipeVM = CreateRecipeVM()
+    @State private var recipeVM: CreateRecipeVM
+    
+    init(remixRecipe: Recipe? = nil) {
+        if let recipe = remixRecipe {
+            _recipeVM = State(initialValue: CreateRecipeVM(fromRecipe: recipe))
+        } else {
+            _recipeVM = State(initialValue: CreateRecipeVM())
+        }
+    }
     
     var body: some View {
         NavigationStack{
