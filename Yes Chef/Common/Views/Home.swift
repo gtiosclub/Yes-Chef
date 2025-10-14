@@ -19,6 +19,7 @@ struct Home: View {
                 Image(systemName: "magnifyingglass")
             }.tag(TabSelection.search)
             AddRecipeMain().tabItem {
+
                 Image(systemName: "plus.circle")
             }.tag(TabSelection.post)
             LeaderboardView().tabItem {
