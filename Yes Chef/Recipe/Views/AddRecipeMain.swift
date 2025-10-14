@@ -44,9 +44,9 @@ struct AddRecipeMain: View {
                                 chefsNotes: recipeVM.chefsNotes
                             )
                             
-//                            await FirebaseDemo.addRecipeToRemixTreeAsRoot(
-//                                description: recipeVM.description,
-//                            )
+                            await recipeVM.addRecipeToRemixTreeAsRoot(
+                                description: recipeVM.description
+                            )
                         }
                     } label: {
                         Image(systemName: "checkmark")

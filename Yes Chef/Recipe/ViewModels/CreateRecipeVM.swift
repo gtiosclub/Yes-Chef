@@ -132,6 +132,28 @@ import SwiftUI
             return nil
         }
     }
+    func addRecipeToRemixTreeAsRoot(description: String) async -> String {
+        let postID = UUID()
+        let postUUID = postID.uuidString
+        
+        let db = Firestore.firestore()
+        
+        let nodeInfo: [String: Any] = [
+            "postID": postUUID,
+            "childrenID": [],
+            "description": description,
+            "parentID": "",
+            "rootNodeID": postUUID,
+        ]
+        
+        do {
+            try await db.collection("remixTreeNode").document(postUUID).setData(nodeInfo)
+            print("Document added successfully!")
+        } catch {
+            print("Error adding document: \(error.localizedDescription)")
+        }
+        return postUUID
+    }
     
     func createRecipe(userId: String, name: String, ingredients: [String], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, servingSize: Int, media: [URL], chefsNotes: String) async -> String {
         
