@@ -91,10 +91,12 @@ class SavedPosts {
             let tags = dict["tags"] as? [String],
             let steps = dict["steps"] as? [String],
             let description = dict["description"] as? String,
+            let servingSize = dict["servingSize"] as? Int,
             let prepTime = dict["prepTime"] as? Int,
             let difficultyRaw = dict["difficulty"] as? String,
             let difficulty = Difficulty(rawValue: difficultyRaw),
-            let media = dict["media"] as? [String]
+            let media = dict["media"] as? [String],
+            let chefsNotes = dict["chefsNotes"] as? String
         else {
             return nil
         }
@@ -110,7 +112,9 @@ class SavedPosts {
             description: description,
             prepTime: prepTime,
             difficulty: difficulty,
-            media: media
+            servingSize: servingSize,
+            media: media,
+            chefsNotes: chefsNotes
         )
         
         recipe.likes = dict["likes"] as? Int ?? 0
