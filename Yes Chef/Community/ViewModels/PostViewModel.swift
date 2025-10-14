@@ -15,26 +15,28 @@ class PostViewModel {
     private let db = Firestore.firestore()
     
     func fetchPosts() async throws {
-        let snapshot = try await db.collection("userRecipes").getDocuments()
+        let snapshot = try await db.collection("RECIPES").getDocuments()
         
         self.recipes = snapshot.documents.compactMap { document in
             let data = document.data()
             
-            let userId = data["username"] as? String ?? "Unknown"
-            let recipeId = data["id"] as? String ?? UUID().uuidString
-            let name = data["recipeName"] as? String ?? "Untitled"
-            let mediaURL = data["profileImageURL"] as? String
-            let media = mediaURL != nil ? [mediaURL!] : []
+            let userId = data["userId"] as? String ?? ""
+            let recipeId = document.documentID
+            //let recipeId = data["id"] as? String ?? UUID().uuidString
+            //let mediaURL = data["profileImageURL"] as? String
+            //let media = mediaURL != nil ? [mediaURL!] : []
             
-            let ingredients: [String] = []
-            let allergens: [String] = []
-            let tags: [String] = []
-            let steps: [String] = []
-            let description = ""
-            let servingSize = 1
-            let prepTime = 0
-            let difficulty = Difficulty.easy
-            let chefsNotes = ""
+            let name = data["name"] as? String ?? "Untitled"
+            let media = data["media"] as? [String] ?? []
+            let ingredients: [String] = data["ingredients"] as? [String] ?? []
+            let allergens: [String] = data["allergens"] as? [String] ?? []
+            let tags: [String] = data["tags"] as? [String] ?? []
+            let steps: [String] = data["steps"] as? [String] ?? []
+            let description = data["description"] as? String ?? ""
+            let servingSize = data["servingSize"] as? Int ?? 1
+            let prepTime = data["prepTime"] as? Int ?? 0
+            let difficulty = data["difficulty"] as? Difficulty ?? Difficulty.easy
+            let chefsNotes = data["chefsNotes"] as? String ?? ""
             
             return Recipe(
                 userId: userId,
