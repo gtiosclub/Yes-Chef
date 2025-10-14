@@ -212,7 +212,7 @@ struct LeaderboardView: View {
                 }*/
                 Spacer()
                 Button(action: {
-                    print("History button tapped")
+
                 }) {
                     Image(systemName: "clock.fill")
                         .font(.title2)

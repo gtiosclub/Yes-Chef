@@ -1,0 +1,478 @@
+import SwiftUI
+import Foundation
+import FirebaseFirestore
+
+// MARK: - Wrapper for Identifiable
+class UniqueNode: Identifiable {
+    let node: DummyNode
+    let id: String
+    
+    init(_ node: DummyNode) {
+        self.node = node
+        self.id = node.currNodeID
+    }
+}
+
+// MARK: - Tree Structure
+struct Tree<A> {
+    var value: A
+    var children: [Tree<A>] = []
+    
+    init(_ value: A, children: [Tree<A>] = []) {
+        self.value = value
+        self.children = children
+    }
+    
+    func map<B>(_ transform: (A) -> B) -> Tree<B> {
+        Tree<B>(
+            transform(value),
+            children: children.map { $0.map(transform) }
+        )
+    }
+}
+
+// MARK: - Diagram View (Recursive)
+struct Diagram<A: Identifiable, V: View>: View {
+    let tree: Tree<A>
+    let nodeView: (A) -> V
+    typealias Key = CollectDict<A.ID, Anchor<CGPoint>>
+    
+    var body: some View {
+        VStack(alignment: .center, spacing: 60) {
+            nodeView(tree.value)
+                .anchorPreference(key: Key.self, value: .center) { [tree.value.id: $0] }
+            
+            HStack(alignment: .top, spacing: 60) {
+                ForEach(tree.children, id: \.value.id) { child in
+                    Diagram(tree: child, nodeView: nodeView)
+                }
+            }
+        }
+        .backgroundPreferenceValue(Key.self) { centers in
+            GeometryReader { proxy in
+                ZStack {
+                    ForEach(tree.children, id: \.value.id) { child in
+                        if let fromAnchor = centers[tree.value.id],
+                           let toAnchor = centers[child.value.id] {
+                            Line(from: proxy[fromAnchor], to: proxy[toAnchor])
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [Color.blue.opacity(0.4), Color.blue.opacity(0.2)],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    ),
+                                    style: StrokeStyle(lineWidth: 2, lineCap: .round)
+                                )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - PreferenceKey
+struct CollectDict<Key: Hashable, Value>: PreferenceKey {
+    static var defaultValue: [Key: Value] { [:] }
+    static func reduce(value: inout [Key: Value], nextValue: () -> [Key: Value]) {
+        value.merge(nextValue(), uniquingKeysWith: { $1 })
+    }
+}
+
+// MARK: - Line Shape
+struct Line: Shape {
+    var from: CGPoint
+    var to: CGPoint
+    
+    var animatableData: AnimatablePair<
+        AnimatablePair<CGFloat, CGFloat>,
+        AnimatablePair<CGFloat, CGFloat>
+    > {
+        get {
+            AnimatablePair(
+                AnimatablePair(from.x, from.y),
+                AnimatablePair(to.x, to.y)
+            )
+        }
+        set {
+            from = CGPoint(x: newValue.first.first, y: newValue.first.second)
+            to = CGPoint(x: newValue.second.first, y: newValue.second.second)
+        }
+    }
+    
+    func path(in rect: CGRect) -> Path {
+        Path { path in
+            path.move(to: from)
+            path.addLine(to: to)
+        }
+    }
+}
+
+// MARK: - Node Card View
+struct NodeCard: View {
+    let node: DummyNode
+    var onFrameChange: ((CGRect) -> Void)? = nil
+    
+    var body: some View {
+        VStack(spacing: 6) {
+            Text(node.descriptionOfRecipeChanges.isEmpty ? "Recipe" : node.descriptionOfRecipeChanges)
+                .font(.callout)
+                .fontWeight(.semibold)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 8)
+            
+            Text(node.currNodeID.prefix(5))
+                .font(.caption2)
+                .foregroundColor(.gray)
+        }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color.white)
+                .shadow(color: Color.black.opacity(0.15), radius: 6, x: 0, y: 4)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color.blue.opacity(0.4), lineWidth: 1)
+                )
+        )
+        .background(
+            GeometryReader { proxy in
+                Color.clear
+                    .onChange(of: proxy.frame(in: .global)) { newFrame in
+                        onFrameChange?(newFrame)
+                    }
+            }
+        )
+    }
+}
+
+// MARK: - UIKit Gesture Recognizer Bridge (Pinch + Pan)
+struct PinchPanRecognizerView: UIViewRepresentable {
+    @Binding var scale: CGFloat
+    @Binding var offset: CGSize
+    @Binding var lastPinchLocation: CGPoint?
+    
+    var minScale: CGFloat = 0.5
+    var maxScale: CGFloat = 3.0
+    var onEndGesture: (() -> Void)? = nil
+    
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView()
+        view.backgroundColor = .clear
+        view.isUserInteractionEnabled = true
+        
+        let pinch = UIPinchGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handlePinch(_:)))
+        pinch.delegate = context.coordinator
+        view.addGestureRecognizer(pinch)
+        
+        let pan = UIPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handlePan(_:)))
+        pan.delegate = context.coordinator
+        view.addGestureRecognizer(pan)
+        
+        return view
+    }
+    
+    func updateUIView(_ uiView: UIView, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+    
+    class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        var parent: PinchPanRecognizerView
+        private var lastScale: CGFloat = 1.0
+        private var startOffset: CGPoint = .zero
+        private var velocity: CGSize = .zero
+        private var displayLink: CADisplayLink?
+        
+        init(_ parent: PinchPanRecognizerView) {
+            self.parent = parent
+        }
+        
+        @objc func handlePinch(_ gr: UIPinchGestureRecognizer) {
+            switch gr.state {
+            case .began:
+                stopInertia()
+                lastScale = parent.scale
+            case .changed:
+                guard let view = gr.view else { return }
+                let loc = gr.location(in: view)
+                parent.lastPinchLocation = loc
+                
+                var newScale = lastScale * gr.scale
+                newScale = clamp(newScale, min: parent.minScale, max: parent.maxScale)
+                
+                let scaleChange = newScale / parent.scale
+                let deltaX = loc.x - parent.offset.width
+                let deltaY = loc.y - parent.offset.height
+                
+                parent.offset = CGSize(
+                    width: parent.offset.width - (scaleChange - 1) * deltaX,
+                    height: parent.offset.height - (scaleChange - 1) * deltaY
+                )
+                parent.scale = newScale
+                
+            case .ended, .cancelled, .failed:
+                parent.onEndGesture?()
+            default: break
+            }
+        }
+        
+        @objc func handlePan(_ gr: UIPanGestureRecognizer) {
+            switch gr.state {
+            case .began:
+                stopInertia()
+                startOffset = CGPoint(x: parent.offset.width, y: parent.offset.height)
+            case .changed:
+                let translation = gr.translation(in: gr.view)
+                parent.offset = CGSize(width: startOffset.x + translation.x, height: startOffset.y + translation.y)
+            case .ended:
+                velocity = CGSize(width: gr.velocity(in: gr.view).x, height: gr.velocity(in: gr.view).y)
+                startInertia()
+                parent.onEndGesture?()
+            default: break
+            }
+        }
+        
+        private func startInertia() {
+            stopInertia()
+            displayLink = CADisplayLink(target: self, selector: #selector(inertiaStep))
+            displayLink?.add(to: .main, forMode: .common)
+        }
+        
+        private func stopInertia() {
+            displayLink?.invalidate()
+            displayLink = nil
+        }
+        
+        @objc private func inertiaStep() {
+            let friction: CGFloat = 0.90
+            velocity.width *= friction
+            velocity.height *= friction
+            
+            if abs(velocity.width) < 0.5 && abs(velocity.height) < 0.5 {
+                stopInertia()
+                return
+            }
+            
+            parent.offset = CGSize(
+                width: parent.offset.width + velocity.width / 60,
+                height: parent.offset.height + velocity.height / 60
+            )
+        }
+        
+        func gestureRecognizer(_ g1: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith g2: UIGestureRecognizer) -> Bool {
+            true
+        }
+        
+        private func clamp(_ v: CGFloat, min: CGFloat, max: CGFloat) -> CGFloat {
+            Swift.min(Swift.max(v, min), max)
+        }
+    }
+}
+
+// MARK: - RemixTreeView
+struct RemixTreeView: View {
+    @StateObject private var data = RemixData()
+    @State private var currentRootNode: DummyNode? = nil
+    @State private var scale: CGFloat = 1.0
+    @State private var offset: CGSize = .zero
+    @State private var nodeCenters: [String: CGRect] = [:]
+    @State private var lastPinchLocation: CGPoint? = nil
+    @State private var isLoading: Bool = false
+    @State private var hasZoomedIntoNode: Bool = false
+    
+    init(rootNode: DummyNode? = nil) {
+        self._currentRootNode = State(initialValue: rootNode)
+    }
+    
+    var trees: [Tree<UniqueNode>] {
+        if let rootNode = currentRootNode {
+            return [buildTree(rootNode)]
+        }
+        let roots = data.nodes.filter { $0.parentNodeID == "none" }
+        return roots.map { buildTree($0) }
+    }
+    
+    func buildTree(_ node: DummyNode) -> Tree<UniqueNode> {
+        let children = data.nodes.filter { $0.parentNodeID == node.currNodeID }
+        return Tree(UniqueNode(node), children: children.map { buildTree($0) })
+    }
+    
+    var body: some View {
+        ZStack {
+            GeometryReader { geo in
+                ScrollView([.vertical, .horizontal], showsIndicators: false) {
+                    ZStack(alignment: .top) {
+                        VStack(spacing: 120) {
+                            ForEach(trees.indices, id: \.self) { index in
+                                Diagram(tree: trees[index]) { uniqueNode in
+                                    NodeCard(node: uniqueNode.node) { newFrame in
+                                        nodeCenters[uniqueNode.node.currNodeID] = newFrame
+                                    }
+                                }
+                            }
+                        }
+                        .padding(60)
+                        .scaleEffect(scale)
+                        .offset(offset)
+                        .frame(minWidth: geo.size.width, minHeight: geo.size.height)
+                    }
+                    .task { await data.refreshData() }
+                    .onDisappear { data.stopListening() }
+                }
+                
+                PinchPanRecognizerView(
+                    scale: $scale,
+                    offset: $offset,
+                    lastPinchLocation: $lastPinchLocation,
+                    onEndGesture: { handleZoomIn(geo) }
+                )
+                .frame(width: geo.size.width, height: geo.size.height)
+                .background(Color.clear)
+                // NEW: Zoom-out triggers immediately
+                .onChange(of: scale) { newScale in
+                    if newScale < 0.75, !isLoading {
+                        isLoading = true
+                        data.stopListening()
+                        data.nodes.removeAll()
+                        
+                        withAnimation(.easeInOut(duration: 0.5)) {
+                            currentRootNode = nil
+                            scale = 1
+                            offset = .zero
+                            hasZoomedIntoNode = false
+                            isLoading = false
+                        }
+                    }
+                }
+            }
+            
+            if isLoading {
+                VStack {
+                    Spacer()
+                    ProgressView("Loading root tree...")
+                        .progressViewStyle(CircularProgressViewStyle())
+                        .scaleEffect(1.5)
+                    Spacer()
+                }
+                .background(Color.white.opacity(0.5))
+                .transition(.opacity)
+            }
+            
+            VStack {
+                HStack(spacing: 20) {
+                    Button("Seed") { RemixData.seedDummyNodes() }
+                    Button("Clear") { RemixData.clearDummyNodes() }
+                    Button("Reset") { resetView() }
+                    Text(String(format: "Scale: %.2f", scale))
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 6)
+                        .background(Color.white.opacity(0.7))
+                        .cornerRadius(6)
+                }
+                .padding()
+                Spacer()
+            }
+        }
+        .animation(.easeInOut(duration: 0.4), value: currentRootNode?.currNodeID)
+        .animation(.easeInOut(duration: 0.3), value: isLoading)
+    }
+    
+    // MARK: - Zoom-in handler
+    private func handleZoomIn(_ geo: GeometryProxy) {
+        if scale > 2.0, !hasZoomedIntoNode {
+            if let node = mostVisibleNode(in: geo),
+               let targetNode = nearestParentWithChildren(for: node) {
+                animateZoomInto(node: targetNode, in: geo)
+                hasZoomedIntoNode = true
+            }
+        }
+    }
+    
+    // MARK: - Find nearest parent with children
+    private func nearestParentWithChildren(for node: DummyNode) -> DummyNode? {
+        var current = node
+        while true {
+            let children = data.nodes.filter { $0.parentNodeID == current.currNodeID }
+            if !children.isEmpty { return current }
+            if let parent = data.nodes.first(where: { $0.currNodeID == current.parentNodeID }) {
+                current = parent
+            } else {
+                return nil
+            }
+        }
+    }
+    
+    // MARK: - Most visible node
+    private func mostVisibleNode(in geo: GeometryProxy) -> DummyNode? {
+        var maxArea: CGFloat = 0
+        var bestNode: DummyNode? = nil
+        
+        for node in data.nodes {
+            guard let frame = nodeCenters[node.currNodeID] else { continue }
+            let scaledFrame = CGRect(
+                x: frame.minX * scale + offset.width,
+                y: frame.minY * scale + offset.height,
+                width: frame.width * scale,
+                height: frame.height * scale
+            )
+            let visibleRect = geo.frame(in: .global)
+            let intersection = scaledFrame.intersection(visibleRect)
+            let area = intersection.width * intersection.height
+            if area > maxArea {
+                maxArea = area
+                bestNode = node
+            }
+        }
+        
+        return bestNode
+    }
+    
+    // MARK: - Smooth zoom into node animation
+    private func animateZoomInto(node: DummyNode, in geo: GeometryProxy) {
+        guard let frame = nodeCenters[node.currNodeID] else { return }
+        let viewportCenter = CGPoint(x: geo.size.width / 2, y: geo.size.height / 2)
+        let nodeCenter = CGPoint(
+            x: frame.midX * scale + offset.width,
+            y: frame.midY * scale + offset.height
+        )
+        let deltaX = viewportCenter.x - nodeCenter.x
+        let deltaY = viewportCenter.y - nodeCenter.y
+        
+        withAnimation(.easeInOut(duration: 0.4)) {
+            offset.width += deltaX
+            offset.height += deltaY
+            scale = 2.5
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
+            withAnimation(.easeInOut(duration: 0.5)) {
+                let children = data.nodes.filter { $0.parentNodeID == node.currNodeID }
+                if !children.isEmpty {
+                    currentRootNode = node
+                    scale = 1
+                    offset = .zero
+                }
+            }
+        }
+    }
+    
+    // MARK: - Reset button
+    private func resetView() {
+        withAnimation(.easeInOut) {
+            currentRootNode = nil
+            scale = 1
+            offset = .zero
+            hasZoomedIntoNode = false
+        }
+    }
+}
+
+// MARK: - CGRect Extension
+private extension CGRect {
+    var center: CGPoint { CGPoint(x: midX, y: midY) }
+}
+
+// MARK: - Preview
+#Preview {
+    RemixTreeView()
+}
