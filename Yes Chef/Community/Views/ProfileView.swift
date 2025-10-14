@@ -3,16 +3,15 @@ import SwiftUI
 struct ProfileView: View {
     @State private var selectedTab = 0
     @State private var isFollowing = false
+    //@Environment var authVM: AuthenticationVM
     
-    let user: User
     // Simple boolean to toggle between own profile vs other's profile for UI demo
     let isOwnProfile: Bool
     
-    init(user: User, isOwnProfile: Bool = false) {
-            self.user = user
+    init(isOwnProfile: Bool = false) {
             self.isOwnProfile = isOwnProfile
     }
-    
+    let user: User = User(userId: "test", username: "test", email: "test", bio: "test")
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
@@ -208,6 +207,7 @@ struct ProfileView: View {
 }
 
 // MARK: - Preview
+/*
 struct ProfileView_Previews: PreviewProvider {
     static var previews: some View {
         let mockOwnUser = User(
@@ -226,7 +226,7 @@ struct ProfileView_Previews: PreviewProvider {
         
         Group {
             NavigationView {
-                ProfileView(user: mockOwnUser, isOwnProfile: true)
+                ProfileView(isOwnProfile: true)
             }
             .previewDisplayName("Own Profile")
             
@@ -236,4 +236,4 @@ struct ProfileView_Previews: PreviewProvider {
             .previewDisplayName("Other User Profile")
         }
     }
-}
+}*/
