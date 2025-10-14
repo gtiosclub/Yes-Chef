@@ -4,14 +4,15 @@ struct ProfileView: View {
     @State private var selectedTab = 0
     @State private var isFollowing = false
     //@Environment var authVM: AuthenticationVM
-    
+    let user: User
     // Simple boolean to toggle between own profile vs other's profile for UI demo
     let isOwnProfile: Bool
     
-    init(isOwnProfile: Bool = false) {
-            self.isOwnProfile = isOwnProfile
+    init(user: User, isOwnProfile: Bool = false) {
+        self.user = user;
+        self.isOwnProfile = isOwnProfile;
     }
-    let user: User = User(userId: "test", username: "test", email: "test", bio: "test")
+    //let user: User = User(userId: "test", username: "test", email: "test", bio: "test")
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
