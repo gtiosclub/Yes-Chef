@@ -112,6 +112,14 @@ struct Line: Shape {
 struct NodeCard: View {
     let node: DummyNode
     var onFrameChange: ((CGRect) -> Void)? = nil
+    var isTapped: Bool = false
+    var isHeld: Bool = false
+
+    private var backgroundColor: Color {
+        if isHeld { return Color.blue.opacity(0.8) }       // dark blue for hold
+        else if isTapped { return Color.blue.opacity(0.4) } // light blue for tap
+        else { return Color.white }
+    }
     
     var body: some View {
         VStack(spacing: 6) {
@@ -128,7 +136,7 @@ struct NodeCard: View {
         .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 14)
-                .fill(Color.white)
+                .fill(backgroundColor)
                 .shadow(color: Color.black.opacity(0.15), radius: 6, x: 0, y: 4)
                 .overlay(
                     RoundedRectangle(cornerRadius: 14)
@@ -146,11 +154,15 @@ struct NodeCard: View {
     }
 }
 
-// MARK: - UIKit Gesture Recognizer Bridge (Pinch + Pan)
+// MARK: - Pinch + Pan + Tap + Hold Recognizer
 struct PinchPanRecognizerView: UIViewRepresentable {
     @Binding var scale: CGFloat
     @Binding var offset: CGSize
     @Binding var lastPinchLocation: CGPoint?
+    
+    var nodeFrames: [String: CGRect] = [:]
+    var onNodeTap: ((String) -> Void)? = nil
+    var onNodeHold: ((String) -> Void)? = nil
     
     var minScale: CGFloat = 0.5
     var maxScale: CGFloat = 3.0
@@ -162,55 +174,48 @@ struct PinchPanRecognizerView: UIViewRepresentable {
         view.isUserInteractionEnabled = true
         
         let pinch = UIPinchGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handlePinch(_:)))
-        pinch.delegate = context.coordinator
-        view.addGestureRecognizer(pinch)
-        
         let pan = UIPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handlePan(_:)))
-        pan.delegate = context.coordinator
-        view.addGestureRecognizer(pan)
+        let tap = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap(_:)))
+        let hold = UILongPressGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleHold(_:)))
         
+        pinch.delegate = context.coordinator
+        pan.delegate = context.coordinator
+        tap.delegate = context.coordinator
+        hold.delegate = context.coordinator
+        hold.minimumPressDuration = 0.5
+        
+        [pinch, pan, tap, hold].forEach { view.addGestureRecognizer($0) }
         return view
     }
     
-    func updateUIView(_ uiView: UIView, context: Context) {}
+    func updateUIView(_ uiView: UIView, context: Context) {
+        context.coordinator.nodeFrames = nodeFrames
+    }
     
     func makeCoordinator() -> Coordinator { Coordinator(self) }
     
     class Coordinator: NSObject, UIGestureRecognizerDelegate {
         var parent: PinchPanRecognizerView
+        var nodeFrames: [String: CGRect] = [:]
         private var lastScale: CGFloat = 1.0
         private var startOffset: CGPoint = .zero
         private var velocity: CGSize = .zero
         private var displayLink: CADisplayLink?
         
-        init(_ parent: PinchPanRecognizerView) {
-            self.parent = parent
-        }
+        init(_ parent: PinchPanRecognizerView) { self.parent = parent }
         
         @objc func handlePinch(_ gr: UIPinchGestureRecognizer) {
             switch gr.state {
             case .began:
-                stopInertia()
-                lastScale = parent.scale
+                stopInertia(); lastScale = parent.scale
             case .changed:
                 guard let view = gr.view else { return }
                 let loc = gr.location(in: view)
                 parent.lastPinchLocation = loc
-                
                 var newScale = lastScale * gr.scale
                 newScale = clamp(newScale, min: parent.minScale, max: parent.maxScale)
-                
-                let scaleChange = newScale / parent.scale
-                let deltaX = loc.x - parent.offset.width
-                let deltaY = loc.y - parent.offset.height
-                
-                parent.offset = CGSize(
-                    width: parent.offset.width - (scaleChange - 1) * deltaX,
-                    height: parent.offset.height - (scaleChange - 1) * deltaY
-                )
                 parent.scale = newScale
-                
-            case .ended, .cancelled, .failed:
+            case .ended, .cancelled:
                 parent.onEndGesture?()
             default: break
             }
@@ -219,16 +224,34 @@ struct PinchPanRecognizerView: UIViewRepresentable {
         @objc func handlePan(_ gr: UIPanGestureRecognizer) {
             switch gr.state {
             case .began:
-                stopInertia()
-                startOffset = CGPoint(x: parent.offset.width, y: parent.offset.height)
+                stopInertia(); startOffset = CGPoint(x: parent.offset.width, y: parent.offset.height)
             case .changed:
                 let translation = gr.translation(in: gr.view)
                 parent.offset = CGSize(width: startOffset.x + translation.x, height: startOffset.y + translation.y)
             case .ended:
                 velocity = CGSize(width: gr.velocity(in: gr.view).x, height: gr.velocity(in: gr.view).y)
-                startInertia()
-                parent.onEndGesture?()
+                startInertia(); parent.onEndGesture?()
             default: break
+            }
+        }
+        
+        @objc func handleTap(_ gr: UITapGestureRecognizer) {
+            guard let view = gr.view else { return }
+            let tapLoc = gr.location(in: view)
+            let global = view.convert(tapLoc, to: nil)
+            for (id, frame) in nodeFrames where frame.contains(global) {
+                parent.onNodeTap?(id)
+                break
+            }
+        }
+        
+        @objc func handleHold(_ gr: UILongPressGestureRecognizer) {
+            guard gr.state == .began, let view = gr.view else { return }
+            let loc = gr.location(in: view)
+            let global = view.convert(loc, to: nil)
+            for (id, frame) in nodeFrames where frame.contains(global) {
+                parent.onNodeHold?(id)
+                break
             }
         }
         
@@ -247,25 +270,17 @@ struct PinchPanRecognizerView: UIViewRepresentable {
             let friction: CGFloat = 0.90
             velocity.width *= friction
             velocity.height *= friction
-            
             if abs(velocity.width) < 0.5 && abs(velocity.height) < 0.5 {
-                stopInertia()
-                return
+                stopInertia(); return
             }
-            
             parent.offset = CGSize(
                 width: parent.offset.width + velocity.width / 60,
                 height: parent.offset.height + velocity.height / 60
             )
         }
         
-        func gestureRecognizer(_ g1: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith g2: UIGestureRecognizer) -> Bool {
-            true
-        }
-        
-        private func clamp(_ v: CGFloat, min: CGFloat, max: CGFloat) -> CGFloat {
-            Swift.min(Swift.max(v, min), max)
-        }
+        func gestureRecognizer(_ g1: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith g2: UIGestureRecognizer) -> Bool { true }
+        private func clamp(_ v: CGFloat, min: CGFloat, max: CGFloat) -> CGFloat { Swift.min(Swift.max(v, min), max) }
     }
 }
 
@@ -279,14 +294,21 @@ struct RemixTreeView: View {
     @State private var lastPinchLocation: CGPoint? = nil
     @State private var isLoading: Bool = false
     @State private var hasZoomedIntoNode: Bool = false
+    @State private var tappedNodeID: String? = nil
+    @State private var heldNodeID: String? = nil
+    @State private var navigateToNode: DummyNode? = nil
+    @State private var navigateToPostID: String? = nil
     
-    init(rootNode: DummyNode? = nil) {
+    var enteredByTap: Bool = false
+    
+    init(rootNode: DummyNode? = nil, enteredByTap: Bool = false) {
         self._currentRootNode = State(initialValue: rootNode)
+        self.enteredByTap = enteredByTap
     }
     
     var trees: [Tree<UniqueNode>] {
-        if let rootNode = currentRootNode {
-            return [buildTree(rootNode)]
+        if let root = currentRootNode {
+            return [buildTree(root)]
         }
         let roots = data.nodes.filter { $0.parentNodeID == "none" }
         return roots.map { buildTree($0) }
@@ -298,97 +320,109 @@ struct RemixTreeView: View {
     }
     
     var body: some View {
-        ZStack {
-            GeometryReader { geo in
-                ScrollView([.vertical, .horizontal], showsIndicators: false) {
-                    ZStack(alignment: .top) {
-                        VStack(spacing: 120) {
-                            ForEach(trees.indices, id: \.self) { index in
-                                Diagram(tree: trees[index]) { uniqueNode in
-                                    NodeCard(node: uniqueNode.node) { newFrame in
-                                        nodeCenters[uniqueNode.node.currNodeID] = newFrame
+        NavigationStack {
+            ZStack {
+                GeometryReader { geo in
+                    ScrollView([.vertical, .horizontal], showsIndicators: false) {
+                        ZStack(alignment: .top) {
+                            VStack(spacing: 120) {
+                                ForEach(trees.indices, id: \.self) { index in
+                                    Diagram(tree: trees[index]) { uniqueNode in
+                                        NodeCard(
+                                            node: uniqueNode.node,
+                                            onFrameChange: { newFrame in
+                                                nodeCenters[uniqueNode.node.currNodeID] = newFrame
+                                            },
+                                            isTapped: tappedNodeID == uniqueNode.node.currNodeID,
+                                            isHeld: heldNodeID == uniqueNode.node.currNodeID
+                                        )
                                     }
                                 }
                             }
+                            .padding(60)
+                            .scaleEffect(scale)
+                            .offset(offset)
+                            .frame(minWidth: geo.size.width, minHeight: geo.size.height)
                         }
-                        .padding(60)
-                        .scaleEffect(scale)
-                        .offset(offset)
-                        .frame(minWidth: geo.size.width, minHeight: geo.size.height)
+                        .onAppear { data.startListening() }
+                        .onDisappear { data.stopListening() }
                     }
-                    .task { await data.refreshData() }
-                    .onDisappear { data.stopListening() }
+                    
+                    PinchPanRecognizerView(
+                        scale: $scale,
+                        offset: $offset,
+                        lastPinchLocation: $lastPinchLocation,
+                        nodeFrames: nodeCenters,
+                        onNodeTap: { id in
+                            tappedNodeID = id
+                            heldNodeID = nil
+                            if let node = data.nodes.first(where: { $0.currNodeID == id }) {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                    navigateToNode = node
+                                }
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                tappedNodeID = nil
+                            }
+                        },
+                        onNodeHold: { id in
+                            heldNodeID = id
+                            tappedNodeID = nil
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                navigateToPostID = id
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                heldNodeID = nil
+                            }
+                        },
+                        onEndGesture: { handleZoom(geo) }
+                    )
+                    .frame(width: geo.size.width, height: geo.size.height)
                 }
                 
-                PinchPanRecognizerView(
-                    scale: $scale,
-                    offset: $offset,
-                    lastPinchLocation: $lastPinchLocation,
-                    onEndGesture: { handleZoomIn(geo) }
-                )
-                .frame(width: geo.size.width, height: geo.size.height)
-                .background(Color.clear)
-                // NEW: Zoom-out triggers immediately
-                .onChange(of: scale) { newScale in
-                    if newScale < 0.75, !isLoading {
-                        isLoading = true
-                        data.stopListening()
-                        data.nodes.removeAll()
-                        
-                        withAnimation(.easeInOut(duration: 0.5)) {
-                            currentRootNode = nil
-                            scale = 1
-                            offset = .zero
-                            hasZoomedIntoNode = false
-                            isLoading = false
-                        }
+                if isLoading {
+                    VStack {
+                        Spacer()
+                        ProgressView("Loading tree...")
+                            .progressViewStyle(CircularProgressViewStyle())
+                            .scaleEffect(1.5)
+                        Spacer()
                     }
+                    .background(Color.white.opacity(0.5))
                 }
             }
-            
-            if isLoading {
-                VStack {
-                    Spacer()
-                    ProgressView("Loading root tree...")
-                        .progressViewStyle(CircularProgressViewStyle())
-                        .scaleEffect(1.5)
-                    Spacer()
-                }
-                .background(Color.white.opacity(0.5))
-                .transition(.opacity)
+            .animation(.easeInOut(duration: 0.4), value: currentRootNode?.currNodeID)
+            // Tap navigation → subtree
+            .navigationDestination(item: $navigateToNode) { node in
+                RemixTreeView(rootNode: node, enteredByTap: true)
             }
-            
-            VStack {
-                HStack(spacing: 20) {
-                    Button("Seed") { RemixData.seedDummyNodes() }
-                    Button("Clear") { RemixData.clearDummyNodes() }
-                    Button("Reset") { resetView() }
-                    Text(String(format: "Scale: %.2f", scale))
-                        .foregroundColor(.black)
-                        .padding(.horizontal, 6)
-                        .background(Color.white.opacity(0.7))
-                        .cornerRadius(6)
-                }
-                .padding()
-                Spacer()
+            // Hold navigation → DummyRemixPostView
+            .navigationDestination(item: $navigateToPostID) { id in
+                DummyRemixPostView(postID: id)
             }
         }
-        .animation(.easeInOut(duration: 0.4), value: currentRootNode?.currNodeID)
-        .animation(.easeInOut(duration: 0.3), value: isLoading)
     }
     
-    // MARK: - Zoom-in handler
-    private func handleZoomIn(_ geo: GeometryProxy) {
+    private func handleZoom(_ geo: GeometryProxy) {
         if scale > 2.0, !hasZoomedIntoNode {
             if let node = mostVisibleNode(in: geo),
                let targetNode = nearestParentWithChildren(for: node) {
                 animateZoomInto(node: targetNode, in: geo)
                 hasZoomedIntoNode = true
             }
+        } else if scale < 0.75, !enteredByTap {
+            zoomOutToRoot()
         }
     }
     
-    // MARK: - Find nearest parent with children
+    private func zoomOutToRoot() {
+        withAnimation(.easeInOut(duration: 0.5)) {
+            currentRootNode = nil
+            scale = 1
+            offset = .zero
+        }
+    }
+    
     private func nearestParentWithChildren(for node: DummyNode) -> DummyNode? {
         var current = node
         while true {
@@ -396,38 +430,29 @@ struct RemixTreeView: View {
             if !children.isEmpty { return current }
             if let parent = data.nodes.first(where: { $0.currNodeID == current.parentNodeID }) {
                 current = parent
-            } else {
-                return nil
-            }
+            } else { return nil }
         }
     }
     
-    // MARK: - Most visible node
     private func mostVisibleNode(in geo: GeometryProxy) -> DummyNode? {
         var maxArea: CGFloat = 0
-        var bestNode: DummyNode? = nil
-        
+        var best: DummyNode? = nil
         for node in data.nodes {
             guard let frame = nodeCenters[node.currNodeID] else { continue }
-            let scaledFrame = CGRect(
+            let scaled = CGRect(
                 x: frame.minX * scale + offset.width,
                 y: frame.minY * scale + offset.height,
                 width: frame.width * scale,
                 height: frame.height * scale
             )
-            let visibleRect = geo.frame(in: .global)
-            let intersection = scaledFrame.intersection(visibleRect)
+            let visible = geo.frame(in: .global)
+            let intersection = scaled.intersection(visible)
             let area = intersection.width * intersection.height
-            if area > maxArea {
-                maxArea = area
-                bestNode = node
-            }
+            if area > maxArea { maxArea = area; best = node }
         }
-        
-        return bestNode
+        return best
     }
     
-    // MARK: - Smooth zoom into node animation
     private func animateZoomInto(node: DummyNode, in geo: GeometryProxy) {
         guard let frame = nodeCenters[node.currNodeID] else { return }
         let viewportCenter = CGPoint(x: geo.size.width / 2, y: geo.size.height / 2)
@@ -455,24 +480,31 @@ struct RemixTreeView: View {
             }
         }
     }
-    
-    // MARK: - Reset button
-    private func resetView() {
-        withAnimation(.easeInOut) {
-            currentRootNode = nil
-            scale = 1
-            offset = .zero
-            hasZoomedIntoNode = false
-        }
-    }
 }
 
-// MARK: - CGRect Extension
 private extension CGRect {
     var center: CGPoint { CGPoint(x: midX, y: midY) }
 }
 
-// MARK: - Preview
+// MARK: - DummyRemixPostView
+struct DummyRemixPostView: View {
+    let postID: String
+    
+    var body: some View {
+        VStack {
+            Spacer()
+            Text("Dummy Post View For Post with ID \(postID)")
+                .font(.title2)
+                .multilineTextAlignment(.center)
+                .padding()
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemBackground))
+        .navigationTitle("Post \(postID.prefix(5))")
+    }
+}
+
 #Preview {
     RemixTreeView()
 }
