@@ -39,12 +39,17 @@ struct Home: View {
                 }.tag(TabSelection.profile)
             }
             
+            RemixTreeView().tabItem {
+                Image(systemName: "tree")
+            }
+            .tag(TabSelection.remixtreedemo)
+            
         }
     }
 }
 
 enum TabSelection: Hashable {
-    case home, search, post, leaderboard, profile
+    case home, search, post, leaderboard, profile, remixtreedemo
 }
 
 #Preview {
