@@ -11,7 +11,7 @@ import FirebaseFirestore
 @Observable
 class PostViewModel {
     var recipes: [Recipe] = []
-    
+    var selfRecipes: [Recipe] = []
     private let db = Firestore.firestore()
     
     func fetchPosts() async throws {
@@ -55,7 +55,46 @@ class PostViewModel {
             )
         }
     }
-    
+    func fetchUserPosts(userID: String) async throws {
+        let snapshot = try await db.collection("RECIPES").whereField("userId", isEqualTo: userID).getDocuments()
+        self.selfRecipes = snapshot.documents.compactMap { document in
+            let data = document.data()
+            let userId = data["userId"] as? String ?? ""
+            let recipeId = document.documentID
+            //let recipeId = data["id"] as? String ?? UUID().uuidString
+            //let mediaURL = data["profileImageURL"] as? String
+            //let media = mediaURL != nil ? [mediaURL!] : []
+            
+            let name = data["name"] as? String ?? "Untitled"
+            let media = data["media"] as? [String] ?? []
+            let ingredients: [String] = data["ingredients"] as? [String] ?? []
+            let allergens: [String] = data["allergens"] as? [String] ?? []
+            let tags: [String] = data["tags"] as? [String] ?? []
+            let steps: [String] = data["steps"] as? [String] ?? []
+            let description = data["description"] as? String ?? ""
+            let servingSize = data["servingSize"] as? Int ?? 1
+            let prepTime = data["prepTime"] as? Int ?? 0
+            let difficulty = data["difficulty"] as? Difficulty ?? Difficulty.easy
+            let chefsNotes = data["chefsNotes"] as? String ?? ""
+            
+            return Recipe(
+                userId: userId,
+                recipeId: recipeId,
+                name: name,
+                ingredients: ingredients,
+                allergens: allergens,
+                tags: tags,
+                steps: steps,
+                description: description,
+                prepTime: prepTime,
+                difficulty: difficulty,
+                servingSize: servingSize,
+                media: media,
+                chefsNotes: chefsNotes
+            )
+        }
+        
+    }
     //updates the number of likes for a specific recipe in the firestore
     //recipeId is the identifier of the recipe 
     func likePost(recipeId: String) async throws {
