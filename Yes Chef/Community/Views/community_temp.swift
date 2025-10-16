@@ -71,7 +71,7 @@ struct FeedView: View {
         NavigationView {
             VStack(alignment: .leading) {
                 
-                Text("Welcome Text!")
+                Text("Hello Chef!")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .padding(20)
