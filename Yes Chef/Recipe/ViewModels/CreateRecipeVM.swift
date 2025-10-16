@@ -22,8 +22,7 @@ import SwiftUI
     var difficulty: Difficulty = .easy
     var servingSize: Int = 1
     var steps: [String] = [""]
-    var selectedImages: [Image] = []
-    var localMediaPaths: [URL] = []
+    var mediaItems: [MediaItem] = []
     var chefsNotes = ""
     
     var ingredients: [String] {
@@ -112,15 +111,18 @@ import SwiftUI
             }
         }
     
-    private func uploadMediaFromLocalPath(_ localPath: URL, fileName: String, recipeUUID: String) async -> String? {
+    private func uploadMediaToFirebase(_ mediaItem: MediaItem, fileName: String, recipeUUID: String) async -> String? {
         let storage = Storage.storage()
-        let ref = storage.reference().child("recipes/\(recipeUUID)/\(fileName)")
+        let contentType = mediaItem.mediaType == .video ? "video/quicktime" : "image/jpeg"
+        let path = "recipes/\(recipeUUID)/\(fileName)"
+        let ref = storage.reference().child(path)
         
         do {
-            let data = try Data(contentsOf: localPath)
+            let data = try Data(contentsOf: mediaItem.localPath)
             
             let metadata = StorageMetadata()
-            metadata.contentType = "image/jpeg"
+            metadata.contentType = contentType
+            metadata.customMetadata = ["mediaType": mediaItem.mediaType == .video ? "video" : "photo"]
             
             let _ = try await ref.putDataAsync(data, metadata: metadata)
             let downloadURL = try await ref.downloadURL()
@@ -132,6 +134,7 @@ import SwiftUI
             return nil
         }
     }
+    
     func addRecipeToRemixTreeAsRoot(description: String) async -> String {
         let postID = UUID()
         let postUUID = postID.uuidString
@@ -155,27 +158,28 @@ import SwiftUI
         return postUUID
     }
     
-    func createRecipe(userId: String, name: String, ingredients: [String], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, servingSize: Int, media: [URL], chefsNotes: String) async -> String {
+    func createRecipe(userId: String, name: String, ingredients: [String], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, servingSize: Int, mediaItems: [MediaItem], chefsNotes: String) async -> String {
         
         let recipeID = UUID()
         let recipeUUID = recipeID.uuidString
         
         let db = Firestore.firestore()
-        var uploadedURLs: [String] = []
+        var uploadedMediaURLs: [String] = []
         
-        for (index, localPath) in media.enumerated() {
-            let fileName = "media_\(index).jpg"
+        for (index, mediaItem) in mediaItems.enumerated() {
+            let ext = mediaItem.mediaType == .video ? "mov" : "jpg"
+            let fileName = "media_\(index).\(ext)"
             
-            if let urlString = await uploadMediaFromLocalPath(
-                localPath,
+            if let urlString = await uploadMediaToFirebase(
+                mediaItem,
                 fileName: fileName,
                 recipeUUID: recipeUUID
             ) {
-                uploadedURLs.append(urlString)
+                uploadedMediaURLs.append(urlString)
             }
         }
         
-        print("All uploaded media URLs: \(uploadedURLs)")
+        print("All uploaded media: \(uploadedMediaURLs)")
         
         let data: [String: Any] = [
             "userId": userId,
@@ -188,7 +192,7 @@ import SwiftUI
             "prepTime": prepTime,
             "difficulty": difficulty.rawValue,
             "servingSize": servingSize,
-            "media": uploadedURLs,
+            "media": uploadedMediaURLs,
             "chefsNotes": chefsNotes
         ]
         

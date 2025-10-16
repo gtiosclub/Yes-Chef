@@ -40,7 +40,7 @@ struct AddRecipeMain: View {
                                 prepTime: recipeVM.prepTime,
                                 difficulty: recipeVM.difficulty,
                                 servingSize: recipeVM.servingSize,
-                                media: recipeVM.localMediaPaths,
+                                mediaItems: recipeVM.mediaItems,
                                 chefsNotes: recipeVM.chefsNotes
                             )
                             
