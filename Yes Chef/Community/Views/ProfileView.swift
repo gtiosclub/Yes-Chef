@@ -42,7 +42,6 @@ struct ProfileView: View {
             }
             .task {
                 do {
-                    print("MY UID IS: \(user.userId)")
                     try await postVM.fetchUserPosts(userID: user.userId)
                 } catch {
                     print("Failed to fetch recipes: \(error)")
@@ -119,7 +118,7 @@ struct ProfileView: View {
             }
             
             VStack(spacing: 4) {
-                Text("6")
+                Text("\(postVM.selfRecipes.count)")
                     .font(.title2)
                     .fontWeight(.semibold)
                 Text("Recipes")

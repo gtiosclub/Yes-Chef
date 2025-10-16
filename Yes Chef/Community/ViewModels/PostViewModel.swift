@@ -57,7 +57,6 @@ class PostViewModel {
     }
     func fetchUserPosts(userID: String) async throws {
         let snapshot = try await db.collection("RECIPES").whereField("userId", isEqualTo: userID).getDocuments()
-        print("Using userid \(userID)")
         self.selfRecipes = snapshot.documents.compactMap { document in
             let data = document.data()
             let userId = data["userId"] as? String ?? ""
