@@ -9,6 +9,7 @@ import SwiftUI
 struct CommunityView : View {
     @State private var searchText = ""
     @State private var viewModel = SearchViewModel()
+    @State private var postVM = PostViewModel()
     
     let allItems = ["Pizza", "Pasta", "Salad", "Soup", "Sandwich", "Cake", "Curry"]
 
@@ -63,13 +64,20 @@ struct CommunityView : View {
                     .frame(maxHeight: 200)
                     Spacer()
                 } else {
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 25) {
-                            RecipeSection(title: "Trending", items: allItems)
-                            RecipeSection(title: "Top Dinner Picks",items: allItems)
-                            RecipeSection(title: "Top ... Picks",items: allItems)
+                    if postVM.recipes.isEmpty {
+                        Text("Loading...")
+                            .font(.headline)
+                            .foregroundColor(.gray)
+                            .padding()
+                    } else {
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 25) {
+                                RecipeSection(title: "Trending", items: Array(postVM.recipes[0..<5]))
+                                RecipeSection(title: "Top Dinner Picks",items: Array(postVM.recipes[5..<10]))
+                                RecipeSection(title: "Top ... Picks",items: Array(postVM.recipes[10..<15]))
+                            }
+                            .padding(.bottom, 20)
                         }
-                        .padding(.bottom, 20)
                     }
                     
                 }
@@ -78,13 +86,18 @@ struct CommunityView : View {
             .task {
                 await viewModel.getAllUsers()
                 await viewModel.getAllUsernames()
+                do {
+                    try await postVM.fetchPosts()
+                } catch {
+                    print("Failed to fetch recipes: \(error)")
+                }
             }
         }
     }
 }
 struct RecipeSection: View {
     let title: String
-    let items: [String]
+    let items: [Recipe]
     var body: some View {
         VStack(alignment: .leading) {
             Text(title)
@@ -92,8 +105,8 @@ struct RecipeSection: View {
                 .padding(.horizontal, 20)
             ScrollView(.horizontal) {
                 HStack(spacing: 15) {
-                    ForEach(items, id: \.self) { index in
-                        RecipeCard(name: index)
+                    ForEach(items) { recipe in
+                        RecipeCard(name: recipe.name)
                     }
                 }
                 .padding(.horizontal, 20)

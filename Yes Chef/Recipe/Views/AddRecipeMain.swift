@@ -9,7 +9,7 @@ import SwiftUI
 struct AddRecipeMain: View {
     @State private var selectedTab: String = "EditDetails"
     @State private var recipeVM = CreateRecipeVM()
-    
+    @Environment(AuthenticationVM.self) var authVM
     var body: some View {
         NavigationStack{
             VStack(){
@@ -30,7 +30,7 @@ struct AddRecipeMain: View {
                     Button {
                         Task {
                             await recipeVM.createRecipe(
-                                userId: recipeVM.userIdInput,
+                                userId: authVM.currentUser?.userId ?? "",
                                 name: recipeVM.name,
                                 ingredients: recipeVM.ingredients,
                                 allergens: recipeVM.allergens,

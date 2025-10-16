@@ -3,6 +3,7 @@ import SwiftUI
 struct ProfileView: View {
     @State private var selectedTab = 0
     @State private var isFollowing = false
+    @State private var postVM = PostViewModel()
     //@Environment var authVM: AuthenticationVM
     let user: User
     // Simple boolean to toggle between own profile vs other's profile for UI demo
@@ -30,10 +31,24 @@ struct ProfileView: View {
                 
                 // Tab Selection
                 tabSelection
-                
-                // Content Grid
-                contentGrid
+                if postVM.selfRecipes.isEmpty {
+                    Text("No posts yet")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                } else {
+                    // Content Grid
+                    contentGrid
+                }
             }
+            .task {
+                do {
+                    print("MY UID IS: \(user.userId)")
+                    try await postVM.fetchUserPosts(userID: user.userId)
+                } catch {
+                    print("Failed to fetch recipes: \(error)")
+                }
+            }
+
         }
         .navigationBarHidden(false)
     }
@@ -104,7 +119,7 @@ struct ProfileView: View {
             }
             
             VStack(spacing: 4) {
-                Text("\(user.myRecipes.count)")
+                Text("6")
                     .font(.title2)
                     .fontWeight(.semibold)
                 Text("Recipes")
@@ -169,36 +184,49 @@ struct ProfileView: View {
         .padding(.horizontal, 20)
     }
     
+    let foods = ["Apple Pie", "Cheddar Omelet", "Fried Rice", "Butter Chicken", "Steak and Potatoes", "Homemade Yogurt"]
+    let foods2 = ["Spaghetti Carbonara", "Sushi Rolls", "Tacos al Pastor", "Fried Chicken","Margherita Pizza", "Ramen"]
+    
     // MARK: - Content Grid
     private var contentGrid: some View {
         LazyVGrid(columns: [
             GridItem(.flexible(), spacing: 8),
             GridItem(.flexible(), spacing: 8)
         ], spacing: 8) {
-            ForEach(0..<6, id: \.self) { index in
-                VStack(alignment: .leading, spacing: 8) {
-                    // Recipe Image
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.3))
-                        .overlay(
-                            Text("picture")
-                                .foregroundColor(.gray)
-                                .font(.body)
-                        )
-                        .frame(height: 140)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    
-                    // Recipe Title
-                    Text("Food Title")
-                        .font(.body)
-                        .fontWeight(.medium)
-                        .lineLimit(2)
-                        .padding(.horizontal, 4)
-                }
-                .background(Color.white)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .onTapGesture {
-                    print("Recipe \(index) tapped")
+            ForEach(postVM.selfRecipes) { recipe in
+                NavigationLink(destination: PostView(recipe: recipe)) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        // Recipe Image
+                        if let firstImage = recipe.media.first,
+                           let url = URL(string: firstImage) {
+                            AsyncImage(url: url) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                
+                            } placeholder: {
+                                Color.gray.opacity(0.3)
+                            }
+                            .frame(width: 150, height: 140)
+                            .cornerRadius(10)
+                            .clipped()
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            
+                        } else {
+                            Color.gray.opacity(0.3)
+                                .frame(height: 150)
+                                .cornerRadius(10)
+                        }
+                        
+                        // Recipe Title
+                        Text(recipe.name)
+                            .font(.body)
+                            .fontWeight(.medium)
+                            .lineLimit(2)
+                            .padding(.horizontal, 4)
+                    }
+                    .background(Color.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
             }
         }
