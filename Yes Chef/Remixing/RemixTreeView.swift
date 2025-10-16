@@ -400,6 +400,7 @@ struct RemixTreeView: View {
                 return nil
             }
         }
+        return nil
     }
     
     // MARK: - Most visible node
