@@ -370,7 +370,7 @@ struct LeaderboardView: View {
             .padding(.horizontal)
             .padding(.bottom, 10)
             .task {
-                await data.refreshData()
+                // await data.refreshData()
             }
         }
     }
