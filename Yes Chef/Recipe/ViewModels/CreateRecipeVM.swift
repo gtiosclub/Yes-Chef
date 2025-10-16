@@ -164,7 +164,7 @@ import SwiftUI
         }
     
 
-    private func uploadMediaToFirebase(_ localPath: URL, mediaItem: MediaItem, fileName: String, recipeUUID: String) async -> String? {
+    private func uploadMediaToFirebase(mediaItem: MediaItem, fileName: String, recipeUUID: String) async -> String? {
         let storage = Storage.storage()
         let contentType = mediaItem.mediaType == .video ? "video/quicktime" : "image/jpeg"
         let path = "recipes/\(recipeUUID)/\(fileName)"
@@ -224,7 +224,7 @@ import SwiftUI
             let fileName = "media_\(index).\(ext)"
             
             if let urlString = await uploadMediaToFirebase(
-                mediaItem,
+                mediaItem: mediaItem,
                 fileName: fileName,
                 recipeUUID: recipeUUID
             ) {
