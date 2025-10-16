@@ -10,8 +10,8 @@ let screen = UIScreen.main.bounds
 
 struct PostView: View {
     var recipe: Recipe
-    var poster: User?
     
+    @Environment(\.dismiss) private var dismiss
     @State private var UVM = UserViewModel()
     @State private var mediaItem: Int? = 0
     
@@ -24,14 +24,14 @@ struct PostView: View {
                 HStack(spacing: 6 ){
                     
                     //Back Button
-                    ZStack{
+                    Button(action: {dismiss()}){
                         Image(systemName: "chevron.backward").font(Font.title2)
                     }
                     
                     //Divider().padding(.horizontal, 15).background(Color.clear)
                     //Title
                     Spacer()
-                    Text(recipe.name).font(Font.largeTitle)
+                    Text(recipe.name).font(Font.title)
                     //Bookmark Button
                     //Divider().padding(.horizontal, 5)
                     Spacer()
@@ -94,6 +94,7 @@ struct PostView: View {
                                 if let image = phase.image{
                                     image
                                         .resizable()
+                                        .scaledToFill()
                                         .clipShape(RoundedRectangle(cornerRadius: 10))
                                         .frame(width: screen.width/1.2, height: screen.height/2.5)
                                         .id(index)
@@ -199,10 +200,15 @@ struct PostView: View {
             .padding(.bottom, 80)
         }
         .task{
-            let posterData = await UVM.getUserInfo(userID: recipe.userId)
-            profilePhoto = posterData?["profilePhoto"] as? String ?? ""
-            username = posterData?["username"] as? String ?? "..."
+            if !(recipe.userId.isEmpty) {
+                let posterData = await UVM.getUserInfo(userID: recipe.userId)
+                profilePhoto = posterData?["profilePhoto"] as? String ?? ""
+                username = posterData?["username"] as? String ?? "..."
+            }
         }
+        
+        .navigationBarBackButtonHidden(true)
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
     
