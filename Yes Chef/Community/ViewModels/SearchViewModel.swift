@@ -10,8 +10,10 @@ import FirebaseFirestore
 
 @Observable class SearchViewModel {
     var users: [User] = []
+    var usernames: [String] = []
+    
     func getAllUsers() async ->[User]{
-        var db = Firestore.firestore()
+        let db = Firestore.firestore()
         //return all users in the database
         do {
             // Fetch all documents from "users" collection
@@ -29,7 +31,9 @@ import FirebaseFirestore
             }
                     
             // Update the local users array
-            self.users = fetchedUsers
+            await MainActor.run {
+                self.users = fetchedUsers
+            }
                     
             return fetchedUsers
             } catch {
@@ -37,4 +41,23 @@ import FirebaseFirestore
                 return []
             }
     }
+    func getAllUsernames() async -> [String]{
+            do {
+                let snapshot = try await Firebase.db.collection("users").getDocuments()
+                
+                let fetchedUsernames = snapshot.documents.compactMap { doc -> String? in
+                    let data = doc.data()
+                    return data["username"] as? String
+                }
+                
+                await MainActor.run {
+                    self.usernames = fetchedUsernames
+                }
+                
+                return fetchedUsernames
+            } catch {
+                print("Error fetching usernames: \(error.localizedDescription)")
+                return []
+            }
+        }
 }

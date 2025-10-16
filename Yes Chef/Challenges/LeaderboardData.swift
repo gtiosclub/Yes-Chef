@@ -3,6 +3,7 @@ import FirebaseFirestore
 import Firebase
 import FirebaseAuth
 
+
 @MainActor
 class LeaderboardData: ObservableObject {
     struct UserTest: Identifiable, Codable {

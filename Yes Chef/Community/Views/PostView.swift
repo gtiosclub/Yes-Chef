@@ -10,10 +10,13 @@ let screen = UIScreen.main.bounds
 
 struct PostView: View {
     var recipe: Recipe
-    var poster: User?
     
-    
+    @Environment(\.dismiss) private var dismiss
+    @State private var UVM = UserViewModel()
     @State private var mediaItem: Int? = 0
+    
+    @State private var username: String = ""
+    @State private var profilePhoto: String = ""
 
     var body: some View {
         ScrollView{
@@ -21,14 +24,14 @@ struct PostView: View {
                 HStack(spacing: 6 ){
                     
                     //Back Button
-                    ZStack{
+                    Button(action: {dismiss()}){
                         Image(systemName: "chevron.backward").font(Font.title2)
                     }
                     
                     //Divider().padding(.horizontal, 15).background(Color.clear)
                     //Title
                     Spacer()
-                    Text(recipe.name).font(Font.largeTitle)
+                    Text(recipe.name).font(Font.title)
                     //Bookmark Button
                     //Divider().padding(.horizontal, 5)
                     Spacer()
@@ -45,31 +48,25 @@ struct PostView: View {
                 HStack{
                     
                      //Poster Profile Pic
-                    if let photoString = poster?.profilePhoto {
-                        let profilePhoto = URL(string: photoString)
-                        AsyncImage(url: profilePhoto) { phase in
+                        let photoURL = URL(string: profilePhoto)
+                        AsyncImage(url: photoURL) { phase in
                             if let image = phase.image{
                                 image
+                                    .resizable()
+                                    .scaledToFill()
                                     .clipShape(Circle())
                                     .frame(width: 40, height: 40)
+                                    
                             } else{
                                 Circle()
                                     .fill(Color(.systemGray6))
                                     .frame(width: 40, height: 40)
                             }
                         }
-                    } else {
-                        Circle()
-                            .fill(Color(.systemGray6))
-                            .frame(width: 40, height: 40)
-                    }
+                    
                      //Poster Username
-                    if let username = poster?.username{
-                        Text(username)
-                    } else{
-                        Text("Username")
+                    Text(username)
 
-                    }
                     Spacer()
                     
                     //Follow Button
@@ -97,6 +94,7 @@ struct PostView: View {
                                 if let image = phase.image{
                                     image
                                         .resizable()
+                                        .scaledToFill()
                                         .clipShape(RoundedRectangle(cornerRadius: 10))
                                         .frame(width: screen.width/1.2, height: screen.height/2.5)
                                         .id(index)
@@ -201,6 +199,16 @@ struct PostView: View {
             .padding(15)
             .padding(.bottom, 80)
         }
+        .task{
+            if !(recipe.userId.isEmpty) {
+                let posterData = await UVM.getUserInfo(userID: recipe.userId)
+                profilePhoto = posterData?["profilePhoto"] as? String ?? ""
+                username = posterData?["username"] as? String ?? "..."
+            }
+        }
+        
+        .navigationBarBackButtonHidden(true)
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
     
@@ -227,7 +235,7 @@ struct BulletPoint: View {
 }
 
 #Preview {
-    let rec = Recipe(userId: "userid", recipeId: "recipeID", name: "Chaffle", ingredients: ["1 egg", "3 cups of flour","1 teaspoon butter"], allergens: [""], tags: ["american", "keto", "gluten free"], steps: ["Preheat a waffle iron to medium-high. Whisk the eggs in a large bowl until well beaten and smooth.","Coat the waffle iron with nonstick cooking spray, then ladle a heaping 1/4 cup of batter into each section.","Top each chaffle with a pat of butter and drizzle with maple syrup. "], description: "A chaffle is a low-carb, cheese-and-egg-based waffle that's taken the keto world by storm, thanks to its fluffy texture and crispy edges.", prepTime: 120, difficulty: .easy, servingSize: 1, media: ["https://www.themerchantbaker.com/wp-content/uploads/2019/10/Basic-Chaffles-REV-Total-3-480x480.jpg","https://thebestketorecipes.com/wp-content/uploads/2022/01/Easy-Basic-Chaffle-Recipe-Easy-Keto-Chaffle-5.jpg",""], chefsNotes: "")
+    let rec = Recipe(userId: "zvUtxNaS4FRTC1522AsZLxCXl5s1", recipeId: "recipeID", name: "Chaffle", ingredients: ["1 egg", "3 cups of flour","1 teaspoon butter"], allergens: [""], tags: ["american", "keto", "gluten free"], steps: ["Preheat a waffle iron to medium-high. Whisk the eggs in a large bowl until well beaten and smooth.","Coat the waffle iron with nonstick cooking spray, then ladle a heaping 1/4 cup of batter into each section.","Top each chaffle with a pat of butter and drizzle with maple syrup. "], description: "A chaffle is a low-carb, cheese-and-egg-based waffle that's taken the keto world by storm, thanks to its fluffy texture and crispy edges.", prepTime: 120, difficulty: .easy, servingSize: 1, media: ["https://www.themerchantbaker.com/wp-content/uploads/2019/10/Basic-Chaffles-REV-Total-3-480x480.jpg","https://thebestketorecipes.com/wp-content/uploads/2022/01/Easy-Basic-Chaffle-Recipe-Easy-Keto-Chaffle-5.jpg",""], chefsNotes: "String")
     PostView(recipe: rec)
 }
 
