@@ -133,7 +133,16 @@ struct CreateRecipe: View {
                         .padding(.top,-20)
                     AddMedia(selectedImages: $selectedImages, localMediaPaths: $localMediaPaths)
                         .padding(.horizontal)
-
+                    NavigationLink(destination: EditMedia()) {
+                    Text("Edit Media")
+                        .font(.headline)
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                        .padding(.horizontal)
+                        .padding(.top, 20)
+                    }
                     
                     Text("Difficulty")
                         .font(.title)
