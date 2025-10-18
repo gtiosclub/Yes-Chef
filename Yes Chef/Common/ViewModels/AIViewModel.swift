@@ -332,6 +332,7 @@ Rules:
 - Prefer substitutions over deletions when feasible.
 - Keep cuisine and texture intact, propose common grocery items.
 - If the request conflicts with the dish, make conservative edits and explain in "message".
+- If an ingredient is removed or replaced, update any step that mentions it.
 """
 
 private func smartUserContent(recipe: Recipe, userMessage: String) -> String {
@@ -349,11 +350,19 @@ private func smartUserContent(recipe: Recipe, userMessage: String) -> String {
         ],
         "examples": [
             [
-                "user_request": "How can I make this vegetarian?",
-                "expected": [
-                    ["item":"ingredients","removing":["bacon","chicken"],"adding":["smoked paprika","chickpeas"]],
-                    ["item":"steps","removing":[],"adding":["Crisp chickpeas with olive oil and smoked paprika to add savoriness."]]
-                ]
+                "user_request": "Make it vegetarian",
+                    "expected": [
+                        [
+                            "item": "ingredients",
+                            "removing": ["chicken"],
+                            "adding": ["tofu"]
+                        ],
+                        [
+                            "item": "steps",
+                            "removing": ["Stir-fry chicken"],
+                            "adding": ["Sauté tofu until golden"]
+                        ]
+                    ]
             ],
             [
                 "user_request": "I can't eat peanuts",
