@@ -39,10 +39,10 @@ struct Home: View {
                 }.tag(TabSelection.profile)
             }
             
-            RemixTreeView().tabItem {
-                Image(systemName: "tree")
-            }
-            .tag(TabSelection.remixtreedemo)
+//            RemixTreeView().tabItem {
+//                Image(systemName: "tree")
+//            }
+//            .tag(TabSelection.remixtreedemo)
             
         }
     }
