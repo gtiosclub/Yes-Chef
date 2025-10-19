@@ -1,21 +1,21 @@
 //
-//  PostView.swift
+//  PostViewTemp.swift
 //  Yes Chef
 //
-//  Created by Jihoon Kim on 9/25/25.
+//  Created by Nidhi Krishna on 10/14/25.
 //
 import SwiftUI
+import Firebase
+import FirebaseFirestore
 
+let screen = UIScreen.main.bounds
 
-//let screen = UIScreen.main.bounds
-
-struct PostView: View {
+struct PostViewTemp: View {
     var recipe: Recipe
     var poster: User?
     
     @State private var UVM = UserViewModel()
     @State private var mediaItem: Int? = 0
-    //@State var remixTree: RemixTree
     
     @State private var username: String = ""
     @State private var profilePhoto: String = ""
@@ -44,7 +44,9 @@ struct PostView: View {
                         .font(Font.title2)
                         .frame(alignment: .trailing)
                     Button {
-                        //remixTree.deleteNodeFirebase(nodeId: "SzOQjxML48lRsVnPcgGj")
+                        print("deleting")
+                        //change the nodeID to test, this is an old nodeID
+                        RemixTree.deleteNodeFirebase(nodeId: "9gFNvs73ALXNfnmYjDU1")
                     } label: {
                         Image(systemName: "trash")
                             .font(Font.title2)
@@ -215,7 +217,7 @@ struct PostView: View {
         }
     }
 }
-/*
+    
 struct BulletPoint: View {
     var text: String
     let type: Int
@@ -237,10 +239,8 @@ struct BulletPoint: View {
     }
     
 }
-*/
+
 #Preview {
     let rec = Recipe(userId: "zvUtxNaS4FRTC1522AsZLxCXl5s1", recipeId: "recipeID", name: "Chaffle", ingredients: ["1 egg", "3 cups of flour","1 teaspoon butter"], allergens: [""], tags: ["american", "keto", "gluten free"], steps: ["Preheat a waffle iron to medium-high. Whisk the eggs in a large bowl until well beaten and smooth.","Coat the waffle iron with nonstick cooking spray, then ladle a heaping 1/4 cup of batter into each section.","Top each chaffle with a pat of butter and drizzle with maple syrup. "], description: "A chaffle is a low-carb, cheese-and-egg-based waffle that's taken the keto world by storm, thanks to its fluffy texture and crispy edges.", prepTime: 120, difficulty: .easy, servingSize: 1, media: ["https://www.themerchantbaker.com/wp-content/uploads/2019/10/Basic-Chaffles-REV-Total-3-480x480.jpg","https://thebestketorecipes.com/wp-content/uploads/2022/01/Easy-Basic-Chaffle-Recipe-Easy-Keto-Chaffle-5.jpg",""], chefsNotes: "String")
-    //let tree = RemixTree(nodeID: <#T##String#>, parentNode: <#T##RemixTreeNode?#>, rootNodeOfTree: <#T##RemixTreeNode#>, children: <#T##[RemixTreeNode]#>)
     PostView(recipe: rec)
 }
-

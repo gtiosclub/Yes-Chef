@@ -70,8 +70,8 @@ class RemixTree {
     /**
             Handles node deletion in firebase
      */
-    func deleteNodeFirebase(nodeId: String) {
-        let nodeRef = Firebase.db.collection("remixTreeNode").document(nodeId)
+    static func deleteNodeFirebase(nodeId: String) {
+        let nodeRef = Firebase.db.collection("nidhiremixtree").document(nodeId)
         
         nodeRef.getDocument { (document, error) in
             if let error = error {
@@ -84,14 +84,14 @@ class RemixTree {
                 if let children = node.get("childrenID") as? [String] {
                     //asumes children are valid
                     if let parent = node.get("parentID") as? String {
-                        let parentRef = Firebase.db.collection("remixTreeNode").document(parent)
+                        let parentRef = Firebase.db.collection("nidhiremixtree").document(parent)
                         
                         for childID in children {
-                            let childRef = Firebase.db.collection("remixTreeNode").document(childID)
-                            childRef.updateData([
-                                "parentID": parent
-                            ])
-                           
+                                guard !childID.isEmpty else { continue } // <--- skip empty strings
+                                let childRef = Firebase.db.collection("nidhiremixtree").document(childID)
+                                childRef.updateData([
+                                    "parentID": parent
+                                ])
                         }
                         
                         parentRef.updateData([
