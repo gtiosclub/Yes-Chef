@@ -29,7 +29,8 @@ import Observation
             DispatchQueue.main.async {
                 self.isLoading = false
                 self.isLoggedIn = true
-                print("Signed in as \(user.displayName ?? "Anonymous")")
+                print("Signed in as \(user.uid ?? "Anonymous")")
+                self.currentUser = User(userId: user.uid, username: "YesChef", email: email, bio: "Hi! Learning to cook!")
             }
         } catch {
             DispatchQueue.main.async {
@@ -39,13 +40,45 @@ import Observation
         }
     }
     
-    func register(email: String, password: String) {
-        auth.createUser(withEmail: email, password: password) { result, error in
+    func register(email: String, password: String, username: String) {
+        auth.createUser(withEmail: email, password: password) {result, error in
             if let error = error {
                 print("Error registering: \(error.localizedDescription)")
             } else {
                 print("User registered: \(result?.user.uid ?? "")")
             }
+            
+            guard let user = result?.user else {return}
+            
+            let newUser = User(userId: user.uid, username: username, email: email)
+            
+            let userData: [String: Any] = [
+                "userId": newUser.userId,
+                "username": newUser.username,
+                "email": newUser.email,
+                "phoneNumber": newUser.phoneNumber ?? "",
+                "bio": newUser.bio ?? "",
+                "profilePhoto": newUser.profilePhoto,
+                "followers": newUser.followers,
+                "following": newUser.following,
+                "myRecipes": newUser.myRecipes,
+                "savedRecipes": newUser.savedRecipes,
+                "badges": newUser.badges
+            ]
+            Firebase.db.collection("users").document(newUser.userId).setData(userData) { err in
+                        if let err = err {
+                            print("Error saving user: \(err)")
+                        } else {
+                            print("User profile saved in Firestore")
+                            
+                            // 3. Update currentUser
+                            DispatchQueue.main.async {
+                                self.currentUser = newUser
+                                self.isLoggedIn = true
+                                self.isLoading = false
+                            }
+                        }
+                    }
         }
     }
 

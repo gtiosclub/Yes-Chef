@@ -71,7 +71,7 @@ struct FeedView: View {
         NavigationView {
             VStack(alignment: .leading) {
                 
-                Text("Welcome Text!")
+                Text("Hello Chef!")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .padding(20)
@@ -102,31 +102,37 @@ struct FeedView: View {
                     } else {
                         LazyVGrid(columns: columns, spacing: 16) {
                             ForEach(viewModel.recipes) { recipe in
-                                VStack {
-                                    if let firstImage = recipe.media.first,
-                                       let url = URL(string: firstImage) {
-                                        AsyncImage(url: url) { image in
-                                            image
-                                                .resizable()
-                                                .scaledToFill()
-                                        } placeholder: {
-                                            Color.gray.opacity(0.3)
-                                        }
-                                        .frame(height: 150)
-                                        .clipped()
-                                        .cornerRadius(10)
-                                    } else {
-                                        Color.gray.opacity(0.3)
-                                            .frame(height: 150)
+                                NavigationLink(destination: PostView(recipe: recipe)){
+                                    VStack {
+                                        if let firstImage = recipe.media.first,
+                                           let url = URL(string: firstImage) {
+                                            AsyncImage(url: url) { image in
+                                                image
+                                                    .resizable()
+                                                    .scaledToFill()
+                                                
+                                            } placeholder: {
+                                                Color.gray.opacity(0.3)
+                                            }
+                                            .frame(width: 150, height: 150)
                                             .cornerRadius(10)
+                                            .clipped()
+                                            
+                                        } else {
+                                            Color.gray.opacity(0.3)
+                                                .frame(height: 150)
+                                                .cornerRadius(10)
+                                        }
+                                        
+                                        Text(recipe.name)
+                                            .font(.headline)
+                                            .multilineTextAlignment(.center)
+                                            .padding(.top, 5)
                                     }
                                     
-                                    Text(recipe.name)
-                                        .font(.headline)
-                                        .multilineTextAlignment(.center)
-                                        .padding(.top, 5)
                                 }
                             }
+                            
                         }
                         .padding()
                     }

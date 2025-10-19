@@ -8,7 +8,7 @@
 import SwiftUI
 import Foundation
 struct FirebaseTesting: View {
-    @State private var recipeVM = RecipeVM()
+    @State private var recipeVM = CreateRecipeVM()
     @State private var aiVM = AIViewModel()
     
     var body: some View {

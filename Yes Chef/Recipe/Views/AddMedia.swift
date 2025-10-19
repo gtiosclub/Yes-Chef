@@ -8,130 +8,121 @@
 import SwiftUI
 import PhotosUI
 
-struct AddMedia: View {
-    @StateObject private var recipeVM = RecipeVM()
-    
-    @State private var selectedPhotoItems: [PhotosPickerItem] = []
-    @Binding var selectedImages: [Image]
-    @Binding var localMediaPaths: [URL]
+import SwiftUI
+import PhotosUI
 
-    
+enum MediaType {
+    case photo
+    case video
+}
+
+struct MediaItem: Identifiable {
+    let id: UUID = UUID()
+    let image: Image?
+    let localPath: URL
+    let mediaType: MediaType
+}
+
+struct AddMedia: View {
+    @State private var selectedPhotoItems: [PhotosPickerItem] = []
+    @Binding var mediaItems: [MediaItem]
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            
-            HStack(alignment: .top, spacing: 20) {
-                VStack(spacing: 12) {
-                    PhotosPicker(
-                        selection: $selectedPhotoItems,
-                        matching: .any(of: [.images, .videos]),
-                        photoLibrary: .shared()
-                    ) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 25)
-                                .fill(Color.gray)
-                                .frame(width: 100, height: 100)
-                            Image(systemName: "plus")
-                                .foregroundColor(.white)
-                                .font(.system(size: 30, weight: .bold))
-                        }
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 12) {
+                PhotosPicker(
+                    selection: $selectedPhotoItems,
+                    matching: .any(of: [.images, .videos]),
+                    photoLibrary: .shared()
+                ) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.gray)
+                            .frame(width: 120, height: 120)
+                        Image(systemName: "plus")
+                            .foregroundColor(.white)
+                            .font(.system(size: 30, weight: .bold))
                     }
-                    .onChange(of: selectedPhotoItems) { newItems in
-                        Task {
-                            await loadAndSaveMedia(from: newItems)
-                        }
+                }
+                .onChange(of: selectedPhotoItems) { newItems in
+                    Task {
+                        await loadAndSaveMedia(from: newItems)
                     }
-                    
-                    Button("Confirm Media") {
-                        Task {
-                            await createRecipeWithMedia()
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
                 }
                 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
-                        ForEach(selectedImages.indices, id: \.self) { index in
-                            selectedImages[index]
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 100, height: 100)
-                                .cornerRadius(10)
-                                .clipped()
+                        ForEach(mediaItems) { item in
+                            ZStack(alignment: .topTrailing) {
+                                if let image = item.image {
+                                    image
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 120, height: 120)
+                                        .cornerRadius(10)
+                                        .clipped()
+                                } else {
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(Color.gray.opacity(0.3))
+                                        .frame(width: 120, height: 120)
+                                        .overlay(
+                                            Image(systemName: "video.fill")
+                                                .foregroundColor(.white)
+                                                .font(.system(size: 30))
+                                        )
+                                }
+                            }
                         }
                     }
                 }
                 .frame(height: 120)
             }
-            
         }
-        .padding()
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     private func loadAndSaveMedia(from items: [PhotosPickerItem]) async {
-        selectedImages.removeAll()
-        localMediaPaths.removeAll()
-        
         let tempDir = FileManager.default.temporaryDirectory
             .appendingPathComponent("recipe_media_\(UUID().uuidString)")
         
         try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         
         for (index, item) in items.enumerated() {
-            if let data = try? await item.loadTransferable(type: Data.self) {
-                if let uiImage = UIImage(data: data) {
-                    let image = Image(uiImage: uiImage)
-                    selectedImages.append(image)
-                }
+            let fileName = "media_\(index)_\(UUID().uuidString)"
             
-                let fileName = "media_\(index).jpg"
-                let fileURL = tempDir.appendingPathComponent(fileName)
+            // Try loading as image first
+            if let imageData = try? await item.loadTransferable(type: Data.self),
+               let uiImage = UIImage(data: imageData) {
+                let image = Image(uiImage: uiImage)
+                let imageURL = tempDir.appendingPathComponent(fileName).appendingPathExtension("jpg")
                 
                 do {
-                    try data.write(to: fileURL)
-                    localMediaPaths.append(fileURL)
-                    print("Saved media locally: \(fileURL.path)")
+                    try imageData.write(to: imageURL)
+                    let mediaItem = MediaItem(image: image, localPath: imageURL, mediaType: .photo)
+                    mediaItems.append(mediaItem)
+                    print("Saved photo locally: \(imageURL.path)")
                 } catch {
-                    print("Failed to save media locally: \(error.localizedDescription)")
+                    print("Failed to save photo: \(error.localizedDescription)")
+                }
+            } else if let videoData = try? await item.loadTransferable(type: Data.self) {
+                // Fall back to video if image loading failed
+                let videoURL = tempDir.appendingPathComponent(fileName).appendingPathExtension("mov")
+                
+                do {
+                    try videoData.write(to: videoURL)
+                    let mediaItem = MediaItem(image: nil, localPath: videoURL, mediaType: .video)
+                    mediaItems.append(mediaItem)
+                    print("Saved video locally: \(videoURL.path)")
+                } catch {
+                    print("Failed to save video: \(error.localizedDescription)")
                 }
             }
         }
-    }
-    
-    private func createRecipeWithMedia() async {
-        guard !localMediaPaths.isEmpty else {
-            print("No media to upload")
-            return
-        }
         
-        let _ = await recipeVM.createRecipe(
-            userId: "test",
-            name: "Test Recipe",
-            ingredients: ["Ingredient1"],
-            allergens: [],
-            tags: ["Tag1"],
-            steps: ["Step 1"],
-            description: "A sample recipe",
-            prepTime: 10,
-            difficulty: .easy,
-            media: localMediaPaths
-        )
-        
-        cleanupLocalMedia()
-    }
-        
-    private func cleanupLocalMedia() {
-        for path in localMediaPaths {
-            let parentDir = path.deletingLastPathComponent()
-            try? FileManager.default.removeItem(at: parentDir)
-        }
-        localMediaPaths.removeAll()
+        selectedPhotoItems.removeAll()
     }
 }
 
 #Preview {
-    @State var imgs: [Image] = []
-    @State var urls: [URL] = []
-    return AddMedia(selectedImages: $imgs, localMediaPaths: $urls)
+    @State var mediaItems: [MediaItem] = []
+    return AddMedia(mediaItems: $mediaItems)
 }
