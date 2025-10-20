@@ -7,11 +7,8 @@
 
 import SwiftUI
 
-struct IngredientListView: View {
-    @State private var ingredients = [
-        IngredientClass(name: "Flour", quantity: 2, unit: "cups", preparation: "sifted"),
-        IngredientClass(name: "Sugar", quantity: 1, unit: "cup", preparation: "granulated")
-    ]
+struct AddIngredients: View {
+    @Binding var ingredients: [Ingredient]
     
     var body: some View {
         VStack {
@@ -24,7 +21,7 @@ struct IngredientListView: View {
             HStack {
                 Spacer()
                 Button {
-                    ingredients.append(IngredientClass())
+                    ingredients.append(Ingredient())
                 } label: {
                     Image(systemName: "plus")
                         .foregroundColor(.white)
@@ -44,7 +41,7 @@ struct IngredientListView: View {
 }
 
 struct IngredientCardView: View {
-    @Binding var ingredient: IngredientClass
+    @Binding var ingredient: Ingredient
     let onRemove: () -> Void
     
     var body: some View {
@@ -123,6 +120,6 @@ struct IngredientCardView: View {
 }
 
 
-#Preview {
-    IngredientListView()
-}
+//#Preview {
+//    AddIngredients()
+//}

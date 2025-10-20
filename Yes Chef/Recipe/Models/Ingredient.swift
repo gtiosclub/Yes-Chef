@@ -7,7 +7,7 @@
 import Foundation
 import Observation
 
-@Observable class IngredientClass: Identifiable {
+@Observable class Ingredient: Codable, Identifiable {
     let id = UUID()
     var name: String
     var quantity: Int

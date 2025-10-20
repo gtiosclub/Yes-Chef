@@ -26,7 +26,7 @@ class PostViewModel {
             let mediaURL = data["profileImageURL"] as? String
             let media = mediaURL != nil ? [mediaURL!] : []
             
-            let ingredients: [String] = []
+            let ingredients: [Ingredient] = []
             let allergens: [String] = []
             let tags: [String] = []
             let steps: [String] = []

@@ -24,7 +24,14 @@ struct SmartSuggestionDemoView: View {
                             userId: "u1",
                             recipeId: "r1",
                             name: "Spicy Peanut Chicken Noodles",
-                            ingredients: ["chicken thigh", "peanuts", "soy sauce", "noodles", "garlic", "chili oil"],
+                            ingredients: [
+                                Ingredient(name: "chicken thigh", quantity: 1, unit: "lb", preparation: "diced"),
+                                Ingredient(name: "peanuts", quantity: 1, unit: "cup", preparation: "roasted"),
+                                Ingredient(name: "soy sauce", quantity: 3, unit: "tbsp", preparation: ""),
+                                Ingredient(name: "noodles", quantity: 8, unit: "oz", preparation: ""),
+                                Ingredient(name: "garlic", quantity: 3, unit: "cloves", preparation: "minced"),
+                                Ingredient(name: "chili oil", quantity: 2, unit: "tbsp", preparation: "")
+                            ],
                             allergens: ["peanuts", "soy"],
                             tags: ["asian", "noodles"],
                             steps: ["Boil noodles", "Stir-fry chicken", "Toss with peanut sauce"],

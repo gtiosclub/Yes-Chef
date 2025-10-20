@@ -28,12 +28,7 @@ struct CreateRecipe: View {
                     
                     SectionHeader(title: "Ingredients")
                                         
-                    SearchableDropdown(
-                        options: Ingredient.allIngredients,
-                        selectedValues: $recipeVM.selectedIngredients,
-                        placeholder: "Add ingredients...",
-                        allowCustom: true
-                    )
+                    AddIngredients(ingredients: $recipeVM.ingredients)
                     
                     SectionHeader(title: "Allergens")
                     
