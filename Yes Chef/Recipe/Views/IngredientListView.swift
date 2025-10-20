@@ -14,94 +14,111 @@ struct IngredientListView: View {
     ]
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                // 🔹 List background (light brown)
-                Color(red: 245/255, green: 222/255, blue: 179/255)
-                    .ignoresSafeArea()
-                
-                List {
-                    ForEach(Array(ingredients.enumerated()), id: \.element.id) { i, ingredient in
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text("Name:")
-                                TextField("Name", text: $ingredients[i].name)
-                                    .padding(6)
-                                    .background(Color.white)
-                                    .cornerRadius(4)
-                            }
-                            Stepper("Quantity: \(ingredients[i].quantity)", value: $ingredients[i].quantity, in: 0...100)
-                            HStack {
-                                Text("Unit:")
-                                TextField("Unit", text: $ingredients[i].unit)
-                                    .padding(6)
-                                    .background(Color.white)
-                                    .cornerRadius(4)
-                            }
-                            HStack {
-                                Text("Preparation:")
-                                TextField("Preparation", text: $ingredients[i].preparation)
-                                    .padding(6)
-                                    .background(Color.white)
-                                    .cornerRadius(4)
-                            }
-                            
-                            Divider()
-                                .frame(height: 2)
-                                .background(Color.gray)
-                                .padding(.vertical, 2)
-                            
-                            Button {
-                                ingredients.remove(at: i)
-                            } label: {
-                                HStack {
-                                    Spacer()
-                                    Text("Remove")
-                                        .foregroundColor(.red)
-                                        .font(.subheadline)
-                                        .bold()
-                                    Spacer()
-                                }
-                            }
-                            .buttonStyle(.plain)
-                            .padding(.top, 2)
-                        }
-                        .padding()
-                        // 🔹 White background for entire card
-                        .background(Color.white)
-                        .cornerRadius(10)
-                        // Optional gray border
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.gray.opacity(0.5), lineWidth: 1.5)
-                        )
-                        .listRowBackground(Color.clear) // keeps list background visible
-                        .padding(.vertical, 4)
-                    }
-                    
-                    // Add button at bottom
-                    HStack {
-                        Spacer()
-                        Button {
-                            ingredients.append(IngredientClass())
-                        } label: {
-                            Image(systemName: "plus")
-                                .foregroundColor(.white)
-                                .font(.system(size: 24))
-                                .frame(width: 60, height: 60)
-                                .background(Color.orange)
-                                .clipShape(Circle())
-                                .shadow(radius: 4)
-                        }
-                        .padding()
-                        Spacer()
-                    }
-                    .listRowBackground(Color.clear)
+        VStack {
+            ForEach(Array(ingredients.enumerated()), id: \.element.id) { i, ingredient in
+                IngredientCardView(ingredient: $ingredients[i]) {
+                    ingredients.remove(at: i)
                 }
-                .listStyle(.plain)
             }
-            .navigationTitle("Ingredients")
+            
+            HStack {
+                Spacer()
+                Button {
+                    ingredients.append(IngredientClass())
+                } label: {
+                    Image(systemName: "plus")
+                        .foregroundColor(.white)
+                        .font(.system(size: 24, weight: .bold))
+                        .frame(width: 40, height: 40)
+                        .padding(2)
+                        .background(Color(hex: "#ffa94a"))
+                        .clipShape(Circle())
+                }
+                Spacer()
+            }
+            .listRowBackground(Color.clear)
         }
+        .listStyle(.plain)
+        .padding(.horizontal)
+    }
+}
+
+struct IngredientCardView: View {
+    @Binding var ingredient: IngredientClass
+    let onRemove: () -> Void
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 16) {
+                Text("Name")
+                    .font(.system(size: 16, weight: .regular))
+                    .frame(width: 90, alignment: .leading)
+                    .foregroundStyle(Color(hex: "#453736"))
+                TextField("name", text: $ingredient.name)
+                    .font(.system(size: 16))
+                    .foregroundStyle(Color(hex: "#453736"))
+
+            }
+            
+            HStack(spacing: 16) {
+                Text("Quantity")
+                    .font(.system(size: 16, weight: .regular))
+                    .frame(width: 90, alignment: .leading)
+                    .foregroundStyle(Color(hex: "#453736"))
+                TextField("##", text: Binding(
+                    get: { String(ingredient.quantity) },
+                    set: { ingredient.quantity = Int($0) ?? 0 }
+                ))
+                .font(.system(size: 16))
+                .keyboardType(.numberPad)
+                .foregroundStyle(Color(hex: "#453736"))
+
+            }
+            
+            HStack(spacing: 16) {
+                Text("Unit")
+                    .font(.system(size: 16, weight: .regular))
+                    .frame(width: 90, alignment: .leading)
+                    .foregroundStyle(Color(hex: "#453736"))
+                
+                TextField("measurement", text: $ingredient.unit)
+                    .font(.system(size: 16))
+                    .foregroundStyle(Color(hex: "#453736"))
+
+            }
+            
+            HStack(spacing: 16) {
+                Text("Preparation")
+                    .font(.system(size: 16, weight: .regular))
+                    .frame(width: 90, alignment: .leading)
+                    .foregroundStyle(Color(hex: "#453736"))
+                TextField("how to prepare", text: $ingredient.preparation)
+                    .font(.system(size: 16))
+                    .foregroundStyle(Color(hex: "#453736"))
+            }
+            
+            Rectangle()
+                .frame(height: 1)
+                .foregroundColor(.black)
+                .padding(.horizontal, -10)
+        
+            Button(action: onRemove) {
+                Text("Remove")
+                    .foregroundColor(Color(hex: "#FF3F49"))
+                    .font(.system(size: 16))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.vertical, 10)
+        .padding(.horizontal, 10)
+        .background(Color.white)
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(.black, lineWidth: 1)
+        )
+        .padding(.vertical, 4)
     }
 }
 

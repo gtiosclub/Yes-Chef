@@ -5,27 +5,19 @@
 //  Created by Asutosh Mishra on 10/14/25.
 //
 import Foundation
+import Observation
 
-class IngredientClass: ObservableObject, Identifiable {
-    
+@Observable class IngredientClass: Identifiable {
     let id = UUID()
-    // MARK: - Properties
-    @Published var name: String
-    @Published var quantity: Int
-    @Published var unit: String
-    @Published var preparation: String
+    var name: String
+    var quantity: Int
+    var unit: String
+    var preparation: String
 
-    // MARK: - Initializer
-    init(name: String, quantity: Int, unit: String, preparation: String) {
+    init(name: String = "", quantity: Int = 0, unit: String = "", preparation: String = "") {
         self.name = name
         self.quantity = quantity
         self.unit = unit
         self.preparation = preparation
-    }
-    init() {
-        self.name = "name"
-        self.quantity = 1
-        self.unit = "measurement unit"
-        self.preparation = "How to prepare"
     }
 }
