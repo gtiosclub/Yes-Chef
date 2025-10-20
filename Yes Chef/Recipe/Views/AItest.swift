@@ -35,8 +35,15 @@ struct SmartSuggestionAltDemoView: View {
                             recipeId: "r2",
                             name: "Creamy Shrimp Alfredo Pasta",
                             ingredients: [
-                                "fettuccine", "shrimp", "butter", "heavy cream",
-                                "parmesan", "garlic", "salt", "black pepper", "parsley"
+                                Ingredient(name: "fettuccine", quantity: 8, unit: "oz", preparation: ""),
+                                Ingredient(name: "shrimp", quantity: 1, unit: "lb", preparation: "peeled and deveined"),
+                                Ingredient(name: "butter", quantity: 4, unit: "tbsp", preparation: ""),
+                                Ingredient(name: "heavy cream", quantity: 1, unit: "cup", preparation: ""),
+                                Ingredient(name: "parmesan", quantity: 1, unit: "cup", preparation: "grated"),
+                                Ingredient(name: "garlic", quantity: 3, unit: "cloves", preparation: "minced"),
+                                Ingredient(name: "salt", quantity: 1, unit: "tsp", preparation: ""),
+                                Ingredient(name: "black pepper", quantity: 1, unit: "tsp", preparation: ""),
+                                Ingredient(name: "parsley", quantity: 2, unit: "tbsp", preparation: "chopped")
                             ],
                             allergens: ["shellfish", "dairy"],
                             tags: ["italian","pasta","weeknight"],
@@ -57,7 +64,6 @@ struct SmartSuggestionAltDemoView: View {
 
                         let s = try await vm.smartSuggestion(recipe: recipe, userMessage: msg)
 
-                        // Pretty-print
                         let lines = s.toolcall.map {
                             "\($0.item) | -\($0.removing.joined(separator: ", ")) +\($0.adding.joined(separator: ", "))"
                         }.joined(separator: "\n")

@@ -43,22 +43,12 @@ import SwiftUI
         self.userIdInput = recipe.userId
         self.name = recipe.name
         self.description = recipe.description
+        self.ingredients = recipe.ingredients
         self.prepTimeInput = String(recipe.prepTime)
         self.difficulty = recipe.difficulty
         self.servingSize = recipe.servingSize
         self.steps = recipe.steps.isEmpty ? [""] : recipe.steps
         self.chefsNotes = recipe.chefsNotes
-        
-        // Convert ingredients to SearchableValue
-        self.selectedIngredients = recipe.ingredients.map { ingredient in
-            if let matchingIngredient = Ingredient.allIngredients.first(where: {
-                $0.displayName.lowercased() == ingredient.lowercased()
-            }) {
-                return .predefined(matchingIngredient)
-            } else {
-                return .custom(ingredient)
-            }
-        }
         
         // Convert allergens to SearchableValue
         self.selectedAllergens = recipe.allergens.filter { !$0.isEmpty }.map { allergen in
@@ -207,7 +197,7 @@ import SwiftUI
         return postUUID
     }
     
-    func createRecipe(userId: String, name: String, ingredients: [Ingredient], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, servingSize: Int, media: [URL], chefsNotes: String) async -> String {
+    func createRecipe(userId: String, name: String, ingredients: [Ingredient], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, servingSize: Int, media: [MediaItem], chefsNotes: String) async -> String {
         
         let recipeID = UUID()
         let recipeUUID = recipeID.uuidString
