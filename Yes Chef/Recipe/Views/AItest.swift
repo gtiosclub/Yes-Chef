@@ -1,4 +1,11 @@
+////
+////  AItest.swift
+////  Yes Chef
+////
+////  Created by Neel Bhattacharyya on 10/9/25.
+////
 //
+
 //  AItest.swift
 //  Yes Chef
 //
@@ -7,66 +14,84 @@
 
 import SwiftUI
 
-struct SmartSuggestionDemoView: View {
-    @State private var msg = "Make it vegetarian and peanut-free."
+struct SmartSuggestionAltDemoView: View {
+    @State private var msg = "Make it dairy-free and shellfish-free but keep it creamy. Update steps if needed."
     @State private var output = "—"
-
-    let vm = AIViewModel()  
+    let vm = AIViewModel()
 
     var body: some View {
         VStack(spacing: 12) {
-            Text("Smart Suggestion Demo").font(.headline)
-            TextEditor(text: $msg).frame(height: 100).border(.secondary)
+            Text("Smart Suggestion Demo (Alt)").font(.headline)
+
+            TextEditor(text: $msg)
+                .frame(height: 100)
+                .border(.secondary)
+
             Button("Run") {
                 Task {
                     do {
                         let recipe = Recipe(
                             userId: "u1",
-                            recipeId: "r1",
-                            name: "Spicy Peanut Chicken Noodles",
+                            recipeId: "r2",
+                            name: "Creamy Shrimp Alfredo Pasta",
                             ingredients: [
-                                Ingredient(name: "chicken thigh", quantity: 1, unit: "lb", preparation: "diced"),
-                                Ingredient(name: "peanuts", quantity: 1, unit: "cup", preparation: "roasted"),
-                                Ingredient(name: "soy sauce", quantity: 3, unit: "tbsp", preparation: ""),
-                                Ingredient(name: "noodles", quantity: 8, unit: "oz", preparation: ""),
-                                Ingredient(name: "garlic", quantity: 3, unit: "cloves", preparation: "minced"),
-                                Ingredient(name: "chili oil", quantity: 2, unit: "tbsp", preparation: "")
+                                "fettuccine", "shrimp", "butter", "heavy cream",
+                                "parmesan", "garlic", "salt", "black pepper", "parsley"
                             ],
-                            allergens: ["peanuts", "soy"],
-                            tags: ["asian", "noodles"],
-                            steps: ["Boil noodles", "Stir-fry chicken", "Toss with peanut sauce"],
-                            description: "Weeknight spicy noodle bowl.",
-                            prepTime: 25,
-                            difficulty: .easy,
-                            servingSize: 3,
+                            allergens: ["shellfish", "dairy"],
+                            tags: ["italian","pasta","weeknight"],
+                            steps: [
+                                "Boil fettuccine until al dente.",
+                                "Sauté shrimp in butter until pink.",
+                                "Make sauce with butter, heavy cream, garlic, and parmesan.",
+                                "Toss pasta with sauce and shrimp. Season with salt and pepper.",
+                                "Garnish with parsley and serve."
+                            ],
+                            description: "Rich, classic Alfredo with shrimp.",
+                            prepTime: 30,
+                            difficulty: .medium,
+                            servingSize: 2,
                             media: [],
-                            chefsNotes: "Notes go here..."
+                            chefsNotes: "No notes"
                         )
 
                         let s = try await vm.smartSuggestion(recipe: recipe, userMessage: msg)
+
+                        // Pretty-print
+                        let lines = s.toolcall.map {
+                            "\($0.item) | -\($0.removing.joined(separator: ", ")) +\($0.adding.joined(separator: ", "))"
+                        }.joined(separator: "\n")
+
                         output = """
                         MESSAGE:
                         \(s.message)
 
                         TOOLCALL:
-                        \(s.toolcall.map { "\($0.item) | -\($0.removing.joined(separator: ", ")) +\($0.adding.joined(separator: ", "))" }.joined(separator: "\n"))
+                        \(lines)
                         """
-                        print(s)
+
+                        
+
                     } catch {
                         output = "Error: \(error)"
-                        print(error)
                     }
                 }
             }
             .buttonStyle(.borderedProminent)
 
-            ScrollView { Text(output).font(.system(.footnote, design: .monospaced)).frame(maxWidth: .infinity, alignment: .leading) }
-                .frame(maxHeight: 240)
+            ScrollView {
+                Text(output)
+                    .font(.system(.footnote, design: .monospaced))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(maxHeight: 260)
         }
         .padding()
     }
 }
 
+
 #Preview {
-    SmartSuggestionDemoView()
+    SmartSuggestionAltDemoView()
 }
+

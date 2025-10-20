@@ -23,8 +23,8 @@ struct CreateRecipe: View {
                     
                     SectionHeader(title: "Add Media")
                     
-                    AddMedia(selectedImages: $recipeVM.selectedImages, localMediaPaths: $recipeVM.localMediaPaths)
-                        .padding(.horizontal)
+                    AddMedia(mediaItems: $recipeVM.mediaItems)
+                        .padding(.leading, 15)
                     
                     SectionHeader(title: "Ingredients")
                                         

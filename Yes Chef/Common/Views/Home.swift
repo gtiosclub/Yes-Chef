@@ -9,23 +9,27 @@ import SwiftUI
 
 struct Home: View {
     @State private var selectedView: TabSelection = .home
-    @State var authViewModel = AuthenticationVM()
+    @Environment(AuthenticationVM.self) var authVM
     var body: some View {
         TabView(selection: $selectedView) {
             FeedView().tabItem {
                 Image(systemName: "house")
-            }.tag(TabSelection.home)
+            }
+            .tag(TabSelection.home)
             CommunityView().tabItem {
                 Image(systemName: "magnifyingglass")
-            }.tag(TabSelection.search)
+            }
+            .tag(TabSelection.search)
             AddRecipeMain().tabItem {
-
                 Image(systemName: "plus.circle")
-            }.tag(TabSelection.post)
+            }
+            .tag(TabSelection.post)
+            .environment(authVM)
             LeaderboardView().tabItem {
                 Image(systemName: "trophy")
-            }.tag(TabSelection.leaderboard)
-            if let currentUser = authViewModel.currentUser {
+            }
+            .tag(TabSelection.leaderboard)
+            if let currentUser = authVM.currentUser {
                 ProfileView(user: currentUser, isOwnProfile:true).tabItem {
                     Image(systemName: "person.circle")
                 }.tag(TabSelection.profile)
@@ -35,12 +39,17 @@ struct Home: View {
                 }.tag(TabSelection.profile)
             }
             
+//            RemixTreeView().tabItem {
+//                Image(systemName: "tree")
+//            }
+//            .tag(TabSelection.remixtreedemo)
+            
         }
     }
 }
 
 enum TabSelection: Hashable {
-    case home, search, post, leaderboard, profile
+    case home, search, post, leaderboard, profile, remixtreedemo
 }
 
 #Preview {

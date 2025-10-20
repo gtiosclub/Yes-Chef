@@ -22,8 +22,7 @@ import SwiftUI
     var difficulty: Difficulty = .easy
     var servingSize: Int = 1
     var steps: [String] = [""]
-    var selectedImages: [Image] = []
-    var localMediaPaths: [URL] = []
+    var mediaItems: [MediaItem] = []
     var chefsNotes = ""
     
     var allergens: [String] {
@@ -35,6 +34,58 @@ import SwiftUI
     }
 
     var prepTime: Int { Int(prepTimeInput) ?? 0 }
+    
+    // Default initializer
+    init() {}
+    
+    // Initializer for remixing - populates fields from existing recipe
+    init(fromRecipe recipe: Recipe) {
+        self.userIdInput = recipe.userId
+        self.name = recipe.name
+        self.description = recipe.description
+        self.prepTimeInput = String(recipe.prepTime)
+        self.difficulty = recipe.difficulty
+        self.servingSize = recipe.servingSize
+        self.steps = recipe.steps.isEmpty ? [""] : recipe.steps
+        self.chefsNotes = recipe.chefsNotes
+        
+        // Convert ingredients to SearchableValue
+        self.selectedIngredients = recipe.ingredients.map { ingredient in
+            if let matchingIngredient = Ingredient.allIngredients.first(where: {
+                $0.displayName.lowercased() == ingredient.lowercased()
+            }) {
+                return .predefined(matchingIngredient)
+            } else {
+                return .custom(ingredient)
+            }
+        }
+        
+        // Convert allergens to SearchableValue
+        self.selectedAllergens = recipe.allergens.filter { !$0.isEmpty }.map { allergen in
+            if let matchingAllergen = Allergen.allCases.first(where: {
+                $0.displayName.lowercased() == allergen.lowercased()
+            }) {
+                return .predefined(matchingAllergen)
+            } else {
+                return .custom(allergen)
+            }
+        }
+        
+        // Convert tags to SearchableValue
+        self.selectedTags = recipe.tags.map { tag in
+            if let matchingTag = Tag.allTags.first(where: {
+                $0.displayName.lowercased() == tag.lowercased()
+            }) {
+                return .predefined(matchingTag)
+            } else {
+                return .custom(tag)
+            }
+        }
+        
+        // Note: Media URLs from Firebase can't be directly used as local paths
+        // You may want to download these images or handle them differently
+        // For now, they won't be populated in localMediaPaths
+    }
 
     func applyChanges(item: String, removing: [String], adding: [String]) {
             switch item.lowercased() {
@@ -108,15 +159,19 @@ import SwiftUI
             }
         }
     
-    private func uploadMediaFromLocalPath(_ localPath: URL, fileName: String, recipeUUID: String) async -> String? {
+
+    private func uploadMediaToFirebase(mediaItem: MediaItem, fileName: String, recipeUUID: String) async -> String? {
         let storage = Storage.storage()
-        let ref = storage.reference().child("recipes/\(recipeUUID)/\(fileName)")
+        let contentType = mediaItem.mediaType == .video ? "video/quicktime" : "image/jpeg"
+        let path = "recipes/\(recipeUUID)/\(fileName)"
+        let ref = storage.reference().child(path)
         
         do {
-            let data = try Data(contentsOf: localPath)
+            let data = try Data(contentsOf: mediaItem.localPath)
             
             let metadata = StorageMetadata()
-            metadata.contentType = "image/jpeg"
+            metadata.contentType = contentType
+            metadata.customMetadata = ["mediaType": mediaItem.mediaType == .video ? "video" : "photo"]
             
             let _ = try await ref.putDataAsync(data, metadata: metadata)
             let downloadURL = try await ref.downloadURL()
@@ -129,27 +184,51 @@ import SwiftUI
         }
     }
     
+    func addRecipeToRemixTreeAsRoot(description: String) async -> String {
+        let postID = UUID()
+        let postUUID = postID.uuidString
+        
+        let db = Firestore.firestore()
+        
+        let nodeInfo: [String: Any] = [
+            "postID": postUUID,
+            "childrenID": [],
+            "description": description,
+            "parentID": "",
+            "rootNodeID": postUUID,
+        ]
+        
+        do {
+            try await db.collection("remixTreeNode").document(postUUID).setData(nodeInfo)
+            print("Document added successfully!")
+        } catch {
+            print("Error adding document: \(error.localizedDescription)")
+        }
+        return postUUID
+    }
+    
     func createRecipe(userId: String, name: String, ingredients: [Ingredient], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, servingSize: Int, media: [URL], chefsNotes: String) async -> String {
         
         let recipeID = UUID()
         let recipeUUID = recipeID.uuidString
         
         let db = Firestore.firestore()
-        var uploadedURLs: [String] = []
+        var uploadedMediaURLs: [String] = []
         
-        for (index, localPath) in media.enumerated() {
-            let fileName = "media_\(index).jpg"
+        for (index, mediaItem) in mediaItems.enumerated() {
+            let ext = mediaItem.mediaType == .video ? "mov" : "jpg"
+            let fileName = "media_\(index).\(ext)"
             
-            if let urlString = await uploadMediaFromLocalPath(
-                localPath,
+            if let urlString = await uploadMediaToFirebase(
+                mediaItem: mediaItem,
                 fileName: fileName,
                 recipeUUID: recipeUUID
             ) {
-                uploadedURLs.append(urlString)
+                uploadedMediaURLs.append(urlString)
             }
         }
         
-        print("All uploaded media URLs: \(uploadedURLs)")
+        print("All uploaded media: \(uploadedMediaURLs)")
         
         let ingredientsData = ingredients.map { ingredient in
             [
@@ -171,7 +250,7 @@ import SwiftUI
             "prepTime": prepTime,
             "difficulty": difficulty.rawValue,
             "servingSize": servingSize,
-            "media": uploadedURLs,
+            "media": uploadedMediaURLs,
             "chefsNotes": chefsNotes
         ]
         
