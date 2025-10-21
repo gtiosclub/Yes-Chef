@@ -13,8 +13,45 @@ import FirebaseFirestore
 struct ToolCallEntry: Codable {
     let item: String
     let removing: [String]
-    let adding: [String]
+    let adding: [AddingItem]
     
+}
+
+enum AddingItem: Codable {
+    case string(String)
+    case ingredient(Ingredient)
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        
+        if let ingredient = try? container.decode(Ingredient.self) {
+            self = .ingredient(ingredient)
+            return
+        }
+        
+        if let string = try? container.decode(String.self) {
+            self = .string(string)
+            return
+        }
+        
+        throw DecodingError.typeMismatch(
+            AddingItem.self,
+            DecodingError.Context(
+                codingPath: decoder.codingPath,
+                debugDescription: "Expected String or IngredientObject"
+            )
+        )
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch self {
+        case .string(let string):
+            try container.encode(string)
+        case .ingredient(let ingredient):
+            try container.encode(ingredient)
+        }
+    }
 }
 
 struct SmartSuggestion: Codable {
@@ -330,17 +367,27 @@ Return ONLY valid JSON with this exact shape and key names (no markdown, no extr
 Rules:
 - Use arrays for both "removing" and "adding" (use [] if none).
 - Prefer substitutions over deletions when feasible.
+- When removing/adding with ingredients, replicate the structure of the ingredient object passed in, giving good estimates for the quantity necessary to fit the current serving size of the recipe.
 - Keep cuisine and texture intact, propose common grocery items.
 - If the request conflicts with the dish, make conservative edits and explain in "message".
 - If an ingredient is removed or replaced, update any step that mentions it.
 """
 
 private func smartUserContent(recipe: Recipe, userMessage: String) -> String {
+    let ingredientsArray = recipe.ingredients.map { ing -> [String: Any] in
+        return [
+            "name": ing.name,
+            "quantity": ing.quantity,
+            "unit": ing.unit,
+            "preparation": ing.preparation
+        ]
+    }
+    
     let payload: [String: Any] = [
         "user_request": userMessage,
         "recipe": [
             "name": recipe.name,
-            "ingredients": recipe.ingredients,
+            "ingredients": ingredientsArray,
             "allergens": recipe.allergens,
             "tags": recipe.tags,
             "steps": recipe.steps,

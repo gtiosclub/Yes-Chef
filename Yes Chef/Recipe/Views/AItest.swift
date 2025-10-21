@@ -64,8 +64,20 @@ struct SmartSuggestionAltDemoView: View {
 
                         let s = try await vm.smartSuggestion(recipe: recipe, userMessage: msg)
 
-                        let lines = s.toolcall.map {
-                            "\($0.item) | -\($0.removing.joined(separator: ", ")) +\($0.adding.joined(separator: ", "))"
+                        let lines = s.toolcall.map { tool in
+                            let removingStr = tool.removing.joined(separator: ", ")
+                            
+                            let addingStr = tool.adding.map { item in
+                                switch item {
+                                case .string(let str):
+                                    return str
+                                case .ingredient(let ing):
+                                    let prep = ing.preparation.isEmpty ? "" : " (\(ing.preparation))"
+                                    return "\(ing.quantity) \(ing.unit) \(ing.name)\(prep)"
+                                }
+                            }.joined(separator: ", ")
+                            
+                            return "\(tool.item) | -\(removingStr) +\(addingStr)"
                         }.joined(separator: "\n")
 
                         output = """
@@ -75,9 +87,6 @@ struct SmartSuggestionAltDemoView: View {
                         TOOLCALL:
                         \(lines)
                         """
-
-                        
-
                     } catch {
                         output = "Error: \(error)"
                     }
