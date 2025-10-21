@@ -12,6 +12,7 @@ struct Register: View {
 //    @Environment(AuthenticationVM.self) private var authVM
     @State private var authVM = AuthenticationVM()
     @State private var email = ""
+    @State private var username = ""
     @State private var password = ""
     
     var body: some View {
@@ -21,6 +22,8 @@ struct Register: View {
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .autocapitalization(.none)
                     .keyboardType(.emailAddress)
+                TextField("Username", text: $username)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
                 
                 SecureField("Password", text: $password)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
@@ -31,7 +34,7 @@ struct Register: View {
                 }
                 
                 Button("Register"){
-                    authVM.register(email: email, password: password)
+                    authVM.register(email: email, password: password, username: username)
                 }
                 .padding()
                 

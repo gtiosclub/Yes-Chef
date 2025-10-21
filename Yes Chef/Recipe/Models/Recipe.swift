@@ -11,9 +11,9 @@ import Observation
 enum Difficulty: String, CaseIterable, Identifiable {
     var id: String { self.rawValue }
     
-    case easy = "easy"
-    case medium = "medium"
-    case hard = "hard"
+    case easy = "Easy"
+    case medium = "Medium"
+    case hard = "Hard"
 }
 
 @Observable class Recipe: Identifiable {
@@ -21,19 +21,21 @@ enum Difficulty: String, CaseIterable, Identifiable {
     var userId: String
     var recipeId: String
     var name: String
-    var ingredients: [String]
+    var ingredients: [Ingredient]
     var allergens: [String]
     var tags: [String]
     var steps: [String]
     var description: String
     var prepTime: Int
     var difficulty: Difficulty
+    var servingSize: Int
     var media: [String]
+    var chefsNotes: String
     
     var likes: Int = 0
     var comments: [String] = []
     
-    init(userId: String, recipeId: String, name: String, ingredients: [String], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, media: [String]) {
+    init(userId: String, recipeId: String, name: String, ingredients: [Ingredient], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, servingSize: Int, media: [String], chefsNotes: String) {
         self.userId = userId
         self.recipeId = recipeId
         self.name = name
@@ -44,6 +46,8 @@ enum Difficulty: String, CaseIterable, Identifiable {
         self.description = description
         self.prepTime = prepTime
         self.difficulty = difficulty
+        self.servingSize = servingSize
         self.media = media
+        self.chefsNotes = chefsNotes
     }
 }

@@ -1,4 +1,3 @@
-//
 //  RecipeView.swift
 //  Yes Chef
 //
@@ -8,200 +7,90 @@
 import SwiftUI
 
 struct CreateRecipe: View {
-    @State private var name = ""
-    @State private var description = ""
-    @State private var ingredientsInput = ""
-    @State private var allergensInput = ""
-    @State private var tagsInput = ""
-    @State private var prepTimeInput = ""
-    @State private var difficulty: Difficulty = .easy
-    @State private var recipeVM = RecipeVM()
-    @State private var statusMessage = ""
-    @State private var steps: [String] = [""]
+    @State var recipeVM: CreateRecipeVM
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading) {
-                    Text("Name")
-                        .font(.title)
-                        .padding()
-                        .padding(.bottom, -40)
+                    SectionHeader(title: "Recipe Name")
+
+                    StyledTextField(placeholder: "Enter Recipe Name", text: $recipeVM.name)
                     
-                    TextField("Enter Recipe Name", text: $name)
-                        .font(.subheadline)
-                        .padding(10)
-                        .foregroundColor(.primary)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(10)
-                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                        .padding()
-                        .foregroundColor(.secondary)
+                    SectionHeader(title: "Recipe Description")
+
+                    StyledTextField(placeholder: "Enter Recipe Description", text: $recipeVM.description, height: 60)
                     
-                    Text("Description")
-                        .font(.title)
-                        .padding()
-                        .padding(.top,-20)
-                        .padding(.bottom, -38)
+                    SectionHeader(title: "Add Media")
                     
-                    TextField("Enter Recipe Description", text: $description)
-                        .font(.subheadline)
-                        .padding(10)
-                        .padding(.bottom,90)
-                        .foregroundColor(.primary)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(10)
-                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                        .padding()
-                        .foregroundColor(.secondary)
+                    AddMedia(mediaItems: $recipeVM.mediaItems)
+                        .padding(.leading, 15)
                     
-                    Text("Ingredients")
-                        .font(.title)
-                        .padding()
-                        .padding(.top,-20)
-                        .padding(.bottom, -38)
+                    SectionHeader(title: "Ingredients")
+                                        
+                    AddIngredients(ingredients: $recipeVM.ingredients)
                     
-                    TextField("Enter Ingredients (Comma Separated)", text: $ingredientsInput)
-                        .font(.subheadline)
-                        .padding(10)
-                        .padding(.bottom,30)
-                        .foregroundColor(.primary)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(10)
-                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                        .padding()
-                        .foregroundColor(.secondary)
+                    SectionHeader(title: "Allergens")
                     
-                    Text("Allergens")
-                        .font(.title)
-                        .padding()
-                        .padding(.top,-20)
-                        .padding(.bottom, -38)
+                    SearchableDropdown(
+                        options: Allergen.allCases,
+                        selectedValues: $recipeVM.selectedAllergens,
+                        placeholder: "Add allergens...",
+                        allowCustom: true
+                    )
+                
+                    SectionHeader(title: "Tags")
                     
-                    TextField("Enter Allergens (Comma Separated)", text: $allergensInput)
-                        .font(.subheadline)
-                        .padding(10)
-                        .foregroundColor(.primary)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(10)
-                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                        .padding()
-                        .foregroundColor(.secondary)
+                    SearchableDropdown(
+                        options: Tag.allTags,
+                        selectedValues: $recipeVM.selectedTags,
+                        placeholder: "Add tags...",
+                        allowCustom: false
+                    )
                     
-                    Text("Tags")
-                        .font(.title)
-                        .padding()
-                        .padding(.top,-20)
-                        .padding(.bottom, -38)
+
+                    StepsInputView(steps: $recipeVM.steps)
                     
-                    TextField("Enter Tags (Comma Separated)", text: $tagsInput)
-                        .font(.subheadline)
-                        .padding(10)
-                        .foregroundColor(.primary)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(10)
-                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                        .padding()
-                        .foregroundColor(.secondary)
+                    SectionHeader(title: "Prep Time")
+
+                    StyledTextField(placeholder: "Enter Prep Time in Minutes", text: $recipeVM.prepTimeInput, keyboardType: .numberPad)
                     
-//                    Text("Steps")
-//                        .font(.title)
-//                        .padding()
-//                        .padding(.top,-20)
-//                        .padding(.bottom, -15)
-                    
-                    StepsInputView(steps: $steps)
-                    
-                    Text("Prep Time")
-                        .font(.title)
-                        .padding()
-                        .padding(.top,-20)
-                        .padding(.bottom, -38)
-                    
-                    TextField("Enter Prep Time in Minutes", text: $prepTimeInput)
-                        .keyboardType(.numberPad)
-                        .font(.subheadline)
-                        .padding(10)
-                        .foregroundColor(.primary)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(10)
-                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
-                        .padding()
-                        .foregroundColor(.secondary)
-                    
-                    Text("Media")
-                        .font(.title)
-                        .padding()
-                        .padding(.top,-20)
-                    
-                    Text("Difficulty")
-                        .font(.title)
-                        .padding()
-                        .padding(.top,-20)
-                        .padding(.bottom,-20)
-                    
-                    Picker("Choose a Difficulty", selection: $difficulty) {
-                        ForEach(Difficulty.allCases) { level in
-                            Text(level.rawValue).tag(level)
-                        }
+                    HStack {
+                        SectionHeader(title: "Difficulty")
+                        Spacer(minLength: 40)
+                        SectionHeader(title: "Serving Size")
                     }
-                    .pickerStyle(MenuPickerStyle())
-                    .padding(5)
-                    .frame(maxWidth: .infinity)
-                    .background(Color.gray.opacity(0.2))
-                    .cornerRadius(10)
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
+                    
+                    HStack {
+                        DifficultyLevelView(difficulty: $recipeVM.difficulty)
+                        Spacer(minLength: 50)
+                        ServingSizeView(selectedServingSize: $recipeVM.servingSize)
+                    }
                     .padding(.horizontal)
-                }
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: {
-                        // delete
-                    }) {
-                        Image(systemName: "xmark")
-                            .font(.title2)
-                            .foregroundStyle(.gray)
-                            .bold()
-                    }
-                }
-                
-                ToolbarItem(placement: .principal) {
-                    Text("Add Recipe")
-                        .font(.largeTitle)
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        let ingredients = ingredientsInput
-                            .split(separator: ",")
-                            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-
-                        let allergens = allergensInput
-                            .split(separator: ",")
-                            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-
-                        let tags = tagsInput
-                            .split(separator: ",")
-                            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-
-                        let prepTime = Int(prepTimeInput) ?? 0
-                        let stepsList = steps
-                        
-                        // TODO: Call recipeVM.createRecipe(...) with stepsList and other fields
-                        
-                    }) {
-                        Image(systemName: "checkmark")
-                            .font(.title2)
-                            .foregroundStyle(.gray)
-                            .bold()
-                    }
+                    
+                    SectionHeader(title: "Chef's Notes")
+                    
+                    StyledTextField(placeholder: "What else would you like your chef to know?", text: $recipeVM.chefsNotes, height: 40)
                 }
             }
         }
     }
 }
 
+struct SectionHeader: View {
+    let title: String
+    
+    var body: some View {
+        Text(title)
+            .font(.custom("Georgia", size: 24))
+            .foregroundStyle(Color(hex: "#453736"))
+            .fontWeight(.semibold)
+            .padding(.horizontal)
+            .padding(.top, 4)
+            .padding(.bottom, -0.5)
+    }
+}
+
 #Preview {
-    CreateRecipe()
+    CreateRecipe(recipeVM: CreateRecipeVM())
 }
