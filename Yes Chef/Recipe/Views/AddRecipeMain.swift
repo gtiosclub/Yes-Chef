@@ -79,12 +79,7 @@ struct AddRecipeMain: View {
                 if selectedTab == "EditDetails" {
                     CreateRecipe(recipeVM: recipeVM)
                 } else if selectedTab == "AIChef" {
-                    Text("Coming Soon")
-                        .font(.title2)
-                        .foregroundColor(.gray)
-                        .padding()
-                    
-                    Spacer()
+                    AIChefBaseView()
                 }
             }
             .background(Color(hex: "#fffdf5"))
@@ -197,4 +192,5 @@ struct TabBorder: Shape {
 
 #Preview {
     AddRecipeMain()
+        .environment(AuthenticationVM())
 }
