@@ -26,6 +26,17 @@ struct CreateRecipe: View {
                     AddMedia(mediaItems: $recipeVM.mediaItems)
                         .padding(.leading, 15)
                     
+                    NavigationLink(destination: EditMedia()) {
+                        Text("Edit Media")
+                            .font(.headline)
+                            .padding()
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                            .padding(.horizontal)
+                            .padding(.top, 20)
+                    }
+                    
                     SectionHeader(title: "Ingredients")
                                         
                     SearchableDropdown(
@@ -56,22 +67,6 @@ struct CreateRecipe: View {
 
                     StepsInputView(steps: $recipeVM.steps)
                     
-                    Text("Media")
-                        .font(.title)
-                        .padding()
-                        .padding(.top,-20)
-                    AddMedia(selectedImages: $selectedImages, localMediaPaths: $localMediaPaths)
-                        .padding(.horizontal)
-                    NavigationLink(destination: EditMedia()) {
-                    Text("Edit Media")
-                        .font(.headline)
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                        .padding(.horizontal)
-                        .padding(.top, 20)
-                    }
                     SectionHeader(title: "Prep Time")
 
                     StyledTextField(placeholder: "Enter Prep Time in Minutes", text: $recipeVM.prepTimeInput, keyboardType: .numberPad)

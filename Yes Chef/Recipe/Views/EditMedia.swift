@@ -28,9 +28,6 @@ struct EditMedia: View {
                     .bold()
 
                 Spacer()
-                Image(systemName: "chevron.left")
-                    .opacity(0)
-                    .padding(.trailing)
             }
             .padding(.vertical)
             .background(Color.white.shadow(radius: 2))
