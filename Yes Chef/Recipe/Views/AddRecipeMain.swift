@@ -197,4 +197,5 @@ struct TabBorder: Shape {
 
 #Preview {
     AddRecipeMain()
+        .environment(AuthenticationVM())
 }

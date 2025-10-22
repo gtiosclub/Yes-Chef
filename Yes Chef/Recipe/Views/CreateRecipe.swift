@@ -1,3 +1,4 @@
+//
 //  RecipeView.swift
 //  Yes Chef
 //
@@ -5,73 +6,101 @@
 //
 
 import SwiftUI
+import AVKit
 
 struct CreateRecipe: View {
     @State var recipeVM: CreateRecipeVM
+    @State private var selectedMediaIndex: Int? = nil
+    @State private var isEditingMedia: Bool = false
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading) {
-                    SectionHeader(title: "Recipe Name")
+            ZStack {
+                ScrollView {
+                    VStack(alignment: .leading) {
+                        SectionHeader(title: "Recipe Name")
 
-                    StyledTextField(placeholder: "Enter Recipe Name", text: $recipeVM.name)
-                    
-                    SectionHeader(title: "Recipe Description")
+                        StyledTextField(placeholder: "Enter Recipe Name", text: $recipeVM.name)
+                        
+                        SectionHeader(title: "Recipe Description")
 
-                    StyledTextField(placeholder: "Enter Recipe Description", text: $recipeVM.description, height: 60)
-                    
-                    SectionHeader(title: "Add Media")
-                    
-                    AddMedia(mediaItems: $recipeVM.mediaItems)
+                        StyledTextField(placeholder: "Enter Recipe Description", text: $recipeVM.description, height: 60)
+                        
+                        SectionHeader(title: "Add Media")
+                        AddMedia(mediaItems: $recipeVM.mediaItems) { index in
+                            selectedMediaIndex = index
+                            isEditingMedia = true
+                        }
                         .padding(.leading, 15)
-                    
-                    SectionHeader(title: "Ingredients")
-                                        
-                    AddIngredients(ingredients: $recipeVM.ingredients)
-                    
-                    SectionHeader(title: "Allergens")
-                    
-                    SearchableDropdown(
-                        options: Allergen.allCases,
-                        selectedValues: $recipeVM.selectedAllergens,
-                        placeholder: "Add allergens...",
-                        allowCustom: true
-                    )
-                
-                    SectionHeader(title: "Tags")
-                    
-                    SearchableDropdown(
-                        options: Tag.allTags,
-                        selectedValues: $recipeVM.selectedTags,
-                        placeholder: "Add tags...",
-                        allowCustom: false
-                    )
-                    
 
-                    StepsInputView(steps: $recipeVM.steps)
+                        SectionHeader(title: "Ingredients")
+                                            
+                        AddIngredients(ingredients: $recipeVM.ingredients)
+                        
+                        SectionHeader(title: "Allergens")
+                        
+                        SearchableDropdown(
+                            options: Allergen.allCases,
+                            selectedValues: $recipeVM.selectedAllergens,
+                            placeholder: "Add allergens...",
+                            allowCustom: true
+                        )
                     
-                    SectionHeader(title: "Prep Time")
+                        SectionHeader(title: "Tags")
+                        
+                        SearchableDropdown(
+                            options: Tag.allTags,
+                            selectedValues: $recipeVM.selectedTags,
+                            placeholder: "Add tags...",
+                            allowCustom: false
+                        )
+                        
 
-                    StyledTextField(placeholder: "Enter Prep Time in Minutes", text: $recipeVM.prepTimeInput, keyboardType: .numberPad)
-                    
-                    HStack {
-                        SectionHeader(title: "Difficulty")
-                        Spacer(minLength: 40)
-                        SectionHeader(title: "Serving Size")
+                        StepsInputView(steps: $recipeVM.steps)
+                        
+                        SectionHeader(title: "Prep Time")
+
+                        StyledTextField(placeholder: "Enter Prep Time in Minutes", text: $recipeVM.prepTimeInput, keyboardType: .numberPad)
+                        
+                        HStack {
+                            SectionHeader(title: "Difficulty")
+                            Spacer(minLength: 40)
+                            SectionHeader(title: "Serving Size")
+                        }
+                        
+                        HStack {
+                            DifficultyLevelView(difficulty: $recipeVM.difficulty)
+                            Spacer(minLength: 50)
+                            ServingSizeView(selectedServingSize: $recipeVM.servingSize)
+                        }
+                        .padding(.horizontal)
+                        
+                        SectionHeader(title: "Chef's Notes")
+                        
+                        StyledTextField(placeholder: "What else would you like your chef to know?", text: $recipeVM.chefsNotes, height: 40)
                     }
-                    
-                    HStack {
-                        DifficultyLevelView(difficulty: $recipeVM.difficulty)
-                        Spacer(minLength: 50)
-                        ServingSizeView(selectedServingSize: $recipeVM.servingSize)
-                    }
-                    .padding(.horizontal)
-                    
-                    SectionHeader(title: "Chef's Notes")
-                    
-                    StyledTextField(placeholder: "What else would you like your chef to know?", text: $recipeVM.chefsNotes, height: 40)
                 }
+
+                NavigationLink(
+                    destination: Group {
+                        if let index = selectedMediaIndex {
+                            EditMedia(
+                                image: recipeVM.mediaItems[index].mediaType == .photo
+                                    ? UIImage(contentsOfFile: recipeVM.mediaItems[index].localPath.path)
+                                    : nil,
+                                videoURL: recipeVM.mediaItems[index].mediaType == .video
+                                    ? recipeVM.mediaItems[index].localPath
+                                    : nil
+                            )
+                        } else {
+                            EmptyView()
+                        }
+                    },
+                    isActive: $isEditingMedia
+                ) {
+                    EmptyView()
+                }
+                .hidden()
             }
         }
     }
