@@ -14,6 +14,7 @@ class User: Equatable, Identifiable, ObservableObject {
     var email: String
     var phoneNumber: String?
     var bio: String? //User self introduction
+    var password: String?
 
     
     @Published var profilePhoto: String
@@ -25,12 +26,13 @@ class User: Equatable, Identifiable, ObservableObject {
 
 
     
-    init(userId: String, username: String, email: String, bio: String? = nil) {
+    init(userId: String, username: String, email: String, bio: String? = nil, password: String? = nil) {
         self.userId = userId
         self.username = username
         self.email = email
         self.profilePhoto = ""
         self.bio = bio
+        self.password = password
     }
 
     

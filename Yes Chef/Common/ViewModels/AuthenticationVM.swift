@@ -50,12 +50,13 @@ import Observation
             
             guard let user = result?.user else {return}
             
-            let newUser = User(userId: user.uid, username: username, email: email)
+            let newUser = User(userId: user.uid, username: username, email: email, password: password)
             
             let userData: [String: Any] = [
                 "userId": newUser.userId,
                 "username": newUser.username,
                 "email": newUser.email,
+                "password": newUser.password ?? "",
                 "phoneNumber": newUser.phoneNumber ?? "",
                 "bio": newUser.bio ?? "",
                 "profilePhoto": newUser.profilePhoto,

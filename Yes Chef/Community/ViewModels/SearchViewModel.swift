@@ -61,3 +61,48 @@ import FirebaseFirestore
             }
         }
 }
+
+
+// MARK: Email and Password functions
+
+func updateEmail(userId: String, oldEmail: String, newEmail: String) async throws {
+    let db = Firestore.firestore()
+    let userDoc = db.collection("users").document(userId)
+    
+    // Fetch current email
+    let snapshot = try await userDoc.getDocument()
+    guard let data = snapshot.data(),
+          let currentEmail = data["email"] as? String else {
+        throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "User data not found"])
+    }
+    
+    // Check old email
+    guard currentEmail == oldEmail else {
+        throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Old email is incorrect"])
+    }
+    
+    // Update email
+    try await userDoc.updateData(["email": newEmail])
+    print("Email updated successfully")
+}
+
+func updatePassword(userId: String, oldPassword: String, newPassword: String) async throws {
+    let db = Firestore.firestore()
+    let userDoc = db.collection("users").document(userId)
+    
+    // Fetch current password
+    let snapshot = try await userDoc.getDocument()
+    guard let data = snapshot.data(),
+          let currentPassword = data["password"] as? String else {
+        throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "User data not found"])
+    }
+    
+    // Check old password
+    guard currentPassword == oldPassword else {
+        throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Old password is incorrect"])
+    }
+    
+    // Update password
+    try await userDoc.updateData(["password": newPassword])
+    print("Password updated successfully")
+}
