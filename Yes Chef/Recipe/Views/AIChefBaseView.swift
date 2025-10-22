@@ -10,6 +10,7 @@ import SwiftUI
 struct AIChefBaseView: View {
     @State private var userMessage: String = ""
     @FocusState private var isTextFieldFocused: Bool
+    @State var recipeVM: CreateRecipeVM
     
     let suggestions = [
         "Make it easier to cook with less steps",
@@ -85,6 +86,6 @@ struct AIChefBaseView: View {
 }
 
 #Preview {
-    AIChefBaseView()
+    AIChefBaseView(recipeVM: CreateRecipeVM())
 }
 
