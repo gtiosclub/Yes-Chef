@@ -24,7 +24,6 @@ struct AIChefBaseView: View {
         VStack(spacing: 0) {
             
             
-            // MARK: Main prompt text
             Spacer()
             VStack(spacing: 8) {
                 Text("How can I help you cook?")
@@ -69,7 +68,7 @@ struct AIChefBaseView: View {
                     
                     Button(action: {}) {
                         Image(systemName: "arrow.up.circle.fill")
-                            .font(.system(size: 28))
+                            .font(.system(size: 38))
                             .foregroundColor(userMessage.isEmpty ? Color(hex: "#FFCB88") : Color(hex: "#FFA947"))
                     }
                     .disabled(userMessage.isEmpty)
