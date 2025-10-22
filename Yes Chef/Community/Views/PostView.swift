@@ -13,6 +13,7 @@ struct PostView: View {
     
     @Environment(\.dismiss) private var dismiss
     @State private var UVM = UserViewModel()
+    @State private var postVM = PostViewModel()
     @State private var mediaItem: Int? = 0
     
     @State private var username: String = ""
@@ -217,23 +218,31 @@ struct PostView: View {
                 AddRecipeMain(remixRecipe: recipe)
             }
             .hidden()
-
-            Button {
-                goToAddRecipe = true
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "sparkles").font(.headline)
-                    Text("Remix").fontWeight(.semibold)
+            HStack {
+                Button {
+                    Task {
+                        try await postVM.likePost(recipeId: recipe.id)
+                    }
+                } label : {
+                    Image(systemName: "heart")
+                }.frame(width: 20, height: 20)
+                Button {
+                    goToAddRecipe = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "sparkles").font(.headline)
+                        Text("Remix").fontWeight(.semibold)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(Capsule().fill(Color.black))
+                    .foregroundColor(.white)
+                    .shadow(radius: 4, y: 2)
+                    .padding(.trailing, 16)
+                    .padding(.bottom, 16)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .background(Capsule().fill(Color.black))
-                .foregroundColor(.white)
-                .shadow(radius: 4, y: 2)
-                .padding(.trailing, 16)
-                .padding(.bottom, 16)
+                .accessibilityLabel("Remix recipe")
             }
-            .accessibilityLabel("Remix recipe")
         }
     }
 }
