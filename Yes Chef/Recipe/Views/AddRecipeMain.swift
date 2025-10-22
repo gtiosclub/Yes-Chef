@@ -79,12 +79,7 @@ struct AddRecipeMain: View {
                 if selectedTab == "EditDetails" {
                     CreateRecipe(recipeVM: recipeVM)
                 } else if selectedTab == "AIChef" {
-                    Text("Coming Soon")
-                        .font(.title2)
-                        .foregroundColor(.gray)
-                        .padding()
-                    
-                    Spacer()
+                    AIChefBaseView(recipeVM: recipeVM)
                 }
             }
             .background(Color(hex: "#fffdf5"))
