@@ -1,479 +1,498 @@
 import SwiftUI
-import Foundation
 import FirebaseFirestore
 
-// MARK: - Wrapper for Identifiable
-class UniqueNode: Identifiable {
-    let node: DummyNode
-    let id: String
-    
-    init(_ node: DummyNode) {
-        self.node = node
-        self.id = node.currNodeID
-    }
-}
-
-// MARK: - Tree Structure
-struct Tree<A> {
-    var value: A
-    var children: [Tree<A>] = []
-    
-    init(_ value: A, children: [Tree<A>] = []) {
-        self.value = value
-        self.children = children
-    }
-    
-    func map<B>(_ transform: (A) -> B) -> Tree<B> {
-        Tree<B>(
-            transform(value),
-            children: children.map { $0.map(transform) }
-        )
-    }
-}
-
-// MARK: - Diagram View (Recursive)
-struct Diagram<A: Identifiable, V: View>: View {
-    let tree: Tree<A>
-    let nodeView: (A) -> V
-    typealias Key = CollectDict<A.ID, Anchor<CGPoint>>
-    
-    var body: some View {
-        VStack(alignment: .center, spacing: 60) {
-            nodeView(tree.value)
-                .anchorPreference(key: Key.self, value: .center) { [tree.value.id: $0] }
-            
-            HStack(alignment: .top, spacing: 60) {
-                ForEach(tree.children, id: \.value.id) { child in
-                    Diagram(tree: child, nodeView: nodeView)
-                }
-            }
-        }
-        .backgroundPreferenceValue(Key.self) { centers in
-            GeometryReader { proxy in
-                ZStack {
-                    ForEach(tree.children, id: \.value.id) { child in
-                        if let fromAnchor = centers[tree.value.id],
-                           let toAnchor = centers[child.value.id] {
-                            Line(from: proxy[fromAnchor], to: proxy[toAnchor])
-                                .stroke(
-                                    LinearGradient(
-                                        colors: [Color.blue.opacity(0.4), Color.blue.opacity(0.2)],
-                                        startPoint: .top,
-                                        endPoint: .bottom
-                                    ),
-                                    style: StrokeStyle(lineWidth: 2, lineCap: .round)
-                                )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-// MARK: - PreferenceKey
-struct CollectDict<Key: Hashable, Value>: PreferenceKey {
-    static var defaultValue: [Key: Value] { [:] }
-    static func reduce(value: inout [Key: Value], nextValue: () -> [Key: Value]) {
-        value.merge(nextValue(), uniquingKeysWith: { $1 })
-    }
-}
-
-// MARK: - Line Shape
-struct Line: Shape {
-    var from: CGPoint
-    var to: CGPoint
-    
-    var animatableData: AnimatablePair<
-        AnimatablePair<CGFloat, CGFloat>,
-        AnimatablePair<CGFloat, CGFloat>
-    > {
-        get {
-            AnimatablePair(
-                AnimatablePair(from.x, from.y),
-                AnimatablePair(to.x, to.y)
-            )
-        }
-        set {
-            from = CGPoint(x: newValue.first.first, y: newValue.first.second)
-            to = CGPoint(x: newValue.second.first, y: newValue.second.second)
-        }
-    }
-    
-    func path(in rect: CGRect) -> Path {
-        Path { path in
-            path.move(to: from)
-            path.addLine(to: to)
-        }
-    }
-}
-
-// MARK: - Node Card View
+// MARK: - NodeCard
 struct NodeCard: View {
     let node: DummyNode
-    var onFrameChange: ((CGRect) -> Void)? = nil
+    var isTapped: Bool = false
+    var isHeld: Bool = false
+    var onTap: (() -> Void)? = nil
+    var onHold: (() -> Void)? = nil
+    var sizeMultiplier: CGFloat = 1.0
+
+    private var backgroundColor: Color {
+        if isHeld { return Color.blue.opacity(0.85) }
+        else if isTapped { return Color.blue.opacity(0.5) }
+        else { return Color(.systemBackground) }
+    }
     
+    private var borderColor: Color {
+        if isHeld || isTapped { return Color.blue.opacity(0.6) }
+        else { return Color.gray.opacity(0.2) }
+    }
+
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 4 * sizeMultiplier) {
             Text(node.descriptionOfRecipeChanges.isEmpty ? "Recipe" : node.descriptionOfRecipeChanges)
-                .font(.callout)
-                .fontWeight(.semibold)
+                .font(.system(size: 13 * sizeMultiplier, weight: .semibold))
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 8)
+                .lineLimit(3)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 6 * sizeMultiplier)
             
             Text(node.currNodeID.prefix(5))
-                .font(.caption2)
-                .foregroundColor(.gray)
+                .font(.system(size: 10 * sizeMultiplier, weight: .medium))
+                .foregroundColor(.gray.opacity(0.7))
         }
-        .padding(14)
+        .padding(.horizontal, 8 * sizeMultiplier)
+        .padding(.vertical, 10 * sizeMultiplier)
+        .frame(minHeight: 70 * sizeMultiplier)
         .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Color.white)
-                .shadow(color: Color.black.opacity(0.15), radius: 6, x: 0, y: 4)
+            RoundedRectangle(cornerRadius: 12 * sizeMultiplier)
+                .fill(backgroundColor)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 14)
-                        .stroke(Color.blue.opacity(0.4), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 12 * sizeMultiplier)
+                        .stroke(borderColor, lineWidth: 1.5)
                 )
+                .shadow(color: .black.opacity(0.1), radius: 6, x: 0, y: 3)
         )
-        .background(
-            GeometryReader { proxy in
-                Color.clear
-                    .onChange(of: proxy.frame(in: .global)) { newFrame in
-                        onFrameChange?(newFrame)
-                    }
-            }
-        )
+        .scaleEffect(isTapped ? 0.95 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isTapped)
+        .onTapGesture { onTap?() }
+        .onLongPressGesture(minimumDuration: 0.5) { onHold?() }
     }
 }
 
-// MARK: - UIKit Gesture Recognizer Bridge (Pinch + Pan)
-struct PinchPanRecognizerView: UIViewRepresentable {
-    @Binding var scale: CGFloat
-    @Binding var offset: CGSize
-    @Binding var lastPinchLocation: CGPoint?
-    
-    var minScale: CGFloat = 0.5
-    var maxScale: CGFloat = 3.0
-    var onEndGesture: (() -> Void)? = nil
-    
-    func makeUIView(context: Context) -> UIView {
-        let view = UIView()
-        view.backgroundColor = .clear
-        view.isUserInteractionEnabled = true
-        
-        let pinch = UIPinchGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handlePinch(_:)))
-        pinch.delegate = context.coordinator
-        view.addGestureRecognizer(pinch)
-        
-        let pan = UIPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handlePan(_:)))
-        pan.delegate = context.coordinator
-        view.addGestureRecognizer(pan)
-        
-        return view
-    }
-    
-    func updateUIView(_ uiView: UIView, context: Context) {}
-    
-    func makeCoordinator() -> Coordinator { Coordinator(self) }
-    
-    class Coordinator: NSObject, UIGestureRecognizerDelegate {
-        var parent: PinchPanRecognizerView
-        private var lastScale: CGFloat = 1.0
-        private var startOffset: CGPoint = .zero
-        private var velocity: CGSize = .zero
-        private var displayLink: CADisplayLink?
-        
-        init(_ parent: PinchPanRecognizerView) {
-            self.parent = parent
-        }
-        
-        @objc func handlePinch(_ gr: UIPinchGestureRecognizer) {
-            switch gr.state {
-            case .began:
-                stopInertia()
-                lastScale = parent.scale
-            case .changed:
-                guard let view = gr.view else { return }
-                let loc = gr.location(in: view)
-                parent.lastPinchLocation = loc
-                
-                var newScale = lastScale * gr.scale
-                newScale = clamp(newScale, min: parent.minScale, max: parent.maxScale)
-                
-                let scaleChange = newScale / parent.scale
-                let deltaX = loc.x - parent.offset.width
-                let deltaY = loc.y - parent.offset.height
-                
-                parent.offset = CGSize(
-                    width: parent.offset.width - (scaleChange - 1) * deltaX,
-                    height: parent.offset.height - (scaleChange - 1) * deltaY
+// MARK: - Connection Views
+struct SimpleArrowView: View {
+    var body: some View {
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [Color.blue.opacity(0.4), Color.blue.opacity(0.2)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
                 )
-                parent.scale = newScale
+                .frame(width: 2, height: 20)
+            
+            Triangle()
+                .fill(Color.blue.opacity(0.4))
+                .frame(width: 10, height: 8)
+                .rotationEffect(.degrees(180))
+        }
+        .padding(.vertical, 8)
+    }
+}
+
+struct Triangle: Shape {
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        p.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        p.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        p.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        p.closeSubpath()
+        return p
+    }
+}
+
+struct BranchConnectorView: View {
+    var body: some View {
+        GeometryReader { geo in
+            Path { path in
+                let width = geo.size.width
+                let centerX = width / 2
+                let startY: CGFloat = 0
+                let endY: CGFloat = 40
+                let spread: CGFloat = width * 0.35
                 
-            case .ended, .cancelled, .failed:
-                parent.onEndGesture?()
-            default: break
+                // Center line
+                path.move(to: CGPoint(x: centerX, y: startY))
+                path.addLine(to: CGPoint(x: centerX, y: 12))
+                
+                // Left branch
+                path.move(to: CGPoint(x: centerX, y: 12))
+                path.addQuadCurve(
+                    to: CGPoint(x: centerX - spread, y: endY),
+                    control: CGPoint(x: centerX - spread/2, y: 20)
+                )
+                
+                // Right branch
+                path.move(to: CGPoint(x: centerX, y: 12))
+                path.addQuadCurve(
+                    to: CGPoint(x: centerX + spread, y: endY),
+                    control: CGPoint(x: centerX + spread/2, y: 20)
+                )
+            }
+            .stroke(
+                LinearGradient(
+                    colors: [Color.blue.opacity(0.5), Color.blue.opacity(0.25)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                ),
+                style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round)
+            )
+        }
+        .frame(height: 40)
+        .padding(.vertical, 12)
+    }
+}
+
+// MARK: - Section Header
+struct SectionHeaderView: View {
+    let title: String
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Rectangle()
+                .fill(Color.blue.opacity(0.3))
+                .frame(height: 1)
+            
+            Text(title)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(.gray)
+                .textCase(.uppercase)
+                .tracking(0.5)
+            
+            Rectangle()
+                .fill(Color.blue.opacity(0.3))
+                .frame(height: 1)
+        }
+        .padding(.horizontal, 40)
+        .padding(.vertical, 8)
+    }
+}
+
+// MARK: - Circular Carousel
+struct CircularCarouselView: View {
+    var nodes: [DummyNode]
+    var tappedNodeID: String?
+    var heldNodeID: String?
+    var onNodeTap: ((DummyNode) -> Void)?
+    var onNodeHold: ((DummyNode) -> Void)?
+    var onCenterNodeChange: ((DummyNode?) -> Void)?
+    @State private var rotation: CGFloat = 0
+    @State private var dragOffset: CGFloat = 0
+    @ObservedObject private var inertia = InertiaController()
+    
+    private var centeredNode: DummyNode? {
+        guard !nodes.isEmpty else { return nil }
+        let totalRotation = rotation + dragOffset
+        let normalizedRotation = totalRotation.truncatingRemainder(dividingBy: 360)
+        let adjustedRotation = normalizedRotation < 0 ? normalizedRotation + 360 : normalizedRotation
+        let anglePerNode = 360.0 / CGFloat(nodes.count)
+        let centeredIndex = Int(round(adjustedRotation / anglePerNode)) % nodes.count
+        return nodes[centeredIndex]
+    }
+
+    var body: some View {
+        GeometryReader { geo in
+            let radius = min(geo.size.width / 2.5, 140)
+            ZStack {
+                ForEach(Array(nodes.enumerated()), id: \.1.currNodeID) { index, node in
+                    let angle = (CGFloat(index) / CGFloat(nodes.count)) * 360 + rotation + dragOffset
+                    let xOffset = cos(angle * .pi / 180) * radius
+                    let zOffset = sin(angle * .pi / 180) * radius
+                    let scale = 0.7 + 0.3 * ((zOffset / radius) + 1) / 2
+                    let opacity = 0.4 + 0.6 * ((zOffset / radius) + 1) / 2
+                    
+                    NodeCard(
+                        node: node,
+                        isTapped: tappedNodeID == node.currNodeID,
+                        isHeld: heldNodeID == node.currNodeID,
+                        onTap: { onNodeTap?(node) },
+                        onHold: { onNodeHold?(node) }
+                    )
+                    .frame(width: 95, height: 90)
+                    .scaleEffect(scale)
+                    .opacity(opacity)
+                    .offset(x: xOffset)
+                    .zIndex(zOffset)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        dragOffset = -value.translation.width / 8
+                    }
+                    .onEnded { value in
+                        rotation += dragOffset
+                        dragOffset = 0
+                        inertia.start(with: -value.predictedEndTranslation.width / 8) { delta in
+                            rotation += delta
+                        }
+                    }
+            )
+            .onChange(of: centeredNode?.currNodeID) { newNodeID in
+                onCenterNodeChange?(centeredNode)
             }
         }
+        .frame(height: 180)
+    }
+
+    class InertiaController: ObservableObject {
+        private var velocity: CGFloat = 0
+        private var displayLink: CADisplayLink?
+        private var update: ((CGFloat) -> Void)?
         
-        @objc func handlePan(_ gr: UIPanGestureRecognizer) {
-            switch gr.state {
-            case .began:
-                stopInertia()
-                startOffset = CGPoint(x: parent.offset.width, y: parent.offset.height)
-            case .changed:
-                let translation = gr.translation(in: gr.view)
-                parent.offset = CGSize(width: startOffset.x + translation.x, height: startOffset.y + translation.y)
-            case .ended:
-                velocity = CGSize(width: gr.velocity(in: gr.view).x, height: gr.velocity(in: gr.view).y)
-                startInertia()
-                parent.onEndGesture?()
-            default: break
-            }
-        }
-        
-        private func startInertia() {
-            stopInertia()
-            displayLink = CADisplayLink(target: self, selector: #selector(inertiaStep))
+        func start(with initialVelocity: CGFloat, update: @escaping (CGFloat) -> Void) {
+            stop()
+            velocity = initialVelocity
+            self.update = update
+            displayLink = CADisplayLink(target: self, selector: #selector(tick))
             displayLink?.add(to: .main, forMode: .common)
         }
         
-        private func stopInertia() {
+        @objc private func tick() {
+            let damping: CGFloat = 0.92
+            velocity *= damping
+            if abs(velocity) < 0.1 {
+                stop()
+            } else {
+                update?(velocity * 0.016)
+            }
+        }
+        
+        func stop() {
             displayLink?.invalidate()
             displayLink = nil
-        }
-        
-        @objc private func inertiaStep() {
-            let friction: CGFloat = 0.90
-            velocity.width *= friction
-            velocity.height *= friction
-            
-            if abs(velocity.width) < 0.5 && abs(velocity.height) < 0.5 {
-                stopInertia()
-                return
-            }
-            
-            parent.offset = CGSize(
-                width: parent.offset.width + velocity.width / 60,
-                height: parent.offset.height + velocity.height / 60
-            )
-        }
-        
-        func gestureRecognizer(_ g1: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith g2: UIGestureRecognizer) -> Bool {
-            true
-        }
-        
-        private func clamp(_ v: CGFloat, min: CGFloat, max: CGFloat) -> CGFloat {
-            Swift.min(Swift.max(v, min), max)
+            velocity = 0
         }
     }
 }
-
 // MARK: - RemixTreeView
 struct RemixTreeView: View {
-    @StateObject private var data = RemixData()
-    @State private var currentRootNode: DummyNode? = nil
-    @State private var scale: CGFloat = 1.0
-    @State private var offset: CGSize = .zero
-    @State private var nodeCenters: [String: CGRect] = [:]
-    @State private var lastPinchLocation: CGPoint? = nil
-    @State private var isLoading: Bool = false
-    @State private var hasZoomedIntoNode: Bool = false
+    let nodeID: String
     
-    init(rootNode: DummyNode? = nil) {
-        self._currentRootNode = State(initialValue: rootNode)
+    @ObservedObject private var data = RemixData.shared
+    @State private var tappedNodeID: String?
+    @State private var heldNodeID: String?
+    @State private var navigateToNode: DummyNode?
+    @State private var navigateToPostID: String?
+    @State private var centeredFirstLayerNode: DummyNode?
+    
+    private var currentNodeID: String { nodeID }
+    
+    private var currentNode: DummyNode? {
+        data.nodes.first { $0.currNodeID == currentNodeID }
     }
     
-    var trees: [Tree<UniqueNode>] {
-        if let rootNode = currentRootNode {
-            return [buildTree(rootNode)]
+    private var parentNode: DummyNode? {
+        guard let node = currentNode else { return nil }
+        return data.nodes.first { $0.currNodeID == node.parentNodeID }
+    }
+    
+    private var firstLayerChildren: [DummyNode] {
+        guard let node = currentNode else { return [] }
+        return data.nodes.filter { $0.parentNodeID == node.currNodeID }
+    }
+    
+    private var secondLayerChildren: [DummyNode] {
+        guard let centeredNode = centeredFirstLayerNode else { return [] }
+        return data.nodes.filter { $0.parentNodeID == centeredNode.currNodeID }
+    }
+
+    var body: some View {
+        GeometryReader { geo in
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Parent node section
+                    if let parent = parentNode {
+                        VStack(spacing: 0) {
+                            Text("ORIGINAL")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundColor(.gray.opacity(0.6))
+                                .tracking(1)
+                                .padding(.top, 16)
+                                .padding(.bottom, 8)
+                            
+                            NodeCard(
+                                node: parent,
+                                onTap: { navigateToNode = parent },
+                                onHold: { navigateToPostID = parent.currNodeID },
+                                sizeMultiplier: 0.7
+                            )
+                            .frame(maxWidth: 100)
+                            
+                            SimpleArrowView()
+                        }
+                    }
+
+                    // Current node
+                    if let node = currentNode {
+                        VStack(spacing: 0) {
+                            if parentNode != nil {
+                                Text("THIS RECIPE")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .foregroundColor(.blue.opacity(0.7))
+                                    .tracking(1)
+                                    .padding(.bottom, 8)
+                            }
+                            
+                            NodeCard(
+                                node: node,
+                                isTapped: tappedNodeID == node.currNodeID,
+                                isHeld: heldNodeID == node.currNodeID,
+                                onTap: { navigateToNode = node },
+                                onHold: { navigateToPostID = node.currNodeID }
+                            )
+                            .frame(maxWidth: 120)
+                            .padding(.horizontal, 20)
+                        }
+                        .padding(.vertical, parentNode == nil ? 20 : 0)
+                    }
+
+                    // First layer children
+                    if !firstLayerChildren.isEmpty {
+                        VStack(spacing: 0) {
+                            BranchConnectorView()
+                            
+                            Text("REMIXES")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundColor(.gray.opacity(0.6))
+                                .tracking(1)
+                                .padding(.bottom, 12)
+                            
+                            layerView(nodes: firstLayerChildren, layerIndex: 1)
+                        }
+                        .padding(.top, 8)
+                    }
+
+                    // Second layer children (of centered first layer node)
+                    if !secondLayerChildren.isEmpty {
+                        VStack(spacing: 0) {
+                            BranchConnectorView()
+                            
+                            Text("REMIXES OF REMIXES")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundColor(.gray.opacity(0.6))
+                                .tracking(1)
+                                .padding(.bottom, 12)
+                            
+                            layerView(nodes: secondLayerChildren, layerIndex: 2)
+                                .id(centeredFirstLayerNode?.currNodeID ?? "")
+                                .transition(.opacity)
+                        }
+                        .padding(.top, 8)
+                        .padding(.bottom, 20)
+                    }
+                }
+                .frame(maxWidth: .infinity, minHeight: geo.size.height)
+                .animation(.easeInOut(duration: 0.3), value: centeredFirstLayerNode?.currNodeID)
+            }
         }
-        let roots = data.nodes.filter { $0.parentNodeID == "none" }
-        return roots.map { buildTree($0) }
+        .background(Color(.systemGroupedBackground).ignoresSafeArea())
+        .background(navigationLinks)
+        .onAppear {
+            data.startListening()
+            // Set initial centered node
+            if centeredFirstLayerNode == nil {
+                centeredFirstLayerNode = firstLayerChildren.first
+            }
+        }
+        .onDisappear { data.stopListening() }
     }
-    
-    func buildTree(_ node: DummyNode) -> Tree<UniqueNode> {
-        let children = data.nodes.filter { $0.parentNodeID == node.currNodeID }
-        return Tree(UniqueNode(node), children: children.map { buildTree($0) })
+
+    // MARK: - Layer view
+    @ViewBuilder
+    private func layerView(nodes: [DummyNode], layerIndex: Int) -> some View {
+        if nodes.count >= 3 {
+            CircularCarouselView(
+                nodes: nodes,
+                tappedNodeID: tappedNodeID,
+                heldNodeID: heldNodeID,
+                onNodeTap: handleTap,
+                onNodeHold: handleHold,
+                onCenterNodeChange: { centeredNode in
+                    if layerIndex == 1 {
+                        centeredFirstLayerNode = centeredNode
+                    }
+                }
+            )
+        } else {
+            HStack(spacing: nodes.count == 1 ? 0 : 20) {
+                ForEach(nodes) { node in
+                    NodeCard(
+                        node: node,
+                        isTapped: tappedNodeID == node.currNodeID,
+                        isHeld: heldNodeID == node.currNodeID,
+                        onTap: { handleTap(node: node) },
+                        onHold: { handleHold(node: node) }
+                    )
+                    .frame(width: nodes.count == 1 ? 120 : 100)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 110)
+            .padding(.horizontal, 20)
+        }
     }
+
+    // MARK: - Navigation
+    private var navigationLinks: some View {
+        Group {
+            NavigationLink(
+                destination: Group {
+                    if let node = navigateToNode {
+                        RemixTreeView(nodeID: node.currNodeID)
+                    }
+                },
+                isActive: Binding(
+                    get: { navigateToNode != nil },
+                    set: { if !$0 { navigateToNode = nil } }
+                )
+            ) {
+                EmptyView()
+            }
+
+            NavigationLink(
+                destination: Group {
+                    if let postID = navigateToPostID {
+                        DummyRemixPostView(postID: postID)
+                    }
+                },
+                isActive: Binding(
+                    get: { navigateToPostID != nil },
+                    set: { if !$0 { navigateToPostID = nil } }
+                )
+            ) {
+                EmptyView()
+            }
+        }
+    }
+
+    // MARK: - Tap/Hold handlers
+    private func handleTap(node: DummyNode) {
+        tappedNodeID = node.currNodeID
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            tappedNodeID = nil
+            navigateToNode = node
+        }
+    }
+
+    private func handleHold(node: DummyNode) {
+        heldNodeID = node.currNodeID
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            navigateToPostID = node.currNodeID
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            heldNodeID = nil
+        }
+    }
+}
+
+// MARK: - Dummy Post View
+struct DummyRemixPostView: View {
+    let postID: String
     
     var body: some View {
-        ZStack {
-            GeometryReader { geo in
-                ScrollView([.vertical, .horizontal], showsIndicators: false) {
-                    ZStack(alignment: .top) {
-                        VStack(spacing: 120) {
-                            ForEach(trees.indices, id: \.self) { index in
-                                Diagram(tree: trees[index]) { uniqueNode in
-                                    NodeCard(node: uniqueNode.node) { newFrame in
-                                        nodeCenters[uniqueNode.node.currNodeID] = newFrame
-                                    }
-                                }
-                            }
-                        }
-                        .padding(60)
-                        .scaleEffect(scale)
-                        .offset(offset)
-                        .frame(minWidth: geo.size.width, minHeight: geo.size.height)
-                    }
-                    .task { await data.refreshData() }
-                    .onDisappear { data.stopListening() }
-                }
-                
-                PinchPanRecognizerView(
-                    scale: $scale,
-                    offset: $offset,
-                    lastPinchLocation: $lastPinchLocation,
-                    onEndGesture: { handleZoomIn(geo) }
-                )
-                .frame(width: geo.size.width, height: geo.size.height)
-                .background(Color.clear)
-                // NEW: Zoom-out triggers immediately
-                .onChange(of: scale) { newScale in
-                    if newScale < 0.75, !isLoading {
-                        isLoading = true
-                        data.stopListening()
-                        data.nodes.removeAll()
-                        
-                        withAnimation(.easeInOut(duration: 0.5)) {
-                            currentRootNode = nil
-                            scale = 1
-                            offset = .zero
-                            hasZoomedIntoNode = false
-                            isLoading = false
-                        }
-                    }
-                }
-            }
-            
-            if isLoading {
-                VStack {
-                    Spacer()
-                    ProgressView("Loading root tree...")
-                        .progressViewStyle(CircularProgressViewStyle())
-                        .scaleEffect(1.5)
-                    Spacer()
-                }
-                .background(Color.white.opacity(0.5))
-                .transition(.opacity)
-            }
-            
-            VStack {
-                HStack(spacing: 20) {
-                    Button("Seed") { RemixData.seedDummyNodes() }
-                    Button("Clear") { RemixData.clearDummyNodes() }
-                    Button("Reset") { resetView() }
-                    Text(String(format: "Scale: %.2f", scale))
-                        .foregroundColor(.black)
-                        .padding(.horizontal, 6)
-                        .background(Color.white.opacity(0.7))
-                        .cornerRadius(6)
-                }
+        VStack {
+            Spacer()
+            Text("Dummy Post View For Post with ID \(postID)")
+                .font(.title2)
+                .multilineTextAlignment(.center)
                 .padding()
-                Spacer()
-            }
+            Spacer()
         }
-        .animation(.easeInOut(duration: 0.4), value: currentRootNode?.currNodeID)
-        .animation(.easeInOut(duration: 0.3), value: isLoading)
-    }
-    
-    // MARK: - Zoom-in handler
-    private func handleZoomIn(_ geo: GeometryProxy) {
-        if scale > 2.0, !hasZoomedIntoNode {
-            if let node = mostVisibleNode(in: geo),
-               let targetNode = nearestParentWithChildren(for: node) {
-                animateZoomInto(node: targetNode, in: geo)
-                hasZoomedIntoNode = true
-            }
-        }
-    }
-    
-    // MARK: - Find nearest parent with children
-    private func nearestParentWithChildren(for node: DummyNode) -> DummyNode? {
-        var current = node
-        while true {
-            let children = data.nodes.filter { $0.parentNodeID == current.currNodeID }
-            if !children.isEmpty { return current }
-            if let parent = data.nodes.first(where: { $0.currNodeID == current.parentNodeID }) {
-                current = parent
-            } else {
-                return nil
-            }
-        }
-        return nil
-    }
-    
-    // MARK: - Most visible node
-    private func mostVisibleNode(in geo: GeometryProxy) -> DummyNode? {
-        var maxArea: CGFloat = 0
-        var bestNode: DummyNode? = nil
-        
-        for node in data.nodes {
-            guard let frame = nodeCenters[node.currNodeID] else { continue }
-            let scaledFrame = CGRect(
-                x: frame.minX * scale + offset.width,
-                y: frame.minY * scale + offset.height,
-                width: frame.width * scale,
-                height: frame.height * scale
-            )
-            let visibleRect = geo.frame(in: .global)
-            let intersection = scaledFrame.intersection(visibleRect)
-            let area = intersection.width * intersection.height
-            if area > maxArea {
-                maxArea = area
-                bestNode = node
-            }
-        }
-        
-        return bestNode
-    }
-    
-    // MARK: - Smooth zoom into node animation
-    private func animateZoomInto(node: DummyNode, in geo: GeometryProxy) {
-        guard let frame = nodeCenters[node.currNodeID] else { return }
-        let viewportCenter = CGPoint(x: geo.size.width / 2, y: geo.size.height / 2)
-        let nodeCenter = CGPoint(
-            x: frame.midX * scale + offset.width,
-            y: frame.midY * scale + offset.height
-        )
-        let deltaX = viewportCenter.x - nodeCenter.x
-        let deltaY = viewportCenter.y - nodeCenter.y
-        
-        withAnimation(.easeInOut(duration: 0.4)) {
-            offset.width += deltaX
-            offset.height += deltaY
-            scale = 2.5
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
-            withAnimation(.easeInOut(duration: 0.5)) {
-                let children = data.nodes.filter { $0.parentNodeID == node.currNodeID }
-                if !children.isEmpty {
-                    currentRootNode = node
-                    scale = 1
-                    offset = .zero
-                }
-            }
-        }
-    }
-    
-    // MARK: - Reset button
-    private func resetView() {
-        withAnimation(.easeInOut) {
-            currentRootNode = nil
-            scale = 1
-            offset = .zero
-            hasZoomedIntoNode = false
-        }
+        .background(Color(.systemBackground))
+        .navigationTitle("Post \(postID.prefix(5))")
     }
 }
 
-// MARK: - CGRect Extension
-private extension CGRect {
-    var center: CGPoint { CGPoint(x: midX, y: midY) }
-}
-
-// MARK: - Preview
 #Preview {
-    RemixTreeView()
+    NavigationView {
+        RemixTreeView(nodeID: "10B7EA20-D316-4607-A9D6-401FC751A1AA")
+    }
 }
