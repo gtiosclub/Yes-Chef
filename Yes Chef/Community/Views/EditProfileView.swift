@@ -16,6 +16,7 @@ struct EditProfileView: View {
     @State private var alertMessage = ""
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var profileImage: Image?
+    @State private var selectedUIImage: UIImage?
     
     let user: User
     @State private var name: String
@@ -247,9 +248,7 @@ struct EditProfileView: View {
         
         await MainActor.run {
             profileImage = Image(uiImage: uiImage)
-            // In a real app, you would upload this image to a storage service
-            // and get back a URL to store in profilePhotoURL
-            profilePhotoURL = "placeholder_url" // This should be replaced with actual image upload logic
+            selectedUIImage = uiImage
         }
     }
     
@@ -269,11 +268,11 @@ struct EditProfileView: View {
         isLoading = true
         
         Task {
-            let success = await userViewModel.updateUserProfile(
+            let success = await userViewModel.updateUserProfileWithImage(
                 userID: user.userId,
                 username: username,
                 bio: bio.isEmpty ? nil : bio,
-                profilePhoto: profilePhotoURL
+                image: selectedUIImage
             )
             
             await MainActor.run {
