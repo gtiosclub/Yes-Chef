@@ -252,7 +252,6 @@ struct CircularCarouselView: View {
         }
     }
 }
-
 // MARK: - RemixTreeView
 struct RemixTreeView: View {
     let nodeID: String
