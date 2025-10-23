@@ -34,9 +34,10 @@ struct Home: View {
     )
     var body: some View {
         TabView(selection: $selectedView) {
-            PostViewTemp(recipe: sampleRecipe).tabItem {
+            FeedView().tabItem {
                 Image(systemName: "house")
-            }.tag(TabSelection.home)
+            }
+            .tag(TabSelection.home)
             CommunityView().tabItem {
                 Image(systemName: "magnifyingglass")
             }.tag(TabSelection.search)

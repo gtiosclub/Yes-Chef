@@ -44,7 +44,7 @@ struct PostView: View {
                         .font(Font.title2)
                         .frame(alignment: .trailing)
                     Button {
-                        //remixTree.deleteNodeFirebase(nodeId: "SzOQjxML48lRsVnPcgGj")
+                        RemixTree.deleteNodeFirebase(nodeId: recipe.recipeId)
                     } label: {
                         Image(systemName: "trash")
                             .font(Font.title2)
