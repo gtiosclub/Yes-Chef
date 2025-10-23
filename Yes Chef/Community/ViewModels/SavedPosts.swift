@@ -86,7 +86,7 @@ class SavedPosts {
         guard
             let userId = dict["userId"] as? String,
             let name = dict["name"] as? String,
-            let ingredients = dict["ingredients"] as? [String],
+            let ingredients = dict["ingredients"] as? [Ingredient],
             let allergens = dict["allergens"] as? [String],
             let tags = dict["tags"] as? [String],
             let steps = dict["steps"] as? [String],
