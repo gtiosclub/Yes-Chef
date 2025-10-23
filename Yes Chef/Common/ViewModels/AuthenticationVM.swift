@@ -29,7 +29,8 @@ import Observation
             DispatchQueue.main.async {
                 self.isLoading = false
                 self.isLoggedIn = true
-                print("Signed in as \(user.displayName ?? "Anonymous")")
+                print("Signed in as \(user.uid ?? "Anonymous")")
+                self.currentUser = User(userId: user.uid, username: "YesChef", email: email, bio: "Hi! Learning to cook!")
             }
         } catch {
             DispatchQueue.main.async {

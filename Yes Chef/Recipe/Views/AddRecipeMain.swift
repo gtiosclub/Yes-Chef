@@ -8,8 +8,23 @@ import SwiftUI
 
 struct AddRecipeMain: View {
     @State private var selectedTab: String = "EditDetails"
-    @State private var recipeVM = CreateRecipeVM()
+    @State private var recipeVM: CreateRecipeVM
     
+    var comeFromRemix: Bool = false
+    var remixParentID: String = ""
+    
+    init(remixRecipe: Recipe? = nil) {
+        if let recipe = remixRecipe {
+            _recipeVM = State(initialValue: CreateRecipeVM(fromRecipe: recipe))
+            self.comeFromRemix = true
+            self.remixParentID = recipe.id
+        } else {
+            _recipeVM = State(initialValue: CreateRecipeVM())
+        }
+    }
+
+    @Environment(AuthenticationVM.self) var authVM
+
     var body: some View {
         NavigationStack{
             VStack(){
@@ -30,7 +45,7 @@ struct AddRecipeMain: View {
                     Button {
                         Task {
                             await recipeVM.createRecipe(
-                                userId: recipeVM.userIdInput,
+                                userId: authVM.currentUser?.userId ?? "",
                                 name: recipeVM.name,
                                 ingredients: recipeVM.ingredients,
                                 allergens: recipeVM.allergens,
@@ -40,13 +55,20 @@ struct AddRecipeMain: View {
                                 prepTime: recipeVM.prepTime,
                                 difficulty: recipeVM.difficulty,
                                 servingSize: recipeVM.servingSize,
-                                media: recipeVM.localMediaPaths,
+                                media: recipeVM.mediaItems,
                                 chefsNotes: recipeVM.chefsNotes
                             )
                             
-//                            await FirebaseDemo.addRecipeToRemixTreeAsRoot(
-//                                description: recipeVM.description,
-//                            )
+                            await recipeVM.addRecipeToRemixTreeAsRoot(
+                                description: recipeVM.description
+                            )
+                            
+                            if comeFromRemix {
+                                await recipeVM.addRecipeToRemixTreeAsNode(
+                                    description: recipeVM.description,
+                                    parentID: remixParentID
+                                )
+                            }
                         }
                     } label: {
                         Image(systemName: "checkmark")
@@ -69,12 +91,7 @@ struct AddRecipeMain: View {
                 if selectedTab == "EditDetails" {
                     CreateRecipe(recipeVM: recipeVM)
                 } else if selectedTab == "AIChef" {
-                    Text("Coming Soon")
-                        .font(.title2)
-                        .foregroundColor(.gray)
-                        .padding()
-                    
-                    Spacer()
+                    AIChefBaseView(recipeVM: recipeVM)
                 }
             }
             .background(Color(hex: "#fffdf5"))
@@ -187,4 +204,5 @@ struct TabBorder: Shape {
 
 #Preview {
     AddRecipeMain()
+        .environment(AuthenticationVM())
 }

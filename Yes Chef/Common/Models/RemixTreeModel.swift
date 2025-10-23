@@ -30,12 +30,13 @@ class RemixTreeNode  {
         self.children = children
         self.descriptionOfRecipeChanges = descriptionOfRecipeChanges
     }
+    
 }
 
 // remix tree itself
 class RemixTree {
     
-    let rootNode: RemixTreeNode
+    var rootNode: RemixTreeNode?
     
     init(nodeID: String, parentNode: RemixTreeNode?, rootNodeOfTree: RemixTreeNode, children: [RemixTreeNode], descriptionOfRecipeChanges: String = "") {
         
@@ -50,7 +51,13 @@ class RemixTree {
      */
     func deleteNode(node: RemixTreeNode) {
         guard let parent = node.parentNode else {
-            print("Cannot delete root node")
+            for child in node.children {
+                child.parentNode = nil
+            }
+            node.children.removeAll()
+            node.parentNode = nil
+            self.rootNode = nil
+            
             return
         }
         
@@ -138,7 +145,7 @@ class RemixTree {
     }
     
     func findNode(nodeID: String) -> RemixTreeNode? {
-        
+        guard let rootNode = rootNode else { return nil }
         return findNodeHelper(currNode: rootNode, destNodeID: nodeID)
     }
     
