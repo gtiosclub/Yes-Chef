@@ -77,7 +77,7 @@ class RemixTree {
     /**
             Handles node deletion in firebase
      */
-    func deleteNodeFirebase(nodeId: String) {
+    static func deleteNodeFirebase(nodeId: String) {
         let nodeRef = Firebase.db.collection("remixTreeNode").document(nodeId)
         
         nodeRef.getDocument { (document, error) in
@@ -87,18 +87,17 @@ class RemixTree {
             }
             
             if let node = document, node.exists {
-                
                 if let children = node.get("childrenID") as? [String] {
                     //asumes children are valid
-                    if let parent = node.get("parentID") as? String {
+                    if let parent = node.get("parentID") as? String, !parent.isEmpty {
                         let parentRef = Firebase.db.collection("remixTreeNode").document(parent)
                         
                         for childID in children {
-                            let childRef = Firebase.db.collection("remixTreeNode").document(childID)
-                            childRef.updateData([
-                                "parentID": parent
-                            ])
-                           
+                                guard !childID.isEmpty else { continue } // <--- skip empty strings
+                                let childRef = Firebase.db.collection("remixTreeNode").document(childID)
+                                childRef.updateData([
+                                    "parentID": parent
+                                ])
                         }
                         
                         parentRef.updateData([
@@ -111,7 +110,17 @@ class RemixTree {
                         
                         nodeRef.delete()
                     } else {
-                        print("'parentID' field is missing or not an array of strings")
+                       //root node
+                        for childID in children {
+                                guard !childID.isEmpty else { continue } // <--- skip empty strings
+                                let childRef = Firebase.db.collection("remixTreeNode").document(childID)
+                                childRef.updateData([
+                                    "parentID": nil,
+                                    "rootNodeID": childID
+                                ])
+                        }
+                        
+                        nodeRef.delete()
                     }
                     
                 } else {
