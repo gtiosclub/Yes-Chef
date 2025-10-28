@@ -1,12 +1,12 @@
 import SwiftUI
 import FirebaseFirestore
 
-// Eesh New Edit: Updated documentation to reflect use of real RemixTreeNode
+// Eesh New Edit: Updated documentation to reflect use of FirebaseRemixTreeNode
 /**
  * RemixTreeView displays the remix tree structure using real data from Firebase.
  *
- * This view uses RemixTreeNode from RemixTreeModel.swift which connects to
- * Firebase's "realRemixTreeNodes" collection via RemixData.shared.
+ * This view uses FirebaseRemixTreeNode (a wrapper around RemixTreeNode) which
+ * connects to Firebase's "realRemixTreeNodes" collection via RemixData.shared.
  *
  * Features:
  * - Real-time updates from Firestore
@@ -19,8 +19,8 @@ import FirebaseFirestore
 
 // MARK: - NodeCard
 struct NodeCard: View {
-    // Eesh New Edit: Changed from DummyNode to RemixTreeNode
-    let node: RemixTreeNode
+    // Eesh New Edit: Changed to use FirebaseRemixTreeNode
+    let node: FirebaseRemixTreeNode
     // End of Eesh New Edit
     var isTapped: Bool = false
     var isHeld: Bool = false
@@ -174,18 +174,18 @@ struct SectionHeaderView: View {
 
 // MARK: - Circular Carousel
 struct CircularCarouselView: View {
-    // Eesh New Edit: Changed from DummyNode to RemixTreeNode
-    var nodes: [RemixTreeNode]
+    // Eesh New Edit: Changed to use FirebaseRemixTreeNode
+    var nodes: [FirebaseRemixTreeNode]
     var tappedNodeID: String?
     var heldNodeID: String?
-    var onNodeTap: ((RemixTreeNode) -> Void)?
-    var onNodeHold: ((RemixTreeNode) -> Void)?
-    var onCenterNodeChange: ((RemixTreeNode?) -> Void)?
+    var onNodeTap: ((FirebaseRemixTreeNode) -> Void)?
+    var onNodeHold: ((FirebaseRemixTreeNode) -> Void)?
+    var onCenterNodeChange: ((FirebaseRemixTreeNode?) -> Void)?
     @State private var rotation: CGFloat = 0
     @State private var dragOffset: CGFloat = 0
     @ObservedObject private var inertia = InertiaController()
 
-    private var centeredNode: RemixTreeNode? {
+    private var centeredNode: FirebaseRemixTreeNode? {
     // End of Eesh New Edit
         guard !nodes.isEmpty else { return nil }
         let totalRotation = rotation + dragOffset
@@ -279,10 +279,10 @@ struct RemixTreeView: View {
     @ObservedObject private var data = RemixData.shared
     @State private var tappedNodeID: String?
     @State private var heldNodeID: String?
-    // Eesh New Edit: Changed from DummyNode to RemixTreeNode
-    @State private var navigateToNode: RemixTreeNode?
+    // Eesh New Edit: Changed to use FirebaseRemixTreeNode
+    @State private var navigateToNode: FirebaseRemixTreeNode?
     @State private var navigateToPostID: String?
-    @State private var centeredFirstLayerNode: RemixTreeNode?
+    @State private var centeredFirstLayerNode: FirebaseRemixTreeNode?
     // End of Eesh New Edit
     // Eesh New Edit: Add explicit navigation state booleans to fix navigation stack issue
     @State private var isNavigatingToNode: Bool = false
@@ -291,22 +291,22 @@ struct RemixTreeView: View {
 
     private var currentNodeID: String { nodeID }
 
-    // Eesh New Edit: Changed from DummyNode to RemixTreeNode
-    private var currentNode: RemixTreeNode? {
+    // Eesh New Edit: Changed to use FirebaseRemixTreeNode
+    private var currentNode: FirebaseRemixTreeNode? {
         data.nodes.first { $0.currNodeID == currentNodeID }
     }
 
-    private var parentNode: RemixTreeNode? {
+    private var parentNode: FirebaseRemixTreeNode? {
         guard let node = currentNode else { return nil }
         return data.nodes.first { $0.currNodeID == node.parentNodeID }
     }
 
-    private var firstLayerChildren: [RemixTreeNode] {
+    private var firstLayerChildren: [FirebaseRemixTreeNode] {
         guard let node = currentNode else { return [] }
         return data.nodes.filter { $0.parentNodeID == node.currNodeID }
     }
 
-    private var secondLayerChildren: [RemixTreeNode] {
+    private var secondLayerChildren: [FirebaseRemixTreeNode] {
     // End of Eesh New Edit
         guard let centeredNode = centeredFirstLayerNode else { return [] }
         return data.nodes.filter { $0.parentNodeID == centeredNode.currNodeID }
@@ -431,8 +431,8 @@ struct RemixTreeView: View {
 
     // MARK: - Layer view
     @ViewBuilder
-    // Eesh New Edit: Changed from [DummyNode] to [RemixTreeNode]
-    private func layerView(nodes: [RemixTreeNode], layerIndex: Int) -> some View {
+    // Eesh New Edit: Changed to use [FirebaseRemixTreeNode]
+    private func layerView(nodes: [FirebaseRemixTreeNode], layerIndex: Int) -> some View {
     // End of Eesh New Edit
         if nodes.count >= 3 {
             CircularCarouselView(
@@ -496,8 +496,8 @@ struct RemixTreeView: View {
     // End of Eesh New Edit
 
     // MARK: - Tap/Hold handlers
-    // Eesh New Edit: Updated handlers to use RemixTreeNode and navigation state booleans
-    private func handleTap(node: RemixTreeNode) {
+    // Eesh New Edit: Updated handlers to use FirebaseRemixTreeNode
+    private func handleTap(node: FirebaseRemixTreeNode) {
         tappedNodeID = node.currNodeID
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             tappedNodeID = nil
@@ -506,7 +506,7 @@ struct RemixTreeView: View {
         }
     }
 
-    private func handleHold(node: RemixTreeNode) {
+    private func handleHold(node: FirebaseRemixTreeNode) {
     // End of Eesh New Edit
         heldNodeID = node.currNodeID
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {

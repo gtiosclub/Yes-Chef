@@ -8,17 +8,49 @@
 import Foundation
 import Firebase
 
-// Eesh New Edit: Updated RemixTreeNode to be Firebase-compatible using ID-based relationships
+// Eesh New Edit: Restored original RemixTreeNode with object references
+//node in the remix tree
+class RemixTreeNode  {
+
+    let currNodeID: String
+    var parentNode: RemixTreeNode?
+    let rootNodeOfTree: RemixTreeNode
+
+    var children: [RemixTreeNode]
+
+    var descriptionOfRecipeChanges: String
+
+    init(currNodeID: String,
+         parentNode: RemixTreeNode?,
+         rootNodeOfTree: RemixTreeNode,
+         children: [RemixTreeNode],
+         descriptionOfRecipeChanges: String = "") {
+
+        self.currNodeID = currNodeID
+        self.parentNode = parentNode
+        self.rootNodeOfTree = rootNodeOfTree
+        self.children = children
+        self.descriptionOfRecipeChanges = descriptionOfRecipeChanges
+    }
+}
+// End of Eesh New Edit
+
+// Eesh New Edit: Created FirebaseRemixTreeNode wrapper - depends completely on RemixTreeNode
 /**
- * RemixTreeNode represents a node in the remix tree structure.
+ * FirebaseRemixTreeNode is a Firebase-compatible wrapper that DEPENDS COMPLETELY on RemixTreeNode.
  *
- * This is the real, production-ready RemixTreeNode class that works with
- * Firebase's "realRemixTreeNodes" collection. It uses ID references for
- * parent/children relationships to enable Firestore serialization.
+ * This class exists SOLELY to serialize RemixTreeNode to Firebase. It extracts IDs from
+ * RemixTreeNode's object references (parentNode, children, rootNodeOfTree) and stores them
+ * as ID strings (parentNodeID, childrenIDs, rootNodeOfTreeID) for Firestore compatibility.
+ *
+ * IMPORTANT: FirebaseRemixTreeNode is essentially DummyNode but now properly references
+ * and depends on the real RemixTreeNode class. All data is extracted from RemixTreeNode.
+ *
+ * Conversion: Use `FirebaseRemixTreeNode(from: remixTreeNode)` to extract IDs from RemixTreeNode
  *
  * Collection: "realRemixTreeNodes" in Firebase
  */
-class RemixTreeNode: Identifiable, Codable, Hashable {
+class FirebaseRemixTreeNode: Identifiable, Codable, Hashable {
     let currNodeID: String              // Unique ID for this remix node (Recipe ID)
     var parentNodeID: String            // ID of parent recipe ("none" for root)
     let rootNodeOfTreeID: String        // ID of the root recipe in this tree
@@ -38,7 +70,18 @@ class RemixTreeNode: Identifiable, Codable, Hashable {
         self.descriptionOfRecipeChanges = descriptionOfRecipeChanges
     }
 
-    static func == (lhs: RemixTreeNode, rhs: RemixTreeNode) -> Bool {
+    // Convert from RemixTreeNode to FirebaseRemixTreeNode
+    convenience init(from node: RemixTreeNode) {
+        self.init(
+            currNodeID: node.currNodeID,
+            parentNodeID: node.parentNode?.currNodeID ?? "none",
+            rootNodeOfTreeID: node.rootNodeOfTree.currNodeID,
+            childrenIDs: node.children.map { $0.currNodeID },
+            descriptionOfRecipeChanges: node.descriptionOfRecipeChanges
+        )
+    }
+
+    static func == (lhs: FirebaseRemixTreeNode, rhs: FirebaseRemixTreeNode) -> Bool {
         lhs.currNodeID == rhs.currNodeID
     }
 
@@ -48,25 +91,48 @@ class RemixTreeNode: Identifiable, Codable, Hashable {
 }
 // End of Eesh New Edit
 
-// Eesh New Edit: Updated RemixTree to work with ID-based RemixTreeNode
+// Eesh New Edit: Restored original RemixTree structure
 // remix tree itself
 class RemixTree {
 
     var rootNode: RemixTreeNode?
 
-    init(nodeID: String, parentNodeID: String, rootNodeOfTreeID: String, childrenIDs: [String], descriptionOfRecipeChanges: String = "") {
+    init(nodeID: String, parentNode: RemixTreeNode?, rootNodeOfTree: RemixTreeNode, children: [RemixTreeNode], descriptionOfRecipeChanges: String = "") {
 
         self.rootNode = RemixTreeNode(currNodeID: nodeID,
-                                      parentNodeID: "none",
-                                      rootNodeOfTreeID: rootNodeOfTreeID,
-                                      childrenIDs: childrenIDs,
-                                      descriptionOfRecipeChanges: descriptionOfRecipeChanges)
+                                          parentNode: nil,
+                                          rootNodeOfTree: rootNodeOfTree,
+                                          children: children)
+    }
+
+    /**
+    Should delete a node from the remix tree. If a node is deleted and it has children, the parent of the children get reassigned to the parent of the deleted node.
+     */
+    func deleteNode(node: RemixTreeNode) {
+        guard let parent = node.parentNode else {
+            for child in node.children {
+                child.parentNode = nil
+            }
+            node.children.removeAll()
+            node.parentNode = nil
+            self.rootNode = nil
+
+            return
+        }
+
+        for child in node.children {
+            child.parentNode = parent
+            parent.children.append(child)
+        }
+
+        if let index = parent.children.firstIndex(where: { child in child === node }) {
+            parent.children.remove(at: index)
+        }
+
+        node.children.removeAll()
+        node.parentNode = nil
     }
 // End of Eesh New Edit
-    
-    // Eesh New Edit: Removed old object-reference-based deleteNode method
-    // deleteNode has been removed - use deleteNodeFirebase for ID-based deletion
-    // End of Eesh New Edit
 
     /**
             Handles node deletion in firebase
@@ -123,8 +189,37 @@ class RemixTree {
         }
     }
     
-    // Eesh New Edit: Removed addNode and findNode - incompatible with ID-based structure
-    // These methods relied on object references and are no longer needed.
-    // Use RemixData.shared.nodes to access all nodes and filter by ID.
+    // Eesh New Edit: Restored original addNode and findNode methods
+    func addNode(nodeID: String, parentNode: RemixTreeNode?, rootNodeOfTree: RemixTreeNode, children: [RemixTreeNode], descriptionOfRecipeChanges: String = "") {
+
+        let newNode = RemixTreeNode(currNodeID: nodeID,
+                                    parentNode: parentNode,
+                                    rootNodeOfTree: rootNodeOfTree,
+                                    children: children,
+                                    descriptionOfRecipeChanges: descriptionOfRecipeChanges)
+        parentNode?.children.append(newNode)
+    }
+
+    func findNode(nodeID: String) -> RemixTreeNode? {
+        guard let rootNode = rootNode else { return nil }
+        return findNodeHelper(currNode: rootNode, destNodeID: nodeID)
+    }
+
+    private func findNodeHelper(currNode: RemixTreeNode, destNodeID: String) -> RemixTreeNode? {
+
+        if currNode.currNodeID == destNodeID {
+            return currNode
+        }
+
+
+        for childNode in currNode.children {
+
+            if let found = findNodeHelper(currNode: childNode, destNodeID: destNodeID) {
+                return found
+            }
+        }
+
+        return nil
+    }
     // End of Eesh New Edit
 }
