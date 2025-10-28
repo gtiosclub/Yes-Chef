@@ -10,12 +10,28 @@ import FirebaseFirestore
 import Firebase
 import FirebaseAuth
 
+// Eesh New Edit: DummyNode is the REAL RemixTreeNode implementation for Firebase
+/**
+ * DummyNode represents a node in the remix tree structure optimized for Firestore.
+ *
+ * This is the production-ready, functional RemixTreeNode class that works with
+ * Firebase's "realRemixTreeNodes" collection. It uses a flattened structure with
+ * ID references instead of direct object references, making it Codable and
+ * compatible with Firestore's document-based storage.
+ *
+ * Unlike the RemixTreeNode class in RemixTreeModel.swift (which uses direct object
+ * references), this class stores IDs for parent/children relationships, allowing
+ * efficient serialization to/from Firestore.
+ *
+ * Collection: "realRemixTreeNodes" in Firebase
+ */
 class DummyNode: Identifiable, Codable, Hashable {
-    let currNodeID: String
-    var parentNodeID: String
-    let rootNodeOfTreeID: String
-    var childrenIDs: [String]
-    var descriptionOfRecipeChanges: String
+    let currNodeID: String          // Unique ID for this remix node (Recipe ID)
+    var parentNodeID: String         // ID of parent recipe ("none" for root)
+    let rootNodeOfTreeID: String     // ID of the root recipe in this tree
+    var childrenIDs: [String]        // Array of child recipe IDs
+    var descriptionOfRecipeChanges: String  // Description of changes in this remix
+// End of Eesh New Edit
 
     init(
         currNodeID: String,
@@ -42,15 +58,28 @@ class DummyNode: Identifiable, Codable, Hashable {
 
 
 
+// Eesh New Edit: Added documentation explaining this is the real implementation
+/**
+ * RemixData manages the remix tree data from Firebase's "realRemixTreeNodes" collection.
+ *
+ * This is the production-ready data manager that handles:
+ * - Real-time listening to Firebase updates
+ * - Fetching remix tree nodes from Firestore
+ * - Managing the remix tree structure in the app
+ *
+ * The nodes use DummyNode (the real RemixTreeNode implementation) which is
+ * optimized for Firebase with ID-based relationships instead of object references.
+ */
 @MainActor
 class RemixData: ObservableObject {
     static let shared = RemixData()
-    
-    @Published var nodes : [DummyNode] = []
+
+    @Published var nodes : [DummyNode] = []  // Real remix tree nodes from Firebase
 
     private init() {
-       
+
     }
+// End of Eesh New Edit
     
     func recalibrateEntries(){
         // Fetch from Firebase after initialization
@@ -74,9 +103,11 @@ class RemixData: ObservableObject {
    
 
     //done
+    // Eesh New Edit: Changed collection from "eeshRemixTreeNodes" to "realRemixTreeNodes"
     func fetchRemixNodes(completion: @escaping ([DummyNode]) -> Void) {
-            db.collection("eeshRemixTreeNodes")
+            db.collection("realRemixTreeNodes")
                 .getDocuments { snapshot, error in
+    // End of Eesh New Edit
                     var nodes: [DummyNode] = []
                     
                     if let error = error {
@@ -182,8 +213,9 @@ class RemixData: ObservableObject {
         }
         
         // Now write to Firestore
+        // Eesh New Edit: Changed collection to "realRemixTreeNodes"
         for (nodeID, data) in allNodes {
-            db.collection("eeshRemixTreeNodes").document(nodeID).setData(data) { error in
+            db.collection("realRemixTreeNodes").document(nodeID).setData(data) { error in
                 if let error = error {
                     print("Error writing node \(nodeID): \(error.localizedDescription)")
                 } else {
@@ -191,21 +223,23 @@ class RemixData: ObservableObject {
                 }
             }
         }
+        // End of Eesh New Edit
     }
 
     //done
+    // Eesh New Edit: Changed collection to "realRemixTreeNodes"
     static func clearDummyNodes() {
         let db = Firestore.firestore()
-        db.collection("eeshRemixTreeNodes").getDocuments { (snapshot, error) in
+        db.collection("realRemixTreeNodes").getDocuments { (snapshot, error) in
             if let error = error {
                 print("Error fetching documents: \(error.localizedDescription)")
                 return
             }
-            
+
             guard let documents = snapshot?.documents else { return }
-            
+
             for doc in documents {
-                db.collection("eeshRemixTreeNodes").document(doc.documentID).delete { err in
+                db.collection("realRemixTreeNodes").document(doc.documentID).delete { err in
                     if let err = err {
                         print("Error deleting document \(doc.documentID): \(err.localizedDescription)")
                     } else {
@@ -215,12 +249,15 @@ class RemixData: ObservableObject {
             }
         }
     }
+    // End of Eesh New Edit
     
     private var listener: ListenerRegistration?
 
+    // Eesh New Edit: Changed collection to "realRemixTreeNodes"
     func startListening() {
         listener?.remove() // stop old one if active
-        listener = db.collection("eeshRemixTreeNodes").addSnapshotListener { snapshot, error in
+        listener = db.collection("realRemixTreeNodes").addSnapshotListener { snapshot, error in
+    // End of Eesh New Edit
             guard let snapshot = snapshot else {
                 print("Error listening for updates: \(error?.localizedDescription ?? "unknown")")
                 return

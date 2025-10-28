@@ -1,6 +1,22 @@
 import SwiftUI
 import FirebaseFirestore
 
+// Eesh New Edit: Added documentation explaining this uses real RemixTreeNode data
+/**
+ * RemixTreeView displays the remix tree structure using real data from Firebase.
+ *
+ * This view uses DummyNode (the real, production-ready RemixTreeNode implementation)
+ * which connects to Firebase's "realRemixTreeNodes" collection via RemixData.shared.
+ *
+ * Features:
+ * - Real-time updates from Firestore
+ * - Displays parent, current, and child nodes
+ * - Tap node to navigate to its RemixTreeView
+ * - Long-press node to view the recipe details
+ * - 3D carousel for multiple remixes
+ */
+// End of Eesh New Edit
+
 // MARK: - NodeCard
 struct NodeCard: View {
     let node: DummyNode
@@ -255,13 +271,17 @@ struct CircularCarouselView: View {
 // MARK: - RemixTreeView
 struct RemixTreeView: View {
     let nodeID: String
-    
+
     @ObservedObject private var data = RemixData.shared
     @State private var tappedNodeID: String?
     @State private var heldNodeID: String?
     @State private var navigateToNode: DummyNode?
     @State private var navigateToPostID: String?
     @State private var centeredFirstLayerNode: DummyNode?
+    // Eesh New Edit: Add explicit navigation state booleans to fix navigation stack issue
+    @State private var isNavigatingToNode: Bool = false
+    @State private var isNavigatingToPost: Bool = false
+    // End of Eesh New Edit
     
     private var currentNodeID: String { nodeID }
     
@@ -289,6 +309,7 @@ struct RemixTreeView: View {
             ScrollView {
                 VStack(spacing: 0) {
                     // Parent node section
+                    // Eesh New Edit: Updated parent node navigation to use new state booleans
                     if let parent = parentNode {
                         VStack(spacing: 0) {
                             Text("ORIGINAL")
@@ -297,20 +318,28 @@ struct RemixTreeView: View {
                                 .tracking(1)
                                 .padding(.top, 16)
                                 .padding(.bottom, 8)
-                            
+
                             NodeCard(
                                 node: parent,
-                                onTap: { navigateToNode = parent },
-                                onHold: { navigateToPostID = parent.currNodeID },
+                                onTap: {
+                                    navigateToNode = parent
+                                    isNavigatingToNode = true
+                                },
+                                onHold: {
+                                    navigateToPostID = parent.currNodeID
+                                    isNavigatingToPost = true
+                                },
                                 sizeMultiplier: 0.7
                             )
                             .frame(maxWidth: 100)
-                            
+
                             SimpleArrowView()
                         }
                     }
+                    // End of Eesh New Edit
 
                     // Current node
+                    // Eesh New Edit: Updated current node navigation to use new state booleans
                     if let node = currentNode {
                         VStack(spacing: 0) {
                             if parentNode != nil {
@@ -320,19 +349,26 @@ struct RemixTreeView: View {
                                     .tracking(1)
                                     .padding(.bottom, 8)
                             }
-                            
+
                             NodeCard(
                                 node: node,
                                 isTapped: tappedNodeID == node.currNodeID,
                                 isHeld: heldNodeID == node.currNodeID,
-                                onTap: { navigateToNode = node },
-                                onHold: { navigateToPostID = node.currNodeID }
+                                onTap: {
+                                    navigateToNode = node
+                                    isNavigatingToNode = true
+                                },
+                                onHold: {
+                                    navigateToPostID = node.currNodeID
+                                    isNavigatingToPost = true
+                                }
                             )
                             .frame(maxWidth: 120)
                             .padding(.horizontal, 20)
                         }
                         .padding(.vertical, parentNode == nil ? 20 : 0)
                     }
+                    // End of Eesh New Edit
 
                     // First layer children
                     if !firstLayerChildren.isEmpty {
@@ -421,6 +457,7 @@ struct RemixTreeView: View {
     }
 
     // MARK: - Navigation
+    // Eesh New Edit: Fixed navigation bindings to prevent immediate pop-back
     private var navigationLinks: some View {
         Group {
             NavigationLink(
@@ -429,10 +466,7 @@ struct RemixTreeView: View {
                         RemixTreeView(nodeID: node.currNodeID)
                     }
                 },
-                isActive: Binding(
-                    get: { navigateToNode != nil },
-                    set: { if !$0 { navigateToNode = nil } }
-                )
+                isActive: $isNavigatingToNode
             ) {
                 EmptyView()
             }
@@ -443,22 +477,22 @@ struct RemixTreeView: View {
                         DummyRemixPostView(postID: postID)
                     }
                 },
-                isActive: Binding(
-                    get: { navigateToPostID != nil },
-                    set: { if !$0 { navigateToPostID = nil } }
-                )
+                isActive: $isNavigatingToPost
             ) {
                 EmptyView()
             }
         }
     }
+    // End of Eesh New Edit
 
     // MARK: - Tap/Hold handlers
+    // Eesh New Edit: Updated handlers to use new navigation state booleans
     private func handleTap(node: DummyNode) {
         tappedNodeID = node.currNodeID
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             tappedNodeID = nil
             navigateToNode = node
+            isNavigatingToNode = true
         }
     }
 
@@ -466,11 +500,13 @@ struct RemixTreeView: View {
         heldNodeID = node.currNodeID
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
             navigateToPostID = node.currNodeID
+            isNavigatingToPost = true
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             heldNodeID = nil
         }
     }
+    // End of Eesh New Edit
 }
 
 // MARK: - Dummy Post View

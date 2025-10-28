@@ -7,6 +7,20 @@
 
 import Foundation
 import Firebase
+
+// Eesh New Edit: Added clarification about RemixTreeNode vs DummyNode
+/**
+ * NOTE: This RemixTreeNode class uses direct object references (parentNode, children)
+ * which are NOT compatible with Firestore serialization.
+ *
+ * For the actual Firebase implementation, see DummyNode in RemixData.swift, which
+ * uses ID-based relationships and works with the "realRemixTreeNodes" collection.
+ *
+ * This class is useful for in-memory tree operations but should not be used
+ * directly with Firestore. Use DummyNode (the real RemixTreeNode) for Firebase ops.
+ */
+// End of Eesh New Edit
+
 //node in the remix tree
 class RemixTreeNode  {
     
