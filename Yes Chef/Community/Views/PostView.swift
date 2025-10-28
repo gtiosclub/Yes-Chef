@@ -6,6 +6,7 @@
 //
 import SwiftUI
 
+
 let screen = UIScreen.main.bounds
 
 struct PostView: View {
@@ -14,6 +15,7 @@ struct PostView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var UVM = UserViewModel()
     @State private var mediaItem: Int? = 0
+    //@State var remixTree: RemixTree
     
     @State private var username: String = ""
     @State private var profilePhoto: String = ""
@@ -43,6 +45,14 @@ struct PostView: View {
                     Image(systemName: "ellipsis")
                         .font(Font.title2)
                         .frame(alignment: .trailing)
+                    Button {
+                        RemixTree.deleteNodeFirebase(nodeId: recipe.recipeId)
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(Font.title2)
+                            .frame(alignment: .trailing)
+                            .foregroundStyle(.black)
+                    }
                     
                 }
                 .padding(.bottom, screen.width/50)
@@ -195,8 +205,7 @@ struct PostView: View {
                     }
                 }.padding(.top, screen.height/50)
                 
-                
-                
+                CarouselView(recipe: recipe)
             }
             .padding(15)
             .padding(.bottom, 80)
@@ -237,7 +246,7 @@ struct PostView: View {
         }
     }
 }
-    
+
 struct BulletPoint: View {
     var text: String
     let type: Int
@@ -291,4 +300,3 @@ struct BulletPoint: View {
     )
     PostView(recipe: rec)
 }
-

@@ -83,6 +83,9 @@ struct SmartSuggestionAltDemoView: View {
                         output = """
                         MESSAGE:
                         \(s.message)
+                        
+                        TITLE:
+                        \(s.title)
 
                         TOOLCALL:
                         \(lines)

@@ -57,6 +57,7 @@ enum AddingItem: Codable {
 struct SmartSuggestion: Codable {
     let toolcall: [ToolCallEntry]
     let message: String
+    let title: String
 }
 
 @Observable class AIViewModel {
@@ -361,7 +362,8 @@ Return ONLY valid JSON with this exact shape and key names (no markdown, no extr
       "adding": ["..."]
     }
   ],
-  "message": "short, friendly explanation"
+  "message": "short, friendly explanation",
+  "title": "A short title for the changes made. Ex. 'Peanut-Free Recipe Alteration'"
 }
 
 Rules:
