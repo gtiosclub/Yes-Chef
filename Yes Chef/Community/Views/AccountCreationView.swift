@@ -12,29 +12,31 @@ struct AccountCreationView : View {
     
     var body: some View {
         VStack {
-            Text("Welcome to Yes Chef!")
-                .font(.system(size:30, weight: .bold, design: .serif))
-                .foregroundColor(.black)
-            Text("Sign up or login below")
-                .font(.system(.subheadline))
-                .foregroundColor(.gray)
-            HStack(spacing: 0) {
-                Button(action: { selectedTab = "Login" }) {
-                    Text("Login")
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 15)
-                        .background(selectedTab == "Login" ? Color(.systemGray6) : Color(.systemGray5))
-                        .foregroundColor(.black)
+            VStack {
+                Text("Welcome to Yes Chef!")
+                    .font(.system(size:30, weight: .bold, design: .serif))
+                    .foregroundColor(.black)
+                Text("Sign up or login below")
+                    .font(.system(.subheadline))
+                    .foregroundColor(.gray)
+                HStack(spacing: 0) {
+                    Button(action: { selectedTab = "Login" }) {
+                        Text("Login")
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 15)
+                            .background(selectedTab == "Login" ? Color(.systemGray6) : Color(.systemGray5))
+                            .foregroundColor(.black)
+                    }
+                    .clipShape(UnevenRoundedRectangle(cornerRadii: .init(topLeading: 20, bottomLeading: 0, bottomTrailing: 0, topTrailing: 20)))
+                    Button(action: { selectedTab = "Sign Up" }) {
+                        Text("Sign Up")
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 15)
+                            .background(selectedTab == "Sign Up" ? Color(.systemGray6) : Color(.systemGray5))
+                            .foregroundColor(.black)
+                    }
+                    .clipShape(UnevenRoundedRectangle(cornerRadii: .init(topLeading: 20, bottomLeading: 0, bottomTrailing: 0, topTrailing: 20)))
                 }
-                .clipShape(UnevenRoundedRectangle(cornerRadii: .init(topLeading: 20, bottomLeading: 0, bottomTrailing: 0, topTrailing: 20)))
-                Button(action: { selectedTab = "Sign Up" }) {
-                    Text("Sign Up")
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 15)
-                        .background(selectedTab == "Sign Up" ? Color(.systemGray6) : Color(.systemGray5))
-                        .foregroundColor(.black)
-                }
-                .clipShape(UnevenRoundedRectangle(cornerRadii: .init(topLeading: 20, bottomLeading: 0, bottomTrailing: 0, topTrailing: 20)))
             }
             .padding(.horizontal)
             if selectedTab == "Sign Up" {
@@ -43,6 +45,9 @@ struct AccountCreationView : View {
                 NewLogin()
             }
         }
+        .ignoresSafeArea(edges: .bottom)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.top, 100)
     }
 }
 struct NewRegister : View {
