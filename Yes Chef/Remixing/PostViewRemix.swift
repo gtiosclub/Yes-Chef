@@ -250,7 +250,7 @@ struct BulletPointRemix: View {
             "https://thebestketorecipes.com/wp-content/uploads/2022/01/Easy-Basic-Chaffle-Recipe-Easy-Keto-Chaffle-5.jpg",
             ""
         ],
-        chefsNotes: ""
+        chefsNotes: "", likes: 0
     )
     NavigationStack {
         PostViewRemix(recipe: rec, poster: nil)

@@ -4,7 +4,7 @@ struct ProfileView: View {
     @State private var selectedTab = 0
     @State private var isFollowing = false
     @State private var postVM = PostViewModel()
-    //@Environment var authVM: AuthenticationVM
+    @Environment(AuthenticationVM.self) var authVM
     let user: User
     // Simple boolean to toggle between own profile vs other's profile for UI demo
     let isOwnProfile: Bool
@@ -18,7 +18,7 @@ struct ProfileView: View {
         ScrollView {
             VStack(spacing: 0) {
                 // Header
-                headerView
+                //headerView
                 
                 // Profile Info
                 profileInfoSection
@@ -55,8 +55,6 @@ struct ProfileView: View {
     // MARK: - Header
     private var headerView: some View {
         HStack {
-            Spacer()
-            
             if isOwnProfile {
                 Button(action: {}) {
                     Image(systemName: "gearshape.fill")
@@ -66,15 +64,24 @@ struct ProfileView: View {
             }
         }
         .padding(.horizontal, 20)
-        .padding(.top, 10)
+        //.padding(.top, 10)
     }
     
     // MARK: - Profile Info
     private var profileInfoSection: some View {
         VStack(spacing: 12) {
-            Text("@\(user.username)")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+            HStack {
+                Text("@\(user.username)")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                if isOwnProfile {
+                    Button(action: {}) {
+                        Image(systemName: "gearshape.fill")
+                            .font(.title2)
+                            .foregroundColor(.black)
+                    }
+                }
+            }
             
             // Profile Image
             Circle()
@@ -93,7 +100,7 @@ struct ProfileView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 20)
         }
-        .padding(.top, 20)
+        //.padding(.top, 20)
     }
     
     // MARK: - Stats
@@ -193,7 +200,7 @@ struct ProfileView: View {
             GridItem(.flexible(), spacing: 8)
         ], spacing: 8) {
             ForEach(postVM.selfRecipes) { recipe in
-                NavigationLink(destination: PostView(recipe: recipe)) {
+                NavigationLink(destination: PostView(recipe: recipe).environment(authVM)) {
                     VStack(alignment: .leading, spacing: 8) {
                         // Recipe Image
                         if let firstImage = recipe.media.first,

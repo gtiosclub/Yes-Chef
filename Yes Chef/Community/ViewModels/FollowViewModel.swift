@@ -9,37 +9,31 @@ import Observation
 import FirebaseFirestore
 
 @Observable class FollowViewModel {
-    var user: User?
     
-    func follow(userID: String) async {
+    func follow(other_userID: String, self_userID: String) async {
         let db = Firestore.firestore()
         let batch = db.batch()
-        guard let follower = user else {
-            print("No User Detected")
-            return
-        }
-        
+        print(self_userID)
         let followingList = db.collection("USERS")
-            .document(follower.userId)
+            .document(self_userID)
             .collection("Following")
         
         let followersList = db.collection("USERS")
-            .document(userID)
+            .document(other_userID)
             .collection("Followers")
-            
+        
             
         //Adds batch update to add the userId to the collection of the following user
-        batch.setData([:], forDocument: followingList.document(userID))
+        batch.setData([:], forDocument: followingList.document(other_userID))
         
         //Adds batch update to add the followers userId to the collection of the user being followed
-        batch.setData([:], forDocument: followersList.document(follower.userId))
+        batch.setData([:], forDocument: followersList.document(self_userID))
         
         do{
             //do this to prevent inconsistency, either both documents get updated or neither do
             try await batch.commit()
             
             //updates the local following
-            follower.following.append(userID)
             print("Follower addded successfully!")
             
         } catch {

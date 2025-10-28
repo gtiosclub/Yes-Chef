@@ -32,6 +32,7 @@ struct Home: View {
             if let currentUser = authVM.currentUser {
                 ProfileView(user: currentUser, isOwnProfile:true).tabItem {
                     Image(systemName: "person.circle")
+                        .environment(authVM)
                 }.tag(TabSelection.profile)
             } else {
                 ProgressView().tabItem {
