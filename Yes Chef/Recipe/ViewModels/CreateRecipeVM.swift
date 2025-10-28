@@ -241,6 +241,40 @@ import SwiftUI
             chefsNotes: chefsNotes
         )
     }
+  
+    func addRecipeToRemixTreeAsNode(description: String, parentID: String) async -> String {
+        let postID = UUID()
+        let postUUID = postID.uuidString
+        
+        let db = Firestore.firestore()
+        
+        var rootNodeID = parentID
+        do {
+            let parent = try await db.collection("remixTreeNode").document(parentID).getDocument()
+            if let parentInfo = parent.data(), let parentRoot = parentInfo["rootNodeID"] as? String {
+                rootNodeID = parentRoot
+            }
+        } catch {
+            print("⚠️ Could not fetch parent node: \(error.localizedDescription)")
+        }
+        
+        let nodeInfo: [String: Any] = [
+            "postID": postUUID,
+            "childrenID": [],
+            "description": description,
+            "parentID": parentID,
+            "rootNodeID": rootNodeID,
+        ]
+            
+        do {
+            try await db.collection("remixTreeNode").document(postUUID).setData(nodeInfo)
+            print("Document added successfully!")
+        } catch {
+            print("Error adding document: \(error.localizedDescription)")
+        }
+        return postUUID
+    }
+    
     func createRecipe(userId: String, name: String, ingredients: [Ingredient], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, servingSize: Int, media: [MediaItem], chefsNotes: String) async -> String {
         
         let recipeID = UUID()
