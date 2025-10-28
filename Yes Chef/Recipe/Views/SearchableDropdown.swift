@@ -11,6 +11,7 @@ struct SearchableDropdown<Option: SearchableOption>: View {
     @Binding var selectedValues: [SearchableValue<Option>]
     let placeholder: String
     let allowCustom: Bool
+    let colorMain = "#F9F5F2"
     
     @State private var searchQuery = ""
     
@@ -49,14 +50,14 @@ struct SearchableDropdown<Option: SearchableOption>: View {
                 if !searchQuery.isEmpty {
                     Button(action: { searchQuery = "" }) {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.gray)
+                            .foregroundColor(Color(hex: colorMain))
                             .font(.system(size: 14))
                     }
                 }
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
-            .background(Color(.systemGray6))
+            .background(Color(hex: colorMain))
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
@@ -79,7 +80,7 @@ struct SearchableDropdown<Option: SearchableOption>: View {
                                 }
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 12)
-                                .background(Color(.systemBackground))
+                                .background(Color(hex: colorMain))
                             }
                             
                             if option.id != filteredOptions.last?.id {
@@ -95,7 +96,7 @@ struct SearchableDropdown<Option: SearchableOption>: View {
                                 HStack(spacing: 12) {
                                     Text(searchQuery)
                                         .font(.system(size: 15))
-                                        .foregroundColor(.primary)
+                                        .foregroundColor(Color(hex: colorMain))
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                 }
                                 .padding(.horizontal, 16)
@@ -106,7 +107,7 @@ struct SearchableDropdown<Option: SearchableOption>: View {
                     }
                 }
                 .frame(maxHeight: 200)
-                .background(Color(.systemBackground))
+                .background(Color(hex: colorMain))
                 .cornerRadius(12)
                 .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
                 .padding(.horizontal)
@@ -160,6 +161,4 @@ struct SearchableDropdown<Option: SearchableOption>: View {
         return nil
     }
 }
-
-
 

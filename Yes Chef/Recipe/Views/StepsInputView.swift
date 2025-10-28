@@ -18,8 +18,8 @@ struct StepsInputView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                SectionHeader(title: "Steps")
-                    .padding(.leading, -12)
+                Spacer()
+                SectionHeader(title: "Steps").padding(.leading, 35)
                 Spacer()
                 Button {
                     withAnimation(.easeInOut(duration: 0.15)) {
@@ -175,6 +175,8 @@ struct StepEditor: View {
     @Binding var text: String
     var placeholder: String
     var isEditing: Bool
+    var keyboardType: UIKeyboardType = .default
+    var padding: EdgeInsets = EdgeInsets(top: 10, leading: 12, bottom: 5, trailing: 12)
 
     var body: some View {
         ZStack(alignment: .leading) {
@@ -189,14 +191,20 @@ struct StepEditor: View {
                 .background(Color.clear)
                 .font(.subheadline)
                 .frame(minHeight: 40, maxHeight: 100)
-                .padding(.horizontal, 4)
-                .padding(.vertical, 2)
                 .disabled(!isEditing)
                 .opacity(isEditing ? 1 : 0.6)
+                .keyboardType(keyboardType)
+                .foregroundColor(Color(hex: "#877872"))
+                .padding(padding)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color(hex: "#F9F5F2"))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.black.opacity(0.3), lineWidth: 1)
+                )
         }
-        .background(Color(.systemGray6))
-        .cornerRadius(10)
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
     }
 }
 
