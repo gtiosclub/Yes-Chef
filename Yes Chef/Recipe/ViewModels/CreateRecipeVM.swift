@@ -25,6 +25,11 @@ import SwiftUI
     var mediaItems: [MediaItem] = []
     var chefsNotes = ""
     
+    var messages: [SmartMessage] = []
+    var isThinking: Bool = false
+    
+    private let ai = AIViewModel()
+    
     var allergens: [String] {
         selectedAllergens.map { $0.displayName }
     }
@@ -196,7 +201,46 @@ import SwiftUI
         }
         return postUUID
     }
-    
+    func sendToChef(userMessage: String) async {
+        let trimmed = userMessage.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        messages.append(.init(sender: .user, text: trimmed))
+        isThinking = true
+        defer { isThinking = false }
+
+        do {
+            let suggestion = try await ai.smartSuggestion(recipe: toRecipeForAI(), userMessage: trimmed)
+
+            for action in suggestion.toolcall {
+                applyChanges(item: action.item, removing: action.removing, adding: action.adding)
+            }
+
+            messages.append(.init(sender: .aiChef, text: suggestion.message))
+
+        } catch {
+            messages.append(.init(sender: .aiChef, text: "Sorry, I couldn't process that. Please try again."))
+            print("smartSuggestion error:", error)
+        }
+    }
+
+    private func toRecipeForAI() -> Recipe {
+        Recipe(
+            userId: userIdInput,
+            recipeId: "temp",
+            name: name,
+            ingredients: ingredients,
+            allergens: allergens,
+            tags: tags,
+            steps: steps,
+            description: description,
+            prepTime: Int(prepTimeInput) ?? 0,
+            difficulty: difficulty,
+            servingSize: servingSize,
+            media: [],
+            chefsNotes: chefsNotes
+        )
+    }
     func createRecipe(userId: String, name: String, ingredients: [Ingredient], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, servingSize: Int, media: [MediaItem], chefsNotes: String) async -> String {
         
         let recipeID = UUID()
