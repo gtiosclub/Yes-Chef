@@ -222,11 +222,6 @@ struct PostView: View {
         .navigationBarTitleDisplayMode(.inline)
         // Floating Remix Button + Navigation
         .overlay(alignment: .bottomTrailing) {
-            NavigationLink("", isActive: $goToAddRecipe) {
-                AddRecipeMain(remixRecipe: recipe)
-            }
-            .hidden()
-
             Button {
                 goToAddRecipe = true
             } label: {
@@ -243,6 +238,9 @@ struct PostView: View {
                 .padding(.bottom, 16)
             }
             .accessibilityLabel("Remix recipe")
+        }
+        .fullScreenCover(isPresented: $goToAddRecipe) {
+            AddRecipeMain(remixRecipe: recipe)
         }
     }
 }
