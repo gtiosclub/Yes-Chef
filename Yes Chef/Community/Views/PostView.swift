@@ -17,8 +17,11 @@ struct PostView: View {
     
     @State private var username: String = ""
     @State private var profilePhoto: String = ""
-    
+
     @State private var goToAddRecipe = false
+    // Eesh New Edit: Add state for navigating to remix tree view
+    @State private var goToRemixTree = false
+    // End of Eesh New Edit
 
     var body: some View {
         ScrollView{
@@ -210,30 +213,55 @@ struct PostView: View {
         
         .navigationBarBackButtonHidden(true)
         .navigationBarTitleDisplayMode(.inline)
-        // Floating Remix Button + Navigation
+        // Eesh New Edit: Added Remix Tree button alongside existing Remix button
         .overlay(alignment: .bottomTrailing) {
             NavigationLink("", isActive: $goToAddRecipe) {
                 AddRecipeMain(remixRecipe: recipe)
             }
             .hidden()
 
-            Button {
-                goToAddRecipe = true
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "sparkles").font(.headline)
-                    Text("Remix").fontWeight(.semibold)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .background(Capsule().fill(Color.black))
-                .foregroundColor(.white)
-                .shadow(radius: 4, y: 2)
-                .padding(.trailing, 16)
-                .padding(.bottom, 16)
+            NavigationLink("", isActive: $goToRemixTree) {
+                DummyRemixTreeViewForPost(postID: recipe.recipeId)
             }
-            .accessibilityLabel("Remix recipe")
+            .hidden()
+
+            VStack(spacing: 12) {
+                // Remix Tree Button
+                Button {
+                    goToRemixTree = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "tree").font(.headline)
+                        Text("Remix Tree").fontWeight(.semibold)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(Capsule().fill(Color.blue))
+                    .foregroundColor(.white)
+                    .shadow(radius: 4, y: 2)
+                }
+                .accessibilityLabel("View remix tree")
+
+                // Original Remix Button
+                Button {
+                    goToAddRecipe = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "sparkles").font(.headline)
+                        Text("Remix").fontWeight(.semibold)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(Capsule().fill(Color.black))
+                    .foregroundColor(.white)
+                    .shadow(radius: 4, y: 2)
+                }
+                .accessibilityLabel("Remix recipe")
+            }
+            .padding(.trailing, 16)
+            .padding(.bottom, 16)
         }
+        // End of Eesh New Edit
     }
 }
     
@@ -256,8 +284,27 @@ struct BulletPoint: View {
             Spacer()
         }
     }
-    
+
 }
+
+// Eesh New Edit: Dummy Remix Tree View for Post
+struct DummyRemixTreeViewForPost: View {
+    let postID: String
+
+    var body: some View {
+        VStack {
+            Spacer()
+            Text("Dummy Remix Tree View for Post with ID: \(postID)")
+                .font(.title2)
+                .multilineTextAlignment(.center)
+                .padding()
+            Spacer()
+        }
+        .background(Color(.systemBackground))
+        .navigationTitle("Remix Tree")
+    }
+}
+// End of Eesh New Edit
 
 
 #Preview {
