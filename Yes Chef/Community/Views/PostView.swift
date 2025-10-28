@@ -7,7 +7,7 @@
 import SwiftUI
 
 
-//let screen = UIScreen.main.bounds
+let screen = UIScreen.main.bounds
 
 struct PostView: View {
     var recipe: Recipe
@@ -205,7 +205,7 @@ struct PostView: View {
                     }
                 }.padding(.top, screen.height/50)
                 
-                CaroulselView(recipe: recipe)
+                CarouselView(recipe: recipe)
             }
             .padding(15)
             .padding(.bottom, 80)
@@ -246,7 +246,7 @@ struct PostView: View {
         }
     }
 }
-/*
+
 struct BulletPoint: View {
     var text: String
     let type: Int
@@ -300,4 +300,3 @@ struct BulletPoint: View {
     )
     PostView(recipe: rec)
 }
-
