@@ -4,6 +4,8 @@ struct ProfileView: View {
     @State private var selectedTab = 0
     @State private var isFollowing = false
     @State private var postVM = PostViewModel()
+    @State private var showingMessage = false
+    @State private var messageVM = MessageViewModel()
     //@Environment var authVM: AuthenticationVM
     let user: User
     // Simple boolean to toggle between own profile vs other's profile for UI demo
@@ -131,22 +133,64 @@ struct ProfileView: View {
     
     // MARK: - Action Button
     private var actionButton: some View {
-        Button(action: {
+        HStack(spacing: 12) {
             if !isOwnProfile {
-                isFollowing.toggle()
+                // Message Button
+                Button(action: {
+                    showingMessage = true
+                }) {
+                    Text("Message")
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
+                        .frame(width: 100, height: 36)
+                        .background(
+                            RoundedRectangle(cornerRadius: 18)
+                                .fill(Color.blue)
+                        )
+                }
+                
+                // Follow Button
+                Button(action: {
+                    isFollowing.toggle()
+                }) {
+                    Text(isFollowing ? "Following" : "Follow")
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(isFollowing ? .black : .white)
+                        .frame(width: 100, height: 36)
+                        .background(
+                            RoundedRectangle(cornerRadius: 18)
+                                .fill(isFollowing ? Color.gray.opacity(0.2) : Color.black)
+                        )
+                }
+            } else {
+                // Edit Profile Button (for own profile)
+                Button(action: {}) {
+                    Text("Edit Profile")
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(.black)
+                        .frame(width: 120, height: 36)
+                        .background(
+                            RoundedRectangle(cornerRadius: 18)
+                                .fill(Color.gray.opacity(0.2))
+                        )
+                }
             }
-        }) {
-            Text(isOwnProfile ? "edit" : (isFollowing ? "following" : "follow"))
-                .font(.body)
-                .fontWeight(.medium)
-                .foregroundColor(isOwnProfile ? .black : (isFollowing ? .black : .white))
-                .frame(width: 120, height: 36)
-                .background(
-                    RoundedRectangle(cornerRadius: 18)
-                        .fill(isOwnProfile ? Color.gray.opacity(0.2) : (isFollowing ? Color.gray.opacity(0.2) : Color.black))
-                )
         }
         .padding(.bottom, 30)
+        .sheet(isPresented: $showingMessage) {
+            if let chatID = getOrCreateChat() {
+                ChatView(chatID: chatID, otherUserID: user.userId)
+            }
+        }
+    }
+    
+    private func getOrCreateChat() -> String? {
+        // This would create or get existing chat with the user
+        // For now, return a placeholder
+        return "chat_\(user.userId)"
     }
     
     // MARK: - Tab Selection

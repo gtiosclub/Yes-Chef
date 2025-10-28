@@ -29,6 +29,10 @@ struct Home: View {
                 Image(systemName: "trophy")
             }
             .tag(TabSelection.leaderboard)
+            DMListView().tabItem {
+                Image(systemName: "message")
+            }
+            .tag(TabSelection.messages)
             if let currentUser = authVM.currentUser {
                 ProfileView(user: currentUser, isOwnProfile:true).tabItem {
                     Image(systemName: "person.circle")
@@ -49,7 +53,7 @@ struct Home: View {
 }
 
 enum TabSelection: Hashable {
-    case home, search, post, leaderboard, profile, remixtreedemo
+    case home, search, post, leaderboard, messages, profile, remixtreedemo
 }
 
 #Preview {
