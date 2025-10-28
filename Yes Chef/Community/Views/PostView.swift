@@ -198,7 +198,7 @@ struct PostView: View {
                     }
                 }.padding(.top, screen.height/50)
                 
-                CaroulselView(recipe: recipe)
+                CarouselView(recipe: recipe)
             }
             .padding(15)
             .padding(.bottom, 80)

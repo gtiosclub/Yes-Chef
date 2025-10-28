@@ -8,7 +8,7 @@
 import SwiftUI
 import FirebaseStorage
 
-struct CaroulselView: View {
+struct CarouselView: View {
     var recipe: Recipe
     @StateObject private var viewModel = CarouselViewModel()
     
@@ -64,6 +64,32 @@ struct CaroulselView: View {
 }
 
 #Preview {
-    let rec = Recipe(userId: "userid", recipeId: "recipeID", name: "Chaffle", ingredients: ["1 egg", "3 cups of flour","1 teaspoon butter"], allergens: [""], tags: ["american", "keto", "gluten free"], steps: ["Preheat a waffle iron to medium-high. Whisk the eggs in a large bowl until well beaten and smooth.","Coat the waffle iron with nonstick cooking spray, then ladle a heaping 1/4 cup of batter into each section.","Top each chaffle with a pat of butter and drizzle with maple syrup. "], description: "A chaffle is a low-carb, cheese-and-egg-based waffle that's taken the keto world by storm, thanks to its fluffy texture and crispy edges.", prepTime: 120, difficulty: .easy, servingSize: 1, media: ["https://www.themerchantbaker.com/wp-content/uploads/2019/10/Basic-Chaffles-REV-Total-3-480x480.jpg","https://thebestketorecipes.com/wp-content/uploads/2022/01/Easy-Basic-Chaffle-Recipe-Easy-Keto-Chaffle-5.jpg",""], chefsNotes: "")
-    CaroulselView(recipe: rec)
+    let rec = Recipe(
+        userId: "zvUtxNaS4FRTC1522AsZLxCXl5s1",
+        recipeId: "recipeID",
+        name: "Chaffle",
+        ingredients: [
+            Ingredient(name: "egg", quantity: 1, unit: "", preparation: ""),
+            Ingredient(name: "flour", quantity: 3, unit: "cups", preparation: ""),
+            Ingredient(name: "butter", quantity: 1, unit: "teaspoon", preparation: "")
+        ],
+        allergens: [""],
+        tags: ["american", "keto", "gluten free"],
+        steps: [
+            "Preheat a waffle iron to medium-high. Whisk the eggs in a large bowl until well beaten and smooth.",
+            "Coat the waffle iron with nonstick cooking spray, then ladle a heaping 1/4 cup of batter into each section.",
+            "Top each chaffle with a pat of butter and drizzle with maple syrup."
+        ],
+        description: "A chaffle is a low-carb, cheese-and-egg-based waffle that's taken the keto world by storm, thanks to its fluffy texture and crispy edges.",
+        prepTime: 120,
+        difficulty: .easy,
+        servingSize: 1,
+        media: [
+            "https://www.themerchantbaker.com/wp-content/uploads/2019/10/Basic-Chaffles-REV-Total-3-480x480.jpg",
+            "https://thebestketorecipes.com/wp-content/uploads/2022/01/Easy-Basic-Chaffle-Recipe-Easy-Keto-Chaffle-5.jpg",
+            ""
+        ],
+        chefsNotes: "String"
+    )
+    CarouselView(recipe: rec)
 }
