@@ -166,15 +166,31 @@ struct CircularCarouselView: View {
     @State private var dragOffset: CGFloat = 0
     @ObservedObject private var inertia = InertiaController()
     
+    private var anglePerNode: CGFloat {
+        360.0 / CGFloat(max(nodes.count, 1))
+    }
+    
+    private var centeredIndex: Int {
+        guard !nodes.isEmpty else { return 0 }
+        let normalizedRotation = (rotation + dragOffset).truncatingRemainder(dividingBy: 360)
+        let adjustedRotation = normalizedRotation < 0 ? normalizedRotation + 360 : normalizedRotation
+        return Int(round(adjustedRotation / anglePerNode)) % nodes.count
+    }
+    
     private var centeredNode: DummyNode? {
         guard !nodes.isEmpty else { return nil }
-        let totalRotation = rotation + dragOffset
-        let normalizedRotation = totalRotation.truncatingRemainder(dividingBy: 360)
-        let adjustedRotation = normalizedRotation < 0 ? normalizedRotation + 360 : normalizedRotation
-        let anglePerNode = 360.0 / CGFloat(nodes.count)
-        let centeredIndex = Int(round(adjustedRotation / anglePerNode)) % nodes.count
         return nodes[centeredIndex]
     }
+    
+    //private var centeredNode: DummyNode? {
+    //    guard !nodes.isEmpty else { return nil }
+    //    let totalRotation = rotation + dragOffset
+    //    let normalizedRotation = totalRotation.truncatingRemainder(dividingBy: 360)
+    //    let adjustedRotation = normalizedRotation < 0 ? normalizedRotation + 360 : normalizedRotation
+    //     let anglePerNode = 360.0 / CGFloat(nodes.count)
+    //    let centeredIndex = Int(round(adjustedRotation / anglePerNode)) % nodes.count
+    //    return nodes[centeredIndex]
+    //}
 
     var body: some View {
         GeometryReader { geo in
@@ -184,8 +200,13 @@ struct CircularCarouselView: View {
                     let angle = (CGFloat(index) / CGFloat(nodes.count)) * 360 + rotation + dragOffset
                     let xOffset = cos(angle * .pi / 180) * radius
                     let zOffset = sin(angle * .pi / 180) * radius
+                    let totalAngle = angle + rotation + dragOffset
+                    
                     let scale = 0.7 + 0.3 * ((zOffset / radius) + 1) / 2
                     let opacity = 0.4 + 0.6 * ((zOffset / radius) + 1) / 2
+                    let angleDiff = abs((totalAngle.truncatingRemainder(dividingBy: 360) + 360).truncatingRemainder(dividingBy: 360))
+                    let distanceFromFront = min(angleDiff, 360 - angleDiff) / 180.0
+                    let blur = 6 * distanceFromFront
                     
                     NodeCard(
                         node: node,
@@ -195,10 +216,42 @@ struct CircularCarouselView: View {
                         onHold: { onNodeHold?(node) }
                     )
                     .frame(width: 95, height: 90)
+                    .blur (radius: blur)
                     .scaleEffect(scale)
                     .opacity(opacity)
                     .offset(x: xOffset)
                     .zIndex(zOffset)
+                }
+                
+                // Left and right arrow buttons
+                if nodes.count > 1 {
+                    let buttonSize: CGFloat = 30
+                    HStack {
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                rotation += anglePerNode
+                            }
+                        }) {
+                            Image(systemName: "chevron.left.circle.fill")
+                                .font(.system(size: buttonSize))
+                                .foregroundColor(.blue.opacity(0.7))
+                        }
+                        .padding(.leading, 10)
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                rotation -= anglePerNode
+                            }
+                        }) {
+                            Image(systemName: "chevron.right.circle.fill")
+                                .font(.system(size: buttonSize))
+                                .foregroundColor(.blue.opacity(0.7))
+                        }
+                        .padding(.trailing, 10)
+                    }
+                    .frame(width: geo.size.width * 0.9)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
