@@ -15,7 +15,7 @@ struct ContentView: View {
             Home()
                 .environment(authVM)
         } else {
-            Login()
+            AccountCreationView()
                 .environment(authVM)
         }
     }

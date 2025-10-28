@@ -8,134 +8,187 @@
 import SwiftUI
 
 struct AccountCreationView : View {
+    @State private var selectedTab = "Sign Up"
+    
+    var body: some View {
+        VStack {
+            Text("Welcome to Yes Chef!")
+                .font(.system(size:30, weight: .bold, design: .serif))
+                .foregroundColor(.black)
+            Text("Sign up or login below")
+                .font(.system(.subheadline))
+                .foregroundColor(.gray)
+            HStack(spacing: 0) {
+                Button(action: { selectedTab = "Login" }) {
+                    Text("Login")
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 15)
+                        .background(selectedTab == "Login" ? Color(.systemGray6) : Color(.systemGray5))
+                        .foregroundColor(.black)
+                }
+                .clipShape(UnevenRoundedRectangle(cornerRadii: .init(topLeading: 20, bottomLeading: 0, bottomTrailing: 0, topTrailing: 20)))
+                Button(action: { selectedTab = "Sign Up" }) {
+                    Text("Sign Up")
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 15)
+                        .background(selectedTab == "Sign Up" ? Color(.systemGray6) : Color(.systemGray5))
+                        .foregroundColor(.black)
+                }
+                .clipShape(UnevenRoundedRectangle(cornerRadii: .init(topLeading: 20, bottomLeading: 0, bottomTrailing: 0, topTrailing: 20)))
+            }
+            .padding(.horizontal)
+            if selectedTab == "Sign Up" {
+                NewRegister()
+            } else {
+                NewLogin()
+            }
+        }
+    }
+}
+struct NewRegister : View {
     @State private var nameText = ""
     @State private var usernameText = ""
     @State private var emailText = ""
     @State private var phoneNumberText = ""
     @State private var passwordText = ""
     @State private var confirmPasswordText = ""
-    @State private var errorMessage: String?
+    @State private var nameErrorMessage: String?
+    @State private var emailErrorMessage: String?
+    @State private var phoneErrorMessage: String?
+    @State private var passwordErrorMessage: String?
+    @State private var confirmPasswordErrorMessage: String?
+    @State private var error: Bool = false
     @State private var viewModel = AuthenticationVM()
-    
-    var body: some View {
-        VStack {
-            Text("Create an account")
-                .frame(maxWidth: .infinity)
-                .font(.largeTitle)
-                .padding(.bottom, 5)
-            HStack {
-                Text("Full Name")
-                    .frame(maxWidth: 125, alignment: .leading)
-                TextField("", text: $nameText)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(5)
-                    .overlay(
-                                RoundedRectangle(cornerRadius: 5)
-                                    .stroke(Color.black, lineWidth: 1)
-                            )
-                    .padding(.horizontal)
-                    .frame(maxWidth: 300, alignment: .trailing)
-            }
-            .frame(maxWidth: 350)
-            .padding(7)
-            HStack {
-                Text("Username")
-                    .frame(maxWidth: 125, alignment: .leading)
-                TextField("", text: $usernameText)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(5)
-                    .overlay(
-                                RoundedRectangle(cornerRadius: 5)
-                                    .stroke(Color.black, lineWidth: 1)
-                            )
-                    .padding(.horizontal)
-                    .frame(maxWidth: 300, alignment: .trailing)
-            }
-            .frame(maxWidth: 350)
-            .padding(7)
-            HStack {
-                Text("Email")
-                    .frame(maxWidth: 125, alignment: .leading)
-                TextField("", text: $emailText)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(5)
-                    .overlay(
-                                RoundedRectangle(cornerRadius: 5)
-                                    .stroke(Color.black, lineWidth: 1)
-                            )
-                    .padding(.horizontal)
-                    .frame(maxWidth: 300, alignment: .trailing)
-            }
-            .frame(maxWidth: 350)
-            .padding(7)
-            HStack {
-                Text("Phone Number")
-                    .frame(maxWidth: 125, alignment: .leading)
-                TextField("", text: $phoneNumberText)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(5)
-                    .overlay(
-                                RoundedRectangle(cornerRadius: 5)
-                                    .stroke(Color.black, lineWidth: 1)
-                            )
-                    .padding(.horizontal)
-                    .frame(maxWidth: 300, alignment: .trailing)
-            }
-            .frame(maxWidth: 350)
-            .padding(7)
-            HStack {
-                Text("Password")
-                    .frame(maxWidth: 125, alignment: .leading)
-                TextField("", text: $passwordText)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(5)
-                    .overlay(
-                                RoundedRectangle(cornerRadius: 5)
-                                    .stroke(Color.black, lineWidth: 1)
-                            )
-                    .padding(.horizontal)
-                    .frame(maxWidth: 300, alignment: .trailing)
-            }
-            .frame(maxWidth: 350)
-            .padding(7)
-            HStack {
-                Text("Confirm Password")
-                    .frame(maxWidth: 125, alignment: .leading)
-                TextField("", text: $confirmPasswordText)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(5)
-                    .overlay(
-                                RoundedRectangle(cornerRadius: 5)
-                                    .stroke(Color.black, lineWidth: 1)
-                            )
-                    .padding(.horizontal)
-                    .frame(maxWidth: 300, alignment: .trailing)
-            }
-            .frame(maxWidth: 350)
-            .padding(7)
-            Button("Confirm") {
-                if confirmPasswordText != passwordText {
-                    errorMessage = "Passwords do not match."
-                } else if !emailText.isValidEmail {
-                    errorMessage = "Please enter a valid email."
-                } else if !phoneNumberText.isValidPhone {
-                    errorMessage = "Please enter a valid phone number."
-                } else {
-                    errorMessage = nil
-                    viewModel.register(email: emailText, password: passwordText, username: usernameText)
-                }
-                viewModel.register(email: emailText, password: passwordText, username: usernameText)
-            }
-            .bold()
-            .padding(.top, 5)
-            if let errorMessage = errorMessage {
-                Text(errorMessage)
+    var body : some View {
+            TextField("Enter your name", text: $nameText)
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+                .padding(.top, 20)
+                .padding(.horizontal, 40)
+                .padding(.bottom, 20)
+            if let nameErrorMessage = nameErrorMessage {
+                Text(nameErrorMessage)
                     .font(.caption)
                     .foregroundColor(.red)
-                    .padding(.top, 5)
+                    .padding(.horizontal, 40)
             }
+            TextField("Enter your email", text: $usernameText)
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+                .padding(.horizontal, 40)
+                .padding(.bottom, 20)
+            if let emailErrorMessage = emailErrorMessage {
+                Text(emailErrorMessage)
+                    .font(.caption)
+                    .foregroundColor(.red)
+                    .padding(.horizontal, 40)
+            }
+            SecureField("Enter your password", text: $passwordText)
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+                .padding(.horizontal, 40)
+                .padding(.bottom, 20)
+            if let passwordErrorMessage = passwordErrorMessage {
+                Text(passwordErrorMessage)
+                    .font(.caption)
+                    .foregroundColor(.red)
+                    .padding(.horizontal, 40)
+            }
+            SecureField("Confirm your password", text: $confirmPasswordText)
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+                .padding(.horizontal, 40)
+                .padding(.bottom, 20)
+            if let confirmPasswordErrorMessage = confirmPasswordErrorMessage {
+                Text(confirmPasswordErrorMessage)
+                    .font(.caption)
+                    .foregroundColor(.red)
+                    .padding(.horizontal, 40)
+            }
+            Button(action: {
+                if nameText.isEmpty {
+                    nameErrorMessage = "Please enter a name."
+                }
+                if !passwordText.isValidPassword {
+                    passwordErrorMessage = "- 8 characters minimum, 25 characters maximum \n- at least 1 uppercase, 1 lowercase, 1 number, 1 special character (# ? ! @)"
+                    error = true
+                }
+                if confirmPasswordText != passwordText {
+                    confirmPasswordErrorMessage = "Passwords do not match."
+                    error = true
+                }
+                if !emailText.isValidEmail {
+                    emailErrorMessage = "Please enter a valid email."
+                    error = true
+                }
+                if !phoneNumberText.isValidPhone {
+                    phoneErrorMessage = "Please enter a valid phone number."
+                    error = true
+                }
+                if !error {
+                    passwordErrorMessage = nil
+                    confirmPasswordErrorMessage = nil
+                    emailErrorMessage = nil
+                    phoneErrorMessage = nil
+                    viewModel.register(email: emailText, password: passwordText, username: usernameText)
+                }
+            }) {
+                Text("Sign Up")
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.orange)
+                    .cornerRadius(25)
+            }
+            .padding(.horizontal, 40)
         }
-        .padding(.bottom, 100)
+    }
+struct NewLogin: View {
+    @Environment(AuthenticationVM.self) private var authVM
+    @State private var email = ""
+    @State private var password = ""
+    
+    var body: some View {
+            VStack {
+                TextField("Email", text: $email)
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(10)
+                    .padding(.top, 20)
+                    .padding(.horizontal, 40)
+                    .padding(.bottom, 20)
+                
+                SecureField("Password", text: $password)
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(10)
+                    .padding(.horizontal, 40)
+                    .padding(.bottom, 20)
+                Button(action: {
+                    Task {
+                        await authVM.login(email: email, password: password)
+                    }
+                }) {
+                    if authVM.isLoading {
+                        Text("Loading...")
+                    } else {
+                        Text("Log In")
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.orange)
+                            .cornerRadius(25)
+                    }
+                }
+                .padding()
+            }
+            .padding()
     }
 }
 extension String {
@@ -145,9 +198,31 @@ extension String {
     }
     
     var isValidPhone: Bool {
-        // Example: 10-digit US phone number
         let regex = "^[0-9]{10}$"
         return NSPredicate(format: "SELF MATCHES %@", regex).evaluate(with: self)
+    }
+    var isValidPassword: Bool {
+        if (self.count >= 8 && self.count <= 25 && (self.contains("#") || self.contains("?") || self.contains("!") || self.contains("@")) && self.containsUppercase() && self.containsLowercase()) {
+            return true;
+        } else {
+            return false
+        }
+    }
+    func containsUppercase() -> Bool {
+        for character in self {
+            if character.isUppercase {
+                return true
+            }
+        }
+        return false
+    }
+    func containsLowercase() -> Bool {
+        for character in self {
+            if character.isLowercase {
+                return true
+            }
+        }
+        return false
     }
 }
 #Preview {
