@@ -77,77 +77,147 @@ import SwiftUI
         // For now, they won't be populated in localMediaPaths
     }
 
-    func applyChanges(item: String, removing: [String], adding: [String]) {
-            switch item.lowercased() {
-            case "title":
-                if let newTitle = adding.first {
+    func applyChanges(toolCall: ToolCallEntry) {
+        let item = toolCall.item.lowercased()
+        let removing = toolCall.removing
+        let adding = toolCall.adding
+        
+        switch item {
+        case "title", "name":
+            if let firstAdding = adding.first {
+                switch firstAdding {
+                case .string(let newTitle):
                     name = newTitle
+                case .ingredient:
+                    print("error")
                 }
-                
-//            case "ingredients":
-//                let removingSet = Set(removing.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
-//                selectedIngredients.removeAll { value in
-//                    removingSet.contains(value.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines))
-//                }
-//                
-//                let existingSet = Set(selectedIngredients.map { $0.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
-//                for add in adding {
-//                    let key = add.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-//                    if !existingSet.contains(key) {
-//                        if let matchingIngredient = Ingredient.allIngredients.first(where: {
-//                            $0.displayName.lowercased() == key
-//                        }) {
-//                            selectedIngredients.append(.predefined(matchingIngredient))
-//                        } else {
-//                            selectedIngredients.append(.custom(add.trimmingCharacters(in: .whitespacesAndNewlines)))
-//                        }
-//                    }
-//                }
-                
-            case "allergens":
-                let removingSet = Set(removing.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
-                selectedAllergens.removeAll { value in
-                    removingSet.contains(value.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines))
+            }
+            
+        case "preptime", "prep time":
+            if let firstAdding = adding.first {
+                switch firstAdding {
+                case .string(let newPrepTime):
+                    prepTimeInput = newPrepTime
+                case .ingredient:
+                    print("error")
                 }
-                
-                let existingSet = Set(selectedAllergens.map { $0.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
-                for add in adding {
-                    let key = add.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+            
+        case "description":
+            if let firstAdding = adding.first {
+                switch firstAdding {
+                case .string(let newDescription):
+                    description = newDescription
+                case .ingredient:
+                    print("error")
+                }
+            }
+            
+        case "ingredients":
+            let removingSet = Set(removing.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
+            ingredients.removeAll { ingredient in
+                removingSet.contains(ingredient.name.lowercased().trimmingCharacters(in: .whitespacesAndNewlines))
+            }
+            
+            let existingSet = Set(ingredients.map { $0.name.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
+            for addingItem in adding {
+                switch addingItem {
+                case .ingredient(let newIngredient):
+                    let key = newIngredient.name.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !existingSet.contains(key) {
+                        ingredients.append(newIngredient)
+                    }
+                case .string(let ingredientString):
+                    let key = ingredientString.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !existingSet.contains(key) {
+                        let newIngredient = Ingredient(
+                            name: ingredientString.trimmingCharacters(in: .whitespacesAndNewlines),
+                            quantity: 0,
+                            unit: "",
+                            preparation: ""
+                        )
+                        ingredients.append(newIngredient)
+                    }
+                }
+            }
+            
+        case "allergens":
+            let removingSet = Set(removing.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
+            selectedAllergens.removeAll { value in
+                removingSet.contains(value.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines))
+            }
+            
+            let existingSet = Set(selectedAllergens.map { $0.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
+            for addingItem in adding {
+                switch addingItem {
+                case .string(let allergenString):
+                    let key = allergenString.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
                     if !existingSet.contains(key) {
                         if let matchingAllergen = Allergen.allCases.first(where: {
                             $0.displayName.lowercased() == key
                         }) {
                             selectedAllergens.append(.predefined(matchingAllergen))
                         } else {
-                            selectedAllergens.append(.custom(add.trimmingCharacters(in: .whitespacesAndNewlines)))
+                            selectedAllergens.append(.custom(allergenString.trimmingCharacters(in: .whitespacesAndNewlines)))
                         }
                     }
+                case .ingredient:
+                    print("error")
                 }
-                
-            case "tags":
-                let removingSet = Set(removing.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
-                selectedTags.removeAll { value in
-                    removingSet.contains(value.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines))
-                }
-                
-                let existingSet = Set(selectedTags.map { $0.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
-                for add in adding {
-                    let key = add.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+            
+        case "tags":
+            let removingSet = Set(removing.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
+            selectedTags.removeAll { value in
+                removingSet.contains(value.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines))
+            }
+            
+            let existingSet = Set(selectedTags.map { $0.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
+            for addingItem in adding {
+                switch addingItem {
+                case .string(let tagString):
+                    let key = tagString.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
                     if !existingSet.contains(key) {
                         if let matchingTag = Tag.allTags.first(where: {
                             $0.displayName.lowercased() == key
                         }) {
                             selectedTags.append(.predefined(matchingTag))
                         } else {
-                            selectedTags.append(.custom(add.trimmingCharacters(in: .whitespacesAndNewlines)))
+                            selectedTags.append(.custom(tagString.trimmingCharacters(in: .whitespacesAndNewlines)))
                         }
                     }
+                case .ingredient:
+                    print("error")
                 }
-                
-            default:
-                break
             }
+            
+        case "steps":
+            let removingSet = Set(removing.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) })
+            steps.removeAll { step in
+                removingSet.contains(step.trimmingCharacters(in: .whitespacesAndNewlines))
+            }
+            
+            let existingSet = Set(steps.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) })
+            for addingItem in adding {
+                switch addingItem {
+                case .string(let stepString):
+                    let trimmedStep = stepString.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !existingSet.contains(trimmedStep) && !trimmedStep.isEmpty {
+                        steps.append(stepString)
+                    }
+                case .ingredient:
+                    print("error")
+                }
+            }
+            
+            if steps.isEmpty {
+                steps = [""]
+            }
+            
+        default:
+            print("error: \(item)")
         }
+    }
     
 
     private func uploadMediaToFirebase(mediaItem: MediaItem, fileName: String, recipeUUID: String) async -> String? {
