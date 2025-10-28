@@ -25,6 +25,11 @@ import SwiftUI
     var mediaItems: [MediaItem] = []
     var chefsNotes = ""
     
+    var messages: [SmartMessage] = []
+    var isThinking: Bool = false
+    
+    private let ai = AIViewModel()
+    
     var allergens: [String] {
         selectedAllergens.map { $0.displayName }
     }
@@ -188,6 +193,79 @@ import SwiftUI
             "rootNodeID": postUUID,
         ]
         
+        do {
+            try await db.collection("remixTreeNode").document(postUUID).setData(nodeInfo)
+            print("Document added successfully!")
+        } catch {
+            print("Error adding document: \(error.localizedDescription)")
+        }
+        return postUUID
+    }
+    
+    func sendMessage(userMessage: String) async {
+        let trimmed = userMessage.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        messages.append(.init(sender: .user, text: trimmed))
+        isThinking = true
+        defer { isThinking = false }
+
+        do {
+            let suggestion = try await ai.smartSuggestion(recipe: toRecipeForAI(), userMessage: trimmed)
+
+            // Handle toolcall here
+
+            messages.append(.init(sender: .aiChef, text: suggestion.message))
+            print(messages)
+
+        } catch {
+            messages.append(.init(sender: .aiChef, text: "Sorry, I couldn't process that. Please try again."))
+            print("smartSuggestion error:", error)
+        }
+    }
+
+    private func toRecipeForAI() -> Recipe {
+        Recipe(
+            userId: userIdInput,
+            recipeId: "temp",
+            name: name,
+            ingredients: ingredients,
+            allergens: allergens,
+            tags: tags,
+            steps: steps,
+            description: description,
+            prepTime: Int(prepTimeInput) ?? 0,
+            difficulty: difficulty,
+            servingSize: servingSize,
+            media: [],
+            chefsNotes: chefsNotes
+        )
+    }
+  
+    func addRecipeToRemixTreeAsNode(description: String, parentID: String) async -> String {
+        let postID = UUID()
+        let postUUID = postID.uuidString
+        
+        let db = Firestore.firestore()
+        
+        var rootNodeID = parentID
+        do {
+            let parent = try await db.collection("remixTreeNode").document(parentID).getDocument()
+            if let parentInfo = parent.data(), let parentRoot = parentInfo["rootNodeID"] as? String {
+                rootNodeID = parentRoot
+            }
+        } catch {
+            print("⚠️ Could not fetch parent node: \(error.localizedDescription)")
+        }
+        
+        let nodeInfo: [String: Any] = [
+            "postID": postUUID,
+            "childrenID": [],
+            "description": description,
+            "parentID": parentID,
+            "rootNodeID": rootNodeID,
+        ]
+            
         do {
             try await db.collection("remixTreeNode").document(postUUID).setData(nodeInfo)
             print("Document added successfully!")
