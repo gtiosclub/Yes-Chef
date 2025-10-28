@@ -32,7 +32,7 @@ struct FirebaseTesting: View {
                     recipeVM.prepTimeInput = "10"
                     recipeVM.steps = ["Put sauce on dough.", "Add cheese.", "Bake for 20 minutes.", "Cut into wedges."]
                     
-                    await recipeVM.sendToChef(userMessage: "make it vegan")
+                    await recipeVM.sendMessage(userMessage: "make it vegan")
                 }
             }
         }

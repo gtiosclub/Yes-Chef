@@ -202,7 +202,7 @@ import SwiftUI
         return postUUID
     }
     
-    func sendToChef(userMessage: String) async {
+    func sendMessage(userMessage: String) async {
         let trimmed = userMessage.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
@@ -213,9 +213,7 @@ import SwiftUI
         do {
             let suggestion = try await ai.smartSuggestion(recipe: toRecipeForAI(), userMessage: trimmed)
 
-//            for action in suggestion.toolcall {
-//                applyChanges(item: action.item, removing: action.removing, adding: action.adding)
-//            }
+            // Handle toolcall here
 
             messages.append(.init(sender: .aiChef, text: suggestion.message))
             print(messages)

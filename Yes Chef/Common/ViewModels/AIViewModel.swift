@@ -336,11 +336,20 @@ Rules:
 """
 
 private func smartUserContent(recipe: Recipe, userMessage: String) -> String {
+    let ingredientsArray = recipe.ingredients.map { ing -> [String: Any] in
+        return [
+            "name": ing.name,
+            "quantity": ing.quantity,
+            "unit": ing.unit,
+            "preparation": ing.preparation
+        ]
+    }
+    
     let payload: [String: Any] = [
         "user_request": userMessage,
         "recipe": [
             "name": recipe.name,
-            "ingredients": recipe.ingredients,
+            "ingredients": ingredientsArray,
             "allergens": recipe.allergens,
             "tags": recipe.tags,
             "steps": recipe.steps,
