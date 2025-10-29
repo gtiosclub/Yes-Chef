@@ -237,20 +237,20 @@ struct ProfileView: View {
                 .frame(maxWidth: .infinity)
                 .zIndex(selectedTab == 0 ? 1 : 0)
                 .background(
-                        RoundedCorner(radius: 26, corners: selectedTab == 0 ? [.topLeft, .topRight] : [.bottomRight,.topRight,.topLeft])
+                        RoundedCorner(radius: 25, corners: selectedTab == 0 ? [.topLeft, .topRight] : [.bottomRight,.topRight,.topLeft])
                             .fill(selectedTab == 0 ? Color.white: Color(.systemGray6))
-                            .frame(width: (UIScreen.main.bounds.width)/2 , height: 50)
+                            .frame(width: (UIScreen.main.bounds.width)/2, height: 50)
                             .background(
                                 //Border over top/bottom of tab
-                                RoundedCorner(radius: 26, corners: selectedTab == 0 ? [.topLeft, .topRight] : [.bottomRight,.topRight,.topLeft])
+                                RoundedCorner(radius: 25, corners: selectedTab == 0 ? [.topLeft, .topRight] : [.bottomRight,.topRight,.topLeft])
                                     .fill(Color(.systemGray4))
-                                    .frame(width: (UIScreen.main.bounds.width)/2, height: 50)
+                                    .frame(width: (UIScreen.main.bounds.width)/2 + 1, height: 50)
                                     .padding(selectedTab == 0 ? .bottom : .top, 3)
                                     .overlay(
                                         //White Rectangle cuts off bottom half of border
                                         Rectangle()
                                             .fill(Color.white)
-                                            .padding(selectedTab == 0 ? .top : .bottom, 25)
+                                            .padding(selectedTab == 0 ? .top : .bottom, 35)
                                     )
                             )
                     )
@@ -267,20 +267,20 @@ struct ProfileView: View {
                 .frame(maxWidth: .infinity)
                 .zIndex(selectedTab == 1 ? 2 : 0)
                 .background(
-                    RoundedCorner(radius: 26, corners: selectedTab == 1 ? [.topLeft, .topRight] : [.bottomRight,.bottomLeft,.topRight,.topLeft])
+                    RoundedCorner(radius: 25, corners: selectedTab == 1 ? [.topLeft, .topRight] : [.bottomRight,.bottomLeft,.topRight,.topLeft])
                         .fill(selectedTab == 1 ? Color.white: Color(.systemGray6))
                         .frame(width: (UIScreen.main.bounds.width)/2 , height: 50)
                         .background(
                             //Border over top of tab
-                            RoundedCorner(radius: 26, corners: selectedTab == 1 ? [.topLeft, .topRight] : [.bottomRight,.bottomLeft, .topRight,.topLeft])
+                            RoundedCorner(radius: 25, corners: selectedTab == 1 ? [.topLeft, .topRight] : [.bottomRight,.bottomLeft, .topRight,.topLeft])
                                 .fill(Color(.systemGray4))
-                                .frame(width: (UIScreen.main.bounds.width)/2, height: 50)
+                                .frame(width: (UIScreen.main.bounds.width)/2 + 1, height: 50)
                                 .padding(selectedTab == 1 ? .bottom : .top, 3)
                                 .overlay(
                                     //White Rectangle cuts off bottom half of border
                                     Rectangle()
                                         .fill(Color.white)
-                                        .padding(selectedTab == 1 ? .top : .bottom, 25)
+                                        .padding(selectedTab == 1 ? .top : .bottom, 35)
                                 )
                         )
                 )
