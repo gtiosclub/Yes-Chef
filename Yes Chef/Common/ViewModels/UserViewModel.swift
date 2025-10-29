@@ -12,9 +12,7 @@ import FirebaseFirestore
 @Observable class UserViewModel{
     
     func getUserInfo(userID: String) async -> [String: Any]?{
-        let db = Firestore.firestore()
-        let batch = db.batch()
-        
+        let db = Firestore.firestore()        
         let info = db.collection("users")
             .document(userID)
             
