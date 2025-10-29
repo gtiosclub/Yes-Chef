@@ -20,7 +20,8 @@ struct PostView: View {
     @State private var profilePhoto: String = ""
     @State private var FVM = FollowViewModel()
     @State private var goToAddRecipe = false
-
+    @State private var liked: Bool = false
+    @State private var following: Bool = false
     var body: some View {
         ScrollView{
             VStack(spacing: 6 ){
@@ -73,18 +74,40 @@ struct PostView: View {
                     Spacer()
                     
                     //Follow Button
-                    Button(){
-                        Task {
-                            await FVM.follow(other_userID: recipe.userId, self_userID: authVM.currentUser?.userId ?? "")
-                        }
-                    } label: {
-                        ZStack{
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(Color(.systemGray3))
-                                .frame(width: 80, height: 30)
-                            Text("Follow").foregroundColor(Color.black)
-                        }
+                    if (!(recipe.userId == authVM.currentUser?.userId ?? "")){
                         
+                        Button(){
+                            if (!following) {
+                                Task {
+                                    await FVM.follow(other_userID: recipe.userId, self_userID: authVM.currentUser?.userId ?? "")
+                                }
+                                authVM.currentUser?.following.append(recipe.userId)
+                                following = true
+                            } else {
+                                //need to implement unfollow
+                                Task {
+                                    await FVM.unfollow(other_userID: recipe.userId, self_userID: authVM.currentUser?.userId ?? "")
+                                }
+                                following = false
+                            }
+                            
+                        } label: {
+                            if (!following) {
+                                ZStack{
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .fill(Color(.systemGray3))
+                                        .frame(width: 80, height: 30)
+                                    Text("Follow").foregroundColor(Color.black)
+                                }
+                            } else {
+                                ZStack{
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .fill(Color(.systemGray3))
+                                        .frame(width: 80, height: 30)
+                                    Text("Following").foregroundColor(Color.black)
+                                }
+                            }
+                        }
                     }
                 }
                 
@@ -209,6 +232,19 @@ struct PostView: View {
                 username = posterData?["username"] as? String ?? "..."
             }
         }
+        .onAppear {
+            if (authVM.currentUser?.likedRecipes ?? []).contains(recipe.id) {
+                liked = true
+            } else {
+                liked = false
+            }
+            if (authVM.currentUser?.following ?? []).contains(recipe.userId) {
+                following = true
+            } else {
+                following = false
+            }
+            
+        }
         
         .navigationBarBackButtonHidden(true)
         .navigationBarTitleDisplayMode(.inline)
@@ -222,12 +258,30 @@ struct PostView: View {
                 HStack {
                     Text(String(recipe.likes))
                     Button {
-                        Task {
-                            try await postVM.likePost(recipeId: recipe.id)
+                        if (!liked) {
+                            Task {
+                                try await postVM.likePost(recipeId: recipe.id)
+                                try await UVM.like(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
+                            }
+                            recipe.likes += 1
+                            authVM.currentUser?.likedRecipes.append(recipe.id)
+                            liked = true
+                        } else {
+                            Task {
+                                try await postVM.unlikePost(recipeId: recipe.id)
+                                try await UVM.unlike(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
+                            }
+                            recipe.likes -= 1
+                            authVM.currentUser?.likedRecipes.removeAll { $0 == recipe.id }
+                            liked = false
                         }
-                        recipe.likes += 1
                     } label : {
-                        Image(systemName: "heart").foregroundColor(.black)
+                        if (!liked) {
+                            Image(systemName: "heart").foregroundColor(.black)
+                        } else {
+                            Image(systemName: "heart.fill").foregroundColor(.red)
+                        }
+                        
                     }.frame(width: 20, height: 20)
                     Button {
                         goToAddRecipe = true

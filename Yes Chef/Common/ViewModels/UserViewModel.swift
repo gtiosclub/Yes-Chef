@@ -10,10 +10,8 @@ import Observation
 import FirebaseFirestore
 
 @Observable class UserViewModel{
-    
     func getUserInfo(userID: String) async -> [String: Any]?{
         let db = Firestore.firestore()
-        let batch = db.batch()
         
         let info = db.collection("users")
             .document(userID)
@@ -29,5 +27,29 @@ import FirebaseFirestore
         }
         
         return nil
+    }
+    
+    func like(recipeID: String, userID: String) async throws {
+        let db = Firestore.firestore()
+        let userRef = db.collection("users").document(userID)
+        
+        do {
+            try await userRef.updateData(["likedRecipes": FieldValue.arrayUnion([recipeID])])
+
+        } catch {
+            print("Error adding document:\(error.localizedDescription)")
+        }
+    }
+    
+    func unlike(recipeID: String, userID: String) async throws {
+        let db = Firestore.firestore()
+        let userRef = db.collection("users").document(userID)
+        
+        do {
+            try await userRef.updateData(["likedRecipes": FieldValue.arrayRemove([recipeID])])
+
+        } catch {
+            print("Error adding document:\(error.localizedDescription)")
+        }
     }
 }

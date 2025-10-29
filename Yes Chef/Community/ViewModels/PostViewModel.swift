@@ -122,6 +122,27 @@ class PostViewModel {
         }
     }
     
+    func unlikePost(recipeId: String) async throws {
+        let recipeRef = db.collection("RECIPES").document(recipeId)
+        
+        _ = try await db.runTransaction { transaction, errorPointer -> Any? in
+            do {
+                let snapshot = try transaction.getDocument(recipeRef)
+                let currentLikes = snapshot.data()?["likes"] as? Int ?? 0
+                transaction.updateData(["likes": currentLikes - 1], forDocument: recipeRef)
+            } catch {
+                errorPointer?.pointee = error as NSError
+                return nil
+            }
+            return nil
+        }
+        
+        // Update the local UI to display the changes
+        if let index = recipes.firstIndex(where: { $0.recipeId == recipeId }) {
+            recipes[index].likes += 1
+        }
+    }
+    
     func fetchComments(for recipeId: String) async throws -> [Comment] {
         let snapshot = try await db.collection("COMMENTS")
                 .whereField("recipeID", isEqualTo: recipeId)
@@ -149,6 +170,24 @@ class PostViewModel {
                 print("Error adding document: \(err)")
             }
         }
+    }
+    func getPostByID(postID: String) async -> [String: Any]?{
+        let db = Firestore.firestore()
+        
+        let info = db.collection("RECIPES")
+            .document(postID)
+            
+        do {
+            let doc = try await info.getDocument()
+            if doc.exists{
+                return doc.data()
+            }
+        }
+        catch {
+            print("Error getting document: \(error)")
+        }
+        
+        return nil
     }
     
 }

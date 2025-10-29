@@ -21,6 +21,7 @@ class User: Equatable, Identifiable, ObservableObject {
     @Published var following: [String] = []
     @Published var myRecipes: [String] = []
     @Published var savedRecipes: [String] = []
+    @Published var likedRecipes: [String] = []
     @Published var badges: [String] = []
 
 

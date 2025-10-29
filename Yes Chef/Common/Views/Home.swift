@@ -44,7 +44,11 @@ struct Home: View {
                 Image(systemName: "tree")
             }
             .tag(TabSelection.remixtreedemo)
-            
+        }
+        .onAppear {
+            Task {
+                await authVM.updateCurrentUser()
+            }
         }
     }
 }
