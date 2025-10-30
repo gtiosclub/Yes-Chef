@@ -617,6 +617,11 @@ struct FeedView: View {
                 }
             }*/
         }
+        .onAppear {
+            Task {
+                await authVM.updateCurrentUser()
+            }
+        }
     }
     
     // MARK: - Helper

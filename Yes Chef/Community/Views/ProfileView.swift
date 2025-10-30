@@ -12,7 +12,7 @@ struct ProfileView: View {
     @State private var profilePhoto: String = ""
     @State private var showingEditProfile = false
 
-    let user: User
+    @State var user: User
     // Simple boolean to toggle between own profile vs other's profile for UI demo
     let isOwnProfile: Bool
     
@@ -58,6 +58,7 @@ struct ProfileView: View {
                         let posterData = await UVM.getUserInfo(userID: user.userId)
                         profilePhoto = posterData?["profilePhoto"] as? String ?? ""
                     }
+                    self.user = await UVM.updateUser(userID: user.userId)
                 } catch {
                     print("Failed to fetch recipes: \(error)")
                 }

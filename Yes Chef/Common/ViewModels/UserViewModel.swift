@@ -137,5 +137,35 @@ import UIKit
 
         }
     }
+    
+    func updateUser(userID: String) async -> User{
+        let db = Firestore.firestore()
+        let userRef = db.collection("users").document(userID)
+        
+        do {
+            let document = try await userRef.getDocument()
+            let data = document.data()
+            let profilePhotoURL = data?["profilePhoto"] as? String ?? ""
+            let username = data?["username"] as? String ?? "username"
+            let bio = data?["bio"] as? String ?? "bio"
+            let email = data?["email"] as? String ?? "email"
+            let followers = data?["followers"] as? [String] ?? []
+            let following = data?["following"] as? [String] ?? []
+            let likedRecipes = data?["likedRecipes"] as? [String] ?? []
+            let savedRecipes = data?["savedRecipes"] as? [String] ?? []
+            let badges = data?["badges"] as? [String] ?? []
+            let tempuser = User(userId: userID, username: username, email: email, bio: bio, password: "")
+            tempuser.following = following
+            tempuser.followers = followers
+            tempuser.likedRecipes = likedRecipes
+            tempuser.savedRecipes = savedRecipes
+            tempuser.badges = badges
+            print("User \(username) updated!")
+            return tempuser
+        } catch {
+            print("Can't find user")
+        }
+        return User(userId: "userID", username: "username", email: "email", bio: "bio", password: "")
+    }
 }
 

@@ -20,7 +20,6 @@ import FirebaseFirestore
         
         let other_ref = db.collection("users")
             .document(other_userID)
-       
         
         do{
             try await self_ref.updateData(["following": FieldValue.arrayUnion([other_userID])])

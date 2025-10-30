@@ -93,11 +93,13 @@ struct PostView: View {
                                 }
                                 authVM.currentUser?.following.append(recipe.userId)
                                 following = true
+                                print("Followed, \(following)")
                             } else {
                                 //need to implement unfollow
                                 Task {
                                     await FVM.unfollow(other_userID: recipe.userId, self_userID: authVM.currentUser?.userId ?? "")
                                 }
+                                authVM.currentUser?.following.removeAll { $0 == recipe.userId }
                                 following = false
                             }
                             
@@ -242,17 +244,8 @@ struct PostView: View {
             }
         }
         .onAppear {
-            if (authVM.currentUser?.likedRecipes ?? []).contains(recipe.id) {
-                liked = true
-            } else {
-                liked = false
-            }
-            if (authVM.currentUser?.following ?? []).contains(recipe.userId) {
-                following = true
-            } else {
-                following = false
-            }
-            
+            liked = (authVM.currentUser?.likedRecipes ?? []).contains(recipe.id)
+            following = (authVM.currentUser?.following ?? []).contains(recipe.userId)
         }
         
         .navigationBarBackButtonHidden(true)
