@@ -179,27 +179,22 @@ import SwiftUI
         }
     }
     
-    func addRecipeToRemixTreeAsRoot(description: String) async -> String {
-        let postID = UUID()
-        let postUUID = postID.uuidString
-        
+    func addRecipeToRemixTreeAsRoot(recipeID: String, description: String) async {
         let db = Firestore.firestore()
-        
+
         let nodeInfo: [String: Any] = [
-            "postID": postUUID,
-            "childrenID": [],
+            "childrenIDs": [],
             "description": description,
             "parentID": "",
-            "rootNodeID": postUUID,
+            "rootPostID": recipeID,
         ]
-        
+
         do {
-            try await db.collection("remixTreeNode").document(postUUID).setData(nodeInfo)
-            print("Document added successfully!")
+            try await db.collection("remixTreeNode").document(recipeID).setData(nodeInfo)
+            print("✅ Added recipe \(recipeID) as root node to remixTreeNode")
         } catch {
-            print("Error adding document: \(error.localizedDescription)")
+            print("❌ Error adding root node: \(error.localizedDescription)")
         }
-        return postUUID
     }
     
     func sendMessage(userMessage: String) async {
@@ -242,37 +237,57 @@ import SwiftUI
         )
     }
   
-    func addRecipeToRemixTreeAsNode(description: String, parentID: String) async -> String {
-        let postID = UUID()
-        let postUUID = postID.uuidString
-        
+    func addRecipeToRemixTreeAsNode(recipeID: String, description: String, parentID: String) async {
         let db = Firestore.firestore()
-        
-        var rootNodeID = parentID
+
+        print("🔍 Attempting to add recipe \(recipeID) as child of parent \(parentID)")
+
+        // Fetch parent node to get root ID and verify it exists
+        var rootPostID = parentID
         do {
             let parent = try await db.collection("remixTreeNode").document(parentID).getDocument()
-            if let parentInfo = parent.data(), let parentRoot = parentInfo["rootNodeID"] as? String {
-                rootNodeID = parentRoot
+
+            if !parent.exists {
+                print("⚠️ Parent recipe \(parentID) does NOT exist in remixTreeNode!")
+                print("🔧 Auto-fixing: Adding parent as root node first...")
+
+                // Add the parent as a root node (backward compatibility fix)
+                await addRecipeToRemixTreeAsRoot(recipeID: parentID, description: "Original recipe (auto-added)")
+
+                // Now the parent exists as a root, so rootPostID is the parent itself
+                rootPostID = parentID
+                print("✅ Parent successfully added as root node")
+            } else if let parentInfo = parent.data(), let parentRoot = parentInfo["rootPostID"] as? String {
+                rootPostID = parentRoot
+                print("✅ Found parent node. Root is: \(rootPostID)")
+            } else {
+                print("⚠️ Parent exists but missing rootPostID field, using parentID as root")
+                rootPostID = parentID
             }
         } catch {
-            print("⚠️ Could not fetch parent node: \(error.localizedDescription)")
+            print("❌ Error fetching parent node: \(error.localizedDescription)")
+            return
         }
-        
+
         let nodeInfo: [String: Any] = [
-            "postID": postUUID,
-            "childrenID": [],
+            "childrenIDs": [],
             "description": description,
             "parentID": parentID,
-            "rootNodeID": rootNodeID,
+            "rootPostID": rootPostID,
         ]
-            
+
         do {
-            try await db.collection("remixTreeNode").document(postUUID).setData(nodeInfo)
-            print("Document added successfully!")
+            try await db.collection("remixTreeNode").document(recipeID).setData(nodeInfo)
+            print("✅ Added recipe \(recipeID) as child node to remixTreeNode (parent: \(parentID))")
+
+            // Update parent's childrenIDs array
+            try await db.collection("remixTreeNode").document(parentID).updateData([
+                "childrenIDs": FieldValue.arrayUnion([recipeID])
+            ])
+            print("✅ Updated parent node \(parentID) with new child \(recipeID)")
         } catch {
-            print("Error adding document: \(error.localizedDescription)")
+            print("❌ Error adding child node: \(error.localizedDescription)")
         }
-        return postUUID
     }
     
     func createRecipe(userId: String, name: String, ingredients: [Ingredient], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, servingSize: Int, media: [MediaItem], chefsNotes: String) async -> String {
