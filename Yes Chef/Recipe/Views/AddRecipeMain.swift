@@ -24,15 +24,20 @@ struct AddRecipeMain: View {
     }
 
     @Environment(AuthenticationVM.self) var authVM
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack{
             VStack(){
                 HStack{
-                    Image(systemName: "xmark")
-                        .resizable()
-                        .frame(width:20, height:20)
-                        .foregroundStyle(.black)
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .resizable()
+                            .frame(width: 20, height: 20)
+                            .foregroundStyle(.black)
+                    }
                     Spacer()
                     
                     Text("Add Recipe")
@@ -77,7 +82,10 @@ struct AddRecipeMain: View {
                                     description: "Original recipe"
                                 )
                             }
-                            print("✅ All operations complete!")
+
+                            
+                            dismiss()
+
                         }
                     } label: {
                         Image(systemName: "checkmark")

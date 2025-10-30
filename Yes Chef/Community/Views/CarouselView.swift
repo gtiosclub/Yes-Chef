@@ -8,7 +8,7 @@
 import SwiftUI
 import FirebaseStorage
 
-struct CaroulselView: View {
+struct CarouselView: View {
     var recipe: Recipe
     @StateObject private var viewModel = CarouselViewModel()
     

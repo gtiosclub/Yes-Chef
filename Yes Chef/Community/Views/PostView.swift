@@ -6,6 +6,7 @@
 //
 import SwiftUI
 
+
 let screen = UIScreen.main.bounds
 
 struct PostView: View {
@@ -14,6 +15,7 @@ struct PostView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var UVM = UserViewModel()
     @State private var mediaItem: Int? = 0
+    //@State var remixTree: RemixTree
     
     @State private var username: String = ""
     @State private var profilePhoto: String = ""
@@ -46,6 +48,14 @@ struct PostView: View {
                     Image(systemName: "ellipsis")
                         .font(Font.title2)
                         .frame(alignment: .trailing)
+                    Button {
+                        RemixTree.deleteNodeFirebase(nodeId: recipe.recipeId)
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(Font.title2)
+                            .frame(alignment: .trailing)
+                            .foregroundStyle(.black)
+                    }
                     
                 }
                 .padding(.bottom, screen.width/50)
@@ -198,7 +208,7 @@ struct PostView: View {
                     }
                 }.padding(.top, screen.height/50)
                 
-                CaroulselView(recipe: recipe)
+                CarouselView(recipe: recipe)
             }
             .padding(15)
             .padding(.bottom, 80)
@@ -215,6 +225,7 @@ struct PostView: View {
         .navigationBarTitleDisplayMode(.inline)
         // Eesh New Edit: Added Remix Tree button alongside existing Remix button
         .overlay(alignment: .bottomTrailing) {
+
             NavigationLink("", isActive: $goToAddRecipe) {
                 AddRecipeMain(remixRecipe: recipe)
             }
@@ -222,6 +233,22 @@ struct PostView: View {
 
             NavigationLink("", isActive: $goToRemixTree) {
                 RemixTreeView(nodeID: recipe.recipeId)
+
+//            Button {
+//                goToAddRecipe = true
+//            } label: {
+//                HStack(spacing: 8) {
+//                    Image(systemName: "sparkles").font(.headline)
+//                    Text("Remix").fontWeight(.semibold)
+//                }
+//                .padding(.horizontal, 16)
+//                .padding(.vertical, 12)
+//                .background(Capsule().fill(Color.black))
+//                .foregroundColor(.white)
+//                .shadow(radius: 4, y: 2)
+//                .padding(.trailing, 16)
+//                .padding(.bottom, 16)
+
             }
             .hidden()
 
@@ -262,9 +289,13 @@ struct PostView: View {
             .padding(.bottom, 16)
         }
         // End of Eesh New Edit
+
+//        .fullScreenCover(isPresented: $goToAddRecipe) {
+//            AddRecipeMain(remixRecipe: recipe)
+//        }
     }
 }
-    
+
 struct BulletPoint: View {
     var text: String
     let type: Int
@@ -337,4 +368,3 @@ struct DummyRemixTreeViewForPost: View {
     )
     PostView(recipe: rec)
 }
-

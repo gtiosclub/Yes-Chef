@@ -137,10 +137,12 @@ class RemixTree {
     /**
             Handles node deletion in firebase
      */
+
     // Eesh New Edit: Updated to use realRemixTreeNodes collection
     func deleteNodeFirebase(nodeId: String) {
         let nodeRef = Firebase.db.collection("realRemixTreeNodes").document(nodeId)
     // End of Eesh New Edit
+
         
         nodeRef.getDocument { (document, error) in
             if let error = error {
@@ -149,6 +151,7 @@ class RemixTree {
             }
             
             if let node = document, node.exists {
+
                 
                 // Eesh New Edit: Updated field names and collection references
                 if let children = node.get("childrenIDs") as? [String] {
@@ -162,6 +165,19 @@ class RemixTree {
                                 "parentID": parent
                             ])
 
+
+//                if let children = node.get("childrenID") as? [String] {
+//                    //asumes children are valid
+//                    if let parent = node.get("parentID") as? String, !parent.isEmpty {
+//                        let parentRef = Firebase.db.collection("remixTreeNode").document(parent)
+//                        
+//                        for childID in children {
+//                                guard !childID.isEmpty else { continue } // <--- skip empty strings
+//                                let childRef = Firebase.db.collection("remixTreeNode").document(childID)
+//                                childRef.updateData([
+//                                    "parentID": parent
+//                                ])
+
                         }
 
                         parentRef.updateData([
@@ -174,7 +190,21 @@ class RemixTree {
 
                         nodeRef.delete()
                     } else {
+
                         print("'parentID' field is missing or not a string")
+
+//                       //root node
+//                        for childID in children {
+//                                guard !childID.isEmpty else { continue } // <--- skip empty strings
+//                                let childRef = Firebase.db.collection("remixTreeNode").document(childID)
+//                                childRef.updateData([
+//                                    "parentID": nil,
+//                                    "rootNodeID": childID
+//                                ])
+//                        }
+//                        
+//                        nodeRef.delete()
+
                     }
 
                 } else {
