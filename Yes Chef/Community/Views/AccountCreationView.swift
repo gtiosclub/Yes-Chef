@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct AccountCreationView : View {
-    @State private var selectedTab = "Sign Up"
+    @State private var selectedTab = "Login"
     
     var body: some View {
         VStack {
@@ -167,6 +167,7 @@ struct NewLogin: View {
                     .padding(.top, 20)
                     .padding(.horizontal, 40)
                     .padding(.bottom, 20)
+                    .autocapitalization(.none)
                 
                 SecureField("Password", text: $password)
                     .padding()
@@ -174,6 +175,7 @@ struct NewLogin: View {
                     .cornerRadius(10)
                     .padding(.horizontal, 40)
                     .padding(.bottom, 20)
+                    .autocapitalization(.none)
                 Button(action: {
                     Task {
                         await authVM.login(email: email, password: password)
@@ -181,6 +183,7 @@ struct NewLogin: View {
                 }) {
                     if authVM.isLoading {
                         Text("Loading...")
+                            .foregroundColor(.gray)
                     } else {
                         Text("Log In")
                             .fontWeight(.semibold)
