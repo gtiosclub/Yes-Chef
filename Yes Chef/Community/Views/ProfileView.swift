@@ -7,6 +7,7 @@ struct ProfileView: View {
     @State private var UVM = UserViewModel()
     @State private var username: String = ""
     @State private var profilePhoto: String = ""
+    @State private var showingEditProfile = false
     //@Environment var authVM: AuthenticationVM
     let user: User
     // Simple boolean to toggle between own profile vs other's profile for UI demo
@@ -104,9 +105,6 @@ struct ProfileView: View {
                         .frame(width: 120, height: 120)
                 }
             }
-            
-            
-            
             // Display Name
             Text(user.username)
                 .font(.title2)
@@ -160,7 +158,7 @@ struct ProfileView: View {
     private var actionButton: some View {
         if(isOwnProfile){
              Button{
-                isFollowing.toggle()
+                 showingEditProfile = true
             } label: {
                 Text("Edit")
                     .font(.body)
@@ -173,6 +171,9 @@ struct ProfileView: View {
                     )
             }
             .padding(.bottom, 15)
+            .sheet(isPresented: $showingEditProfile) {
+                        EditProfileView(user: user)
+                    }
             
         } else {
              HStack{
