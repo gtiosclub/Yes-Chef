@@ -2,7 +2,7 @@
 //  ChallengesView.swift
 //  Yes Chef
 //
-//  Created on 10/29/25.
+//  Created on 10/29/25
 //
 
 import SwiftUI
@@ -193,8 +193,9 @@ struct SubmissionCard: View {
 }
 
 // MARK: - Challenge Submission Model
+// id == recipeID (doc ID in both collections). No separate recipeId field.
 struct ChallengeSubmission: Identifiable, Codable {
-    var id: String
+    var id: String                // recipeID / documentID
     let recipeName: String
     let username: String
     let userId: String
@@ -202,7 +203,6 @@ struct ChallengeSubmission: Identifiable, Codable {
     let likes: Int
     let datePosted: Date
     let challengeWeek: String
-    let recipeId: String
 }
 
 // MARK: - Challenges ViewModel
@@ -212,24 +212,33 @@ class ChallengesViewModel: ObservableObject {
     @Published var submissions: [ChallengeSubmission] = []
     private var db = Firestore.firestore()
     
+    // Reads latest prompt from any submission doc (they all carry prompt/week)
     func fetchWeeklyChallenge() {
-        // Fetch the current week's challenge
         db.collection("current_challenge_submissions")
             .order(by: "week", descending: true)
             .limit(to: 1)
             .getDocuments { snapshot, error in
                 if let error = error {
                     print("Error fetching challenge: \(error)")
+                    DispatchQueue.main.async {
+                        self.weeklyPrompt = "a comforting chicken dish"
+                        self.currentWeekId = self.getCurrentWeekString()
+                    }
                     return
                 }
                 
                 DispatchQueue.main.async {
-                    if let doc = snapshot?.documents.first,
-                       let prompt = doc.data()["prompt"] as? String {
-                        self.weeklyPrompt = prompt
-                        self.currentWeekId = doc.documentID
+                    if let doc = snapshot?.documents.first {
+                        self.weeklyPrompt = (doc.data()["prompt"] as? String) ?? "a comforting chicken dish"
+                        // Keep a readable week label if you want to show it
+                        if let w = doc.data()["week"] as? String {
+                            self.currentWeekId = w
+                        } else if let ts = doc.data()["week"] as? Timestamp {
+                            self.currentWeekId = Self.formatYMD(ts.dateValue())
+                        } else {
+                            self.currentWeekId = self.getCurrentWeekString()
+                        }
                     } else {
-                        // If no challenge exists, use a default
                         self.weeklyPrompt = "a comforting chicken dish"
                         self.currentWeekId = self.getCurrentWeekString()
                     }
@@ -238,75 +247,54 @@ class ChallengesViewModel: ObservableObject {
     }
     
     func fetchSubmissions() {
-        // Listen for the list of challenge submissions which contain only references
-        // to recipe posts (e.g., POST_ID / recipeId) plus prompt/week. Then fetch
-        // the full recipe documents from the RECIPES collection.
+        // Listen to submission refs: each doc ID === recipeID; fields: prompt, week
         db.collection("current_challenge_submissions")
             .addSnapshotListener { snapshot, error in
                 if let error = error {
                     print("Error fetching submission references: \(error)")
+                    DispatchQueue.main.async { self.submissions = [] }
                     return
                 }
-
+                
                 guard let documents = snapshot?.documents, !documents.isEmpty else {
-                    print("No documents in current_challenge_submissions.")
                     DispatchQueue.main.async { self.submissions = [] }
                     return
                 }
-
-                // Build a mapping from postId -> week string (for display)
-                var postIdToWeek: [String: String] = [:]
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateFormat = "yyyy-MM-dd"
-
-                print("Found \(documents.count) submission reference docs.")
+                
+                // Build recipeID -> week map (doc ID is the recipeID)
+                var weekById: [String: String] = [:]
                 for doc in documents {
+                    let recipeId = doc.documentID
                     let data = doc.data()
-                    // Support multiple possible field names for the post id
-                    let explicitId = (data["postId"] as? String)
-                        ?? (data["POST_ID"] as? String)
-                        ?? (data["recipeId"] as? String)
-                    let resolvedId = explicitId ?? doc.documentID // fallback: doc id is the post id
-
-                    // Convert week to string regardless of storage type
-                    var weekString: String = ""
-                    if let w = data["week"] as? String {
-                        weekString = w
-                    } else if let ts = data["week"] as? Timestamp {
-                        weekString = dateFormatter.string(from: ts.dateValue())
-                    }
-
-                    if !resolvedId.isEmpty {
-                        postIdToWeek[resolvedId] = weekString
-                        print("Submission ref -> postId: \(resolvedId), week: \(weekString)")
-                    } else {
-                        print("Warning: Missing postId/POST_ID/recipeId in doc id: \(doc.documentID)")
-                    }
+                    let weekString: String = {
+                        if let s = data["week"] as? String { return s }
+                        if let ts = data["week"] as? Timestamp { return Self.formatYMD(ts.dateValue()) }
+                        return ""
+                    }()
+                    weekById[recipeId] = weekString
                 }
-
-                let allPostIds = Array(postIdToWeek.keys)
-                if allPostIds.isEmpty {
-                    print("No post IDs extracted; feed will be empty.")
+                
+                let allRecipeIds = Array(weekById.keys)
+                if allRecipeIds.isEmpty {
                     DispatchQueue.main.async { self.submissions = [] }
                     return
                 }
-
-                // Firestore supports 'in' queries with up to 10 items. Chunk if needed.
+                
+                // Chunk recipe IDs into batches of 10 for Firestore "in" query
                 let chunkSize = 10
                 var chunks: [[String]] = []
                 var index = 0
-                while index < allPostIds.count {
-                    let end = min(index + chunkSize, allPostIds.count)
-                    chunks.append(Array(allPostIds[index..<end]))
+                while index < allRecipeIds.count {
+                    let end = min(index + chunkSize, allRecipeIds.count)
+                    chunks.append(Array(allRecipeIds[index..<end]))
                     index = end
                 }
-
-                var fetchedSubmissions: [ChallengeSubmission] = []
+                
+                var fetched: [ChallengeSubmission] = []
                 let group = DispatchGroup()
-
+                
                 for chunk in chunks {
                     group.enter()
-                    print("Querying RECIPES for \(chunk.count) ids: \(chunk)")
                     self.db.collection("RECIPES")
                         .whereField(FieldPath.documentID(), in: chunk)
                         .getDocuments { recipeSnapshot, err in
@@ -315,72 +303,71 @@ class ChallengesViewModel: ObservableObject {
                                 print("Error fetching recipes: \(err)")
                                 return
                             }
-
+                            
                             guard let recipeDocs = recipeSnapshot?.documents else { return }
-                            print("Fetched \(recipeDocs.count) recipe docs for chunk.")
-
+                            
                             for recipeDoc in recipeDocs {
                                 let r = recipeDoc.data()
-
+                                let recipeId = recipeDoc.documentID  // source of truth
+                                
                                 let recipeName = (r["recipeName"] as? String)
                                     ?? (r["name"] as? String)
                                     ?? "Untitled Recipe"
-
+                                
                                 let username = (r["username"] as? String)
                                     ?? (r["authorName"] as? String)
                                     ?? ""
-
+                                
                                 let userId = (r["userId"] as? String)
                                     ?? (r["authorId"] as? String)
                                     ?? ""
-
+                                
                                 let imageURL = (r["imageURL"] as? String)
                                     ?? (r["coverUrl"] as? String)
                                     ?? (r["image"] as? String)
-
+                                    ?? ((r["media"] as? [String])?.first)
+                                
                                 let likes = r["likes"] as? Int ?? 0
-
+                                
                                 let datePosted: Date = {
                                     if let ts = r["datePosted"] as? Timestamp { return ts.dateValue() }
-                                    if let created = recipeDoc["_createTime"] as? Timestamp { return created.dateValue() }
-                                    return Date()
+                                    return Date(timeIntervalSince1970: 0)
                                 }()
-
-                                let week = postIdToWeek[recipeDoc.documentID] ?? ""
-
-                                fetchedSubmissions.append(
+                                
+                                let week = weekById[recipeId] ?? ""
+                                
+                                fetched.append(
                                     ChallengeSubmission(
-                                        id: recipeDoc.documentID,
+                                        id: recipeId,
                                         recipeName: recipeName,
                                         username: username,
                                         userId: userId,
                                         imageURL: imageURL,
                                         likes: likes,
                                         datePosted: datePosted,
-                                        challengeWeek: week,
-                                        recipeId: recipeDoc.documentID
+                                        challengeWeek: week
                                     )
                                 )
                             }
                         }
                 }
-
+                
                 group.notify(queue: .main) {
-                    // Sort by date desc for a consistent feed
-                    print("Total mapped submissions: \(fetchedSubmissions.count)")
-                    self.submissions = fetchedSubmissions.sorted(by: { $0.datePosted > $1.datePosted })
+                    self.submissions = fetched.sorted(by: { $0.datePosted > $1.datePosted })
                 }
             }
     }
     
     private func getCurrentWeekString() -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: Date())
+        Self.formatYMD(Date())
+    }
+    
+    private static func formatYMD(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        return f.string(from: date)
     }
 }
-
-
 
 #Preview {
     ChallengesView()
