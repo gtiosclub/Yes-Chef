@@ -59,10 +59,6 @@ struct SearchableDropdown<Option: SearchableOption>: View {
             .padding(.vertical, 10)
             .background(Color(hex: colorMain))
             .cornerRadius(12)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color(.black), lineWidth: 1)
-            )
             .padding(.horizontal)
             
             if !(filteredOptions.isEmpty && !shouldShowCustomOption) {

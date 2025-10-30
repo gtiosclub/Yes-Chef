@@ -43,6 +43,8 @@ struct ServingSizeView: View {
         .padding(.vertical, 10)
         .background(Color(hex:"#F9F5F2"))
         .cornerRadius(15)
+        .padding(.leading, 16.5)
+        .padding(.trailing, 16.5)
     }
 }
 

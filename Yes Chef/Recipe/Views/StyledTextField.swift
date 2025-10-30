@@ -23,10 +23,6 @@ struct StyledTextField: View {
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Color(hex: "#F9F5F2"))
             )
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.black.opacity(0.3), lineWidth: 1)
-            )
             .padding(.horizontal)
     }
 }

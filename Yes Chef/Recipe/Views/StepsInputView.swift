@@ -31,17 +31,14 @@ struct StepsInputView: View {
                         Text("Done")
                             .font(.subheadline).bold()
                             .padding(.horizontal, 10).padding(.vertical, 6)
-                            .background(Color.gray.opacity(0.2))
                             .cornerRadius(10)
-                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
                             .foregroundColor(.primary)
                     } else {
                         Image(systemName: "square.and.pencil")
-                            .font(.title3)
+                            .font(.title3).bold()
                             .foregroundColor(.black)
                             .frame(width: 34, height: 34)
-                            .background(Circle().fill(Color.gray.opacity(0.3)))
-                    }
+                }
                 }
             }
             .padding(.horizontal)
@@ -78,9 +75,9 @@ struct StepsInputView: View {
                                steps.append("")
                             } label: {
                                 Circle()
-                                    .fill(Color.gray.opacity(0.3))
+                                    .fill(Color(hex:"#FFA947"))
                                     .frame(width: 34, height: 34)
-                                    .overlay(Image(systemName: "plus").foregroundColor(.black).font(.title3))
+                                    .overlay(Image(systemName: "plus").foregroundColor(.white).font(.title3))
                             }
                             Spacer()
                         }
@@ -124,18 +121,18 @@ private struct StepRow: View {
             if isEditing && canDelete {
                 Button(action: onDelete) {
                     Circle()
-                        .fill(Color(.gray.opacity(0.3)))
+                        .fill(Color(hex:"#FFA947"))
                         .frame(width: 34, height: 34)
-                        .overlay(Image(systemName: "minus").foregroundColor(.black).font(.title3))
+                        .overlay(Image(systemName: "minus").foregroundColor(.white).font(.title3))
                 }
                 .buttonStyle(.plain)
             }
 
             if isEditing {
                 Circle()
-                    .fill(Color.gray.opacity(0.3))
+                    .fill(Color(hex:"#FFA947"))
                     .frame(width: 34, height: 34)
-                    .overlay(Image(systemName: "line.3.horizontal").foregroundColor(.black).font(.title3))
+                    .overlay(Image(systemName: "line.3.horizontal").foregroundColor(.white).font(.title3))
             }
         }
     }
