@@ -93,7 +93,7 @@ class RemixData: ObservableObject {
     //done
     // Eesh New Edit: Changed to use FirebaseRemixTreeNode
     func fetchRemixNodes(completion: @escaping ([FirebaseRemixTreeNode]) -> Void) {
-            db.collection("realRemixTreeNodes")
+            db.collection("remixTreeNode")
                 .getDocuments { snapshot, error in
                     var nodes: [FirebaseRemixTreeNode] = []
     // End of Eesh New Edit
@@ -138,6 +138,7 @@ class RemixData: ObservableObject {
     
     
     static func seedDummyNodes() {
+        return;
         let db = Firestore.firestore()
             
         let descriptions = [
@@ -205,7 +206,7 @@ class RemixData: ObservableObject {
         // Now write to Firestore
         // Eesh New Edit: Changed collection to "realRemixTreeNodes"
         for (nodeID, data) in allNodes {
-            db.collection("realRemixTreeNodes").document(nodeID).setData(data) { error in
+            db.collection("remixTreeNode").document(nodeID).setData(data) { error in
                 if let error = error {
                     print("Error writing node \(nodeID): \(error.localizedDescription)")
                 } else {
@@ -219,6 +220,7 @@ class RemixData: ObservableObject {
     //done
     // Eesh New Edit: Changed collection to "realRemixTreeNodes"
     static func clearDummyNodes() {
+        return;
         let db = Firestore.firestore()
         db.collection("realRemixTreeNodes").getDocuments { (snapshot, error) in
             if let error = error {
@@ -246,7 +248,7 @@ class RemixData: ObservableObject {
     // Eesh New Edit: Changed to use FirebaseRemixTreeNode
     func startListening() {
         listener?.remove() // stop old one if active
-        listener = db.collection("realRemixTreeNodes").addSnapshotListener { snapshot, error in
+        listener = db.collection("remixTreeNode").addSnapshotListener { snapshot, error in
             guard let snapshot = snapshot else {
                 print("Error listening for updates: \(error?.localizedDescription ?? "unknown")")
                 return
