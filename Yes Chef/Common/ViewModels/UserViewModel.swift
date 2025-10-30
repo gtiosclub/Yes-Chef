@@ -13,7 +13,8 @@ import UIKit
 @Observable class UserViewModel{
     
     func getUserInfo(userID: String) async -> [String: Any]?{
-        let info = Firebase.db.collection("users")
+        let db = Firestore.firestore()        
+        let info = db.collection("users")
             .document(userID)
             
         do {

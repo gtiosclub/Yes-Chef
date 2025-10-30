@@ -62,7 +62,7 @@ struct CarouselView: View {
         }
     }
 }
-
+/*
 #Preview {
     let rec = Recipe(
         userId: "zvUtxNaS4FRTC1522AsZLxCXl5s1",
@@ -94,3 +94,4 @@ struct CarouselView: View {
     
     CarouselView(recipe: rec)
 }
+*/
