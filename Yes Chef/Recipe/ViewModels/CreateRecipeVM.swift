@@ -114,32 +114,33 @@ import SwiftUI
             }
             
         case "ingredients":
-
             let removingSet = Set(removing.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
-                        selectedIngredients.removeAll { value in
-                removingSet.contains(value.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines))
-            }
-            
-            let existingSet = Set(selectedIngredients.map { $0.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
-            
+            let filteredIngredients = ingredients.filter { !removingSet.contains($0.name.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)) }
+
+            var existingSet = Set(filteredIngredients.map { $0.name.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
+            var updatedIngredients = filteredIngredients
+
             for addingItem in adding {
                 switch addingItem {
+                case .ingredient(let newIngredient):
+                    let key = newIngredient.name.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !existingSet.contains(key) {
+                        updatedIngredients.append(newIngredient)
+                        existingSet.insert(key)
+                    }
                 case .string(let ingredientString):
                     let key = ingredientString.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
                     if !existingSet.contains(key) {
-                        if let matchingIngredient = Ingredient.allIngredients.first(where: {
-                            $0.displayName.lowercased() == key
-                        }) {
-                            selectedIngredients.append(.predefined(matchingIngredient))
-                        } else {
-                            selectedIngredients.append(.custom(ingredientString.trimmingCharacters(in: .whitespacesAndNewlines)))
-                        }
+                        updatedIngredients.append(
+                            Ingredient(name: ingredientString.trimmingCharacters(in: .whitespacesAndNewlines))
+                        )
+                        existingSet.insert(key)
                     }
-                    
-                case .ingredient:
-                    print("error")
                 }
             }
+
+            self.ingredients = updatedIngredients
+
 
 
             
