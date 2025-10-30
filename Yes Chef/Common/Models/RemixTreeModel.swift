@@ -139,8 +139,8 @@ class RemixTree {
      */
 
     // Eesh New Edit: Updated to use realRemixTreeNodes collection
-    func deleteNodeFirebase(nodeId: String) {
-        let nodeRef = Firebase.db.collection("realRemixTreeNodes").document(nodeId)
+    static func deleteNodeFirebase(nodeId: String) {
+        let nodeRef = Firebase.db.collection("remixTreeNode").document(nodeId)
     // End of Eesh New Edit
 
         
@@ -157,10 +157,10 @@ class RemixTree {
                 if let children = node.get("childrenIDs") as? [String] {
                     //asumes children are valid
                     if let parent = node.get("parentID") as? String {
-                        let parentRef = Firebase.db.collection("realRemixTreeNodes").document(parent)
+                        let parentRef = Firebase.db.collection("remixTreeNode").document(parent)
 
                         for childID in children {
-                            let childRef = Firebase.db.collection("realRemixTreeNodes").document(childID)
+                            let childRef = Firebase.db.collection("remixTreeNode").document(childID)
                             childRef.updateData([
                                 "parentID": parent
                             ])
