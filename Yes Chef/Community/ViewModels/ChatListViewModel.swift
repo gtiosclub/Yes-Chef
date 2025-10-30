@@ -14,6 +14,7 @@ struct ChatPreview: Identifiable {
     let chatId: String
     let otherUserId: String
     let otherUserName: String
+    let otherUserPhotoURL: String?
     let timestamp: Date
 }
 
@@ -59,10 +60,13 @@ final class ChatListViewModel: ObservableObject {
                     group.enter()
                     self.db.collection("users").document(otherUserId).getDocument { userDoc, _ in
                         let username = userDoc?.data()?["username"] as? String ?? "Unknown"
+                        let profilePhoto = userDoc?.data()?["profilePhoto"] as? String
+
                         let chat = ChatPreview(
                             chatId: chatId,
                             otherUserId: otherUserId,
                             otherUserName: username,
+                            otherUserPhotoURL: profilePhoto,
                             timestamp: timestamp
                         )
                         fetched.append(chat)
@@ -90,6 +94,7 @@ final class ChatListViewModel: ObservableObject {
                     chatId: chatId,
                     otherUserId: user.userId,
                     otherUserName: user.username,
+                    otherUserPhotoURL: user.profilePhoto,
                     timestamp: (snapshot.data()?["timestamp"] as? Timestamp)?.dateValue() ?? Date()
                 )
                 DispatchQueue.main.async {
@@ -109,6 +114,7 @@ final class ChatListViewModel: ObservableObject {
                         chatId: chatId,
                         otherUserId: user.userId,
                         otherUserName: user.username,
+                        otherUserPhotoURL: user.profilePhoto,
                         timestamp: Date()
                     )
                     DispatchQueue.main.async {

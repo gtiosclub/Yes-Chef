@@ -66,32 +66,51 @@ struct UserListView: View {
             }
             .padding(.top)
             
-            //Chat List
             List {
-                ForEach(vm.chats) { chat in
-                    NavigationLink(
-                        destination: ChatView(
-                            vm: ChatViewModel(
-                                chatId: chat.chatId,
-                                currentUserId: currentUserId
-                            ),
-                            otherUserName: chat.otherUserName
-                        )
-                    ) {
-                        VStack(alignment: .leading) {
-                            Text(chat.otherUserName)
-                                .font(.headline)
+                            ForEach(vm.chats) { chat in
+                                NavigationLink(
+                                    destination: ChatView(
+                                        vm: ChatViewModel(
+                                            chatId: chat.chatId,
+                                            currentUserId: currentUserId
+                                        ),
+                                        otherUserName: chat.otherUserName,
+                                        otherUserPhotoURL: chat.otherUserPhotoURL
+                                    )
+                                ) {
+                                    HStack(spacing: 12) {
+                                        if let urlString = chat.otherUserPhotoURL,
+                                           let url = URL(string: urlString) {
+                                            AsyncImage(url: url) { image in
+                                                image
+                                                    .resizable()
+                                                    .scaledToFill()
+                                            } placeholder: {
+                                                Circle()
+                                                    .fill(Color.gray.opacity(0.3))
+                                            }
+                                            .frame(width: 45, height: 45)
+                                            .clipShape(Circle())
+                                        } else {
+                                            Circle()
+                                                .fill(Color.gray.opacity(0.3))
+                                                .frame(width: 45, height: 45)
+                                        }
+                                        
+                                        Text(chat.otherUserName)
+                                            .font(.headline)
+                                    }
+                                    .padding(.vertical, 4)
+                                }
+                            }
                         }
+                        .listStyle(.plain)
+                    }
+                    .navigationTitle("Messages")
+                    .onAppear {
+                        vm.fetchUserChats()
                     }
                 }
-            }
-            .listStyle(.plain)
-        }
-        .navigationTitle("Messages")
-        .onAppear {
-            vm.fetchUserChats()
-        }
-    }
     
     //Perform search
     private func performSearch(query: String) async {

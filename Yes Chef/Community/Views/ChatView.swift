@@ -10,6 +10,7 @@ import SwiftUI
 struct ChatView: View {
     @StateObject var vm: ChatViewModel
     var otherUserName: String
+    var otherUserPhotoURL: String?
     @State private var typedMessage = ""
     
     var body: some View {
@@ -58,6 +59,46 @@ struct ChatView: View {
             }
             .padding()
         }
-        .navigationTitle(otherUserName)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                HStack(spacing: 8) {
+                    if let urlString = otherUserPhotoURL,
+                       let url = URL(string: urlString) {
+                        AsyncImage(url: url) { phase in
+                            switch phase {
+                            case .empty:
+                                Circle()
+                                    .fill(Color.gray.opacity(0.3))
+                                    .frame(width: 32, height: 32)
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 32, height: 32)
+                                    .clipShape(Circle())
+                            case .failure(_):
+                                Circle()
+                                    .fill(Color.gray.opacity(0.3))
+                                    .frame(width: 32, height: 32)
+                            @unknown default:
+                                Circle()
+                                    .fill(Color.gray.opacity(0.3))
+                                    .frame(width: 32, height: 32)
+                            }
+                        }
+                    } else {
+                        Circle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(width: 32, height: 32)
+                    }
+
+                    Text(otherUserName)
+                        .font(.headline)
+                        .lineLimit(1)
+                }
+            }
+        }
+        .navigationBarTitleDisplayMode(.inline)
+
     }
 }
