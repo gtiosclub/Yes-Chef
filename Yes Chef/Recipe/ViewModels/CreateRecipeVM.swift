@@ -25,6 +25,11 @@ import SwiftUI
     var mediaItems: [MediaItem] = []
     var chefsNotes = ""
     
+    var messages: [SmartMessage] = []
+    var isThinking: Bool = false
+    
+    private let ai = AIViewModel()
+    
     var allergens: [String] {
         selectedAllergens.map { $0.displayName }
     }
@@ -197,6 +202,46 @@ import SwiftUI
         return postUUID
     }
     
+    func sendMessage(userMessage: String) async {
+        let trimmed = userMessage.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        messages.append(.init(sender: .user, text: trimmed))
+        isThinking = true
+        defer { isThinking = false }
+
+        do {
+            let suggestion = try await ai.smartSuggestion(recipe: toRecipeForAI(), userMessage: trimmed)
+
+            // Handle toolcall here
+
+            messages.append(.init(sender: .aiChef, text: suggestion.message))
+            print(messages)
+
+        } catch {
+            messages.append(.init(sender: .aiChef, text: "Sorry, I couldn't process that. Please try again."))
+            print("smartSuggestion error:", error)
+        }
+    }
+
+    private func toRecipeForAI() -> Recipe {
+        Recipe(
+            userId: userIdInput,
+            recipeId: "temp",
+            name: name,
+            ingredients: ingredients,
+            allergens: allergens,
+            tags: tags,
+            steps: steps,
+            description: description,
+            prepTime: Int(prepTimeInput) ?? 0,
+            difficulty: difficulty,
+            servingSize: servingSize,
+            media: [],
+            chefsNotes: chefsNotes
+        )
+    }
+  
     func addRecipeToRemixTreeAsNode(description: String, parentID: String) async -> String {
         let postID = UUID()
         let postUUID = postID.uuidString

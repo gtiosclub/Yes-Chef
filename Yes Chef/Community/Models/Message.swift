@@ -10,7 +10,7 @@ import FirebaseFirestore
 
 struct Message: Identifiable, Codable {
     @DocumentID var id: String?
-    var chatID: String
+    /*var chatID: String
     var senderID: String
     var receiverID: String
     var text: String
@@ -32,5 +32,11 @@ struct Message: Identifiable, Codable {
         self.timestamp = Date()
         self.isRead = false
         self.messageType = messageType
-    }
+    }*/
+
+    var senderId: String
+    var text: String
+    var timestamp: Timestamp
+
 }
+
