@@ -238,7 +238,8 @@ import SwiftUI
             difficulty: difficulty,
             servingSize: servingSize,
             media: [],
-            chefsNotes: chefsNotes
+            chefsNotes: chefsNotes,
+            likes: 0
         )
     }
   
