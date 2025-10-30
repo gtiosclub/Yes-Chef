@@ -474,6 +474,8 @@ struct RemixTreeView: View {
                 destination: Group {
                     if let node = navigateToNode {
                         RemixTreeView(nodeID: node.currNodeID)
+                    } else {
+                        EmptyView()
                     }
                 },
                 isActive: $isNavigatingToNode
@@ -484,7 +486,9 @@ struct RemixTreeView: View {
             NavigationLink(
                 destination: Group {
                     if let postID = navigateToPostID {
-                        DummyRemixPostView(postID: postID)
+                        RecipeLoadingView(recipeID: postID)
+                    } else {
+                        EmptyView()
                     }
                 },
                 isActive: $isNavigatingToPost
@@ -520,10 +524,66 @@ struct RemixTreeView: View {
     // End of Eesh New Edit
 }
 
+// MARK: - Recipe Loading View
+struct RecipeLoadingView: View {
+    let recipeID: String
+
+    @State private var recipe: Recipe?
+    @State private var isLoading = true
+    @State private var errorMessage: String?
+
+    var body: some View {
+        Group {
+            if isLoading {
+                VStack(spacing: 20) {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                    Text("Loading Recipe...")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if let recipe = recipe {
+                PostView(recipe: recipe)
+            } else {
+                VStack(spacing: 16) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.system(size: 50))
+                        .foregroundColor(.orange)
+                    Text("Recipe Not Found")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                    if let errorMessage = errorMessage {
+                        Text(errorMessage)
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding()
+            }
+        }
+        .task {
+            await loadRecipe()
+        }
+    }
+
+    private func loadRecipe() async {
+        isLoading = true
+        recipe = await Recipe.fetchById(recipeID)
+        if recipe == nil {
+            errorMessage = "Could not load recipe with ID: \(recipeID)"
+        }
+        isLoading = false
+    }
+}
+
 // MARK: - Dummy Post View
 struct DummyRemixPostView: View {
     let postID: String
-    
+
     var body: some View {
         VStack {
             Spacer()
@@ -540,6 +600,6 @@ struct DummyRemixPostView: View {
 
 #Preview {
     NavigationView {
-        RemixTreeView(nodeID: "10B7EA20-D316-4607-A9D6-401FC751A1AA")
+        RemixTreeView(nodeID: "FC26767A-B7DE-4F44-85C8-EA28930E3462")
     }
 }
