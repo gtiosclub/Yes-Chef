@@ -10,6 +10,7 @@ import FirebaseFirestore
 import Observation
 
 @Observable class AuthenticationVM {
+    
     var errorMessage: String?
     var isLoading = false
     var isLoggedIn = false

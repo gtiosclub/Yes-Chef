@@ -65,6 +65,17 @@ struct ProfileView: View {
 
         }
         .navigationBarHidden(false)
+        /*.toolbar {
+            if isOwnProfile {
+                Button {
+                    
+                } label : {
+                    Image(systemName: "gearshape.fill")
+                        .font(.title2)
+                        .foregroundColor(.gray)
+                }
+            }
+        }*/
     }
     
     // MARK: - Header
@@ -74,26 +85,32 @@ struct ProfileView: View {
                 Button(action: {}) {
                     Image(systemName: "gearshape.fill")
                         .font(.title2)
-                        .foregroundColor(.black)
+                        .foregroundColor(.gray)
                 }
             }
         }
         .padding(.horizontal, 20)
-        //.padding(.top, 10)
+        .padding(.top, 10)
     }
     
     // MARK: - Profile Info
     private var profileInfoSection: some View {
-        VStack(spacing: 12) {
-            HStack {
+        VStack(spacing: 10) {
+            ZStack {
                 Text("@\(user.username)")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
-                if isOwnProfile {
-                    Button(action: {}) {
-                        Image(systemName: "gearshape.fill")
-                            .font(.title2)
-                            .foregroundColor(.black)
+                HStack {
+                    if isOwnProfile {
+                        Spacer()
+                        Button{
+                            print("SETTINGS")
+                        }label:{
+                            Image(systemName: "gearshape.fill")
+                                .font(.title2)
+                                .foregroundColor(.gray)
+                        }
+                        .padding(.trailing, 10)
                     }
                 }
             }
@@ -334,7 +351,7 @@ struct ProfileView: View {
                 ForEach(Array(leftColumnItems.enumerated()), id: \.1.0.id) { id , pair in
                     let (recipe, isTall) = pair
                     
-                    NavigationLink(destination: PostView(recipe: recipe)) {
+                    NavigationLink(destination: PostView(recipe: recipe).environment(authVM)){
                         RecipeTile(recipe: recipe, tall: id % 2 == 0)
                     }
                 }
@@ -345,7 +362,7 @@ struct ProfileView: View {
                 ForEach(Array(rightColumnItems.enumerated()), id: \.1.0.id) { id, pair in
                     let (recipe, isTall) = pair
                     
-                    NavigationLink(destination: PostView(recipe: recipe)) {
+                    NavigationLink(destination: PostView(recipe: recipe).environment(authVM)) {
                         RecipeTile(recipe: recipe, tall: id % 2 - 1 == 0)
                     }
                 }
@@ -356,7 +373,7 @@ struct ProfileView: View {
     }
 }
 
-//
+
     private func RecipeTile(recipe: Recipe, tall: Bool) -> some View {
         VStack(alignment: .leading, spacing: 8) {
 

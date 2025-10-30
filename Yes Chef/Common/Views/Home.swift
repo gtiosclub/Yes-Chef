@@ -16,6 +16,7 @@ struct Home: View {
                 Image(systemName: "house")
             }
             .tag(TabSelection.home)
+            .environment(authVM)
             CommunityView().tabItem {
                 Image(systemName: "magnifyingglass")
             }
@@ -29,15 +30,12 @@ struct Home: View {
                 Image(systemName: "trophy")
             }
             .tag(TabSelection.leaderboard)
-            /*DMListView().tabItem {
-                Image(systemName: "message")
-            }
-            .tag(TabSelection.messages)*/
             if let currentUser = authVM.currentUser {
                 ProfileView(user: currentUser, isOwnProfile:true).tabItem {
                     Image(systemName: "person.circle")
-                        .environment(authVM)
-                }.tag(TabSelection.profile)
+                }
+                .tag(TabSelection.profile)
+                .environment(authVM)
             } else {
                 ProgressView().tabItem {
                     Image(systemName: "person.circle")
@@ -48,6 +46,11 @@ struct Home: View {
 //            }
 //            .tag(TabSelection.remixtreedemo)
             
+        }
+        .onAppear {
+            Task {
+                await authVM.updateCurrentUser()
+            }
         }
     }
 }

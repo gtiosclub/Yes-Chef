@@ -25,10 +25,8 @@ import UIKit
         catch {
             print("Error getting document: \(error)")
         }
-        
         return nil
     }
-    
 
     func like(recipeID: String, userID: String) async throws {
         let db = Firestore.firestore()
@@ -55,7 +53,6 @@ import UIKit
     }
 
     // MARK: - Profile Update Functions
-    
     func updateUserProfile(userID: String, username: String, bio: String?, profilePhoto: String) async -> Bool {
         let userData: [String: Any] = [
             "username": username,
@@ -74,7 +71,6 @@ import UIKit
     }
     
     // MARK: - Image Upload Functions
-    
     func uploadProfileImage(userID: String, image: UIImage) async -> String? {
         guard let imageData = image.jpegData(compressionQuality: 0.8) else {
             print("Error: Could not convert image to data")
