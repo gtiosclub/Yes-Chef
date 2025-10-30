@@ -4,6 +4,8 @@ struct ProfileView: View {
     @State private var selectedTab = 0
     @State private var isFollowing = false
     @State private var postVM = PostViewModel()
+    @State private var showingMessage = false
+    @State private var messageVM = MessageViewModel()
     @State private var UVM = UserViewModel()
     @State private var username: String = ""
     @State private var profilePhoto: String = ""
@@ -210,8 +212,6 @@ struct ProfileView: View {
                 .padding(.bottom, 15)
             }
         }
-            
-        
     }
     
     // MARK: - Tab Selection
@@ -381,7 +381,7 @@ struct ProfileView: View {
     }
 
 //
-
+/*
 struct RoundedCorner: Shape {
     var radius: CGFloat
     var corners: UIRectCorner
@@ -395,7 +395,7 @@ struct RoundedCorner: Shape {
         return Path(path.cgPath)
     }
 }
-
+*/
 // MARK: - Preview
 
 struct ProfileView_Previews: PreviewProvider {

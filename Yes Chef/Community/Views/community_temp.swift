@@ -434,7 +434,6 @@ struct FeedView: View {
     var body: some View {
         NavigationView {
             VStack(alignment: .leading, spacing: 0) {
-                
                 // Title with icon
                 HStack {
                     Text("Welcome Link!")
@@ -443,10 +442,11 @@ struct FeedView: View {
                         .foregroundColor(Color(hex: "#404741"))
                     
                     Spacer()
-                    
-                    Image(systemName: "paperplane")
-                        .font(.system(size: 24))
-                        .foregroundColor(Color(hex: "#404741"))
+                    NavigationLink(destination: UserListView()) {
+                        Image(systemName: "paperplane")
+                            .font(.system(size: 24))
+                            .foregroundColor(Color(hex: "#404741"))
+                    }
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
@@ -606,7 +606,7 @@ struct FeedView: View {
                 } catch {
                     print("Failed to fetch recipes: \(error)")
                 }
-            }
+            }/*
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     NavigationLink(destination: UserListView()) {
@@ -615,7 +615,7 @@ struct FeedView: View {
                             .foregroundColor(.blue)
                     }
                 }
-            }
+            }*/
         }
     }
     
