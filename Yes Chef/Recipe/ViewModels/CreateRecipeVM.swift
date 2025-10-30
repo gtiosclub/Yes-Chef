@@ -114,32 +114,34 @@ import SwiftUI
             }
             
         case "ingredients":
+
             let removingSet = Set(removing.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
-            ingredients.removeAll { ingredient in
-                removingSet.contains(ingredient.name.lowercased().trimmingCharacters(in: .whitespacesAndNewlines))
+                        selectedIngredients.removeAll { value in
+                removingSet.contains(value.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines))
             }
             
-            let existingSet = Set(ingredients.map { $0.name.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
+            let existingSet = Set(selectedIngredients.map { $0.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
+            
             for addingItem in adding {
                 switch addingItem {
-                case .ingredient(let newIngredient):
-                    let key = newIngredient.name.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-                    if !existingSet.contains(key) {
-                        ingredients.append(newIngredient)
-                    }
                 case .string(let ingredientString):
                     let key = ingredientString.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
                     if !existingSet.contains(key) {
-                        let newIngredient = Ingredient(
-                            name: ingredientString.trimmingCharacters(in: .whitespacesAndNewlines),
-                            quantity: 0,
-                            unit: "",
-                            preparation: ""
-                        )
-                        ingredients.append(newIngredient)
+                        if let matchingIngredient = Ingredient.allIngredients.first(where: {
+                            $0.displayName.lowercased() == key
+                        }) {
+                            selectedIngredients.append(.predefined(matchingIngredient))
+                        } else {
+                            selectedIngredients.append(.custom(ingredientString.trimmingCharacters(in: .whitespacesAndNewlines)))
+                        }
                     }
+                    
+                case .ingredient:
+                    print("error")
                 }
             }
+
+
             
         case "allergens":
             let removingSet = Set(removing.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
