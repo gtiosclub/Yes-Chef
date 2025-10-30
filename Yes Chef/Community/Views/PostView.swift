@@ -5,22 +5,25 @@
 //  Created by Jihoon Kim on 9/25/25.
 //
 import SwiftUI
+import FirebaseAuth
 
 
 let screen = UIScreen.main.bounds
 
 struct PostView: View {
+    @StateObject private var UVM = UserViewModel()
+
     var recipe: Recipe
     
     @Environment(\.dismiss) private var dismiss
-    @State private var UVM = UserViewModel()
     @State private var mediaItem: Int? = 0
     //@State var remixTree: RemixTree
-    
+
     @State private var username: String = ""
     @State private var profilePhoto: String = ""
     
     @State private var goToAddRecipe = false
+    @State private var showComments = false
 
     var body: some View {
         ScrollView{
@@ -222,30 +225,123 @@ struct PostView: View {
         .navigationBarTitleDisplayMode(.inline)
         // Floating Remix Button + Navigation
         .overlay(alignment: .bottomTrailing) {
-            NavigationLink("", isActive: $goToAddRecipe) {
-                AddRecipeMain(remixRecipe: recipe)
-            }
-            .hidden()
-
-            Button {
-                goToAddRecipe = true
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "sparkles").font(.headline)
-                    Text("Remix").fontWeight(.semibold)
+            HStack {
+                Button {
+                    showComments = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "message").font(.headline)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 12)
+                    .background(Capsule().fill(Color.black))
+                    .foregroundColor(.white)
+                    .shadow(radius: 3, y: 2)
+                    .padding(.trailing, 200)
+                    .padding(.bottom, 16)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .background(Capsule().fill(Color.black))
-                .foregroundColor(.white)
-                .shadow(radius: 4, y: 2)
-                .padding(.trailing, 16)
-                .padding(.bottom, 16)
+                .sheet(isPresented: $showComments) {
+                    CommentsSheet(recipeID: recipe.recipeId)
+                }
+                NavigationLink("", isActive: $goToAddRecipe) {
+                    AddRecipeMain(remixRecipe: recipe)
+                }
+                .hidden()
+                
+                Button {
+                    goToAddRecipe = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "sparkles").font(.headline)
+                        Text("Remix").fontWeight(.semibold)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(Capsule().fill(Color.black))
+                    .foregroundColor(.white)
+                    .shadow(radius: 4, y: 2)
+                    .padding(.trailing, 16)
+                    .padding(.bottom, 16)
+                }
+                .accessibilityLabel("Remix recipe")
             }
-            .accessibilityLabel("Remix recipe")
         }
     }
 }
+
+struct CommentsSheet: View {
+    @StateObject private var viewModel = CommentsViewModel()
+    @StateObject private var UVM = UserViewModel()
+    @State private var currentUsername: String = ""
+    let recipeID: String
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Capsule()
+                .fill(Color.gray.opacity(0.4))
+                .frame(width: 40, height: 6)
+                .padding(.top, 8)
+
+            Text("Comments")
+                .font(.headline)
+                .padding(.vertical, 8)
+
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 16) {
+                    ForEach(viewModel.comments) { comment in
+                        HStack(alignment: .top, spacing: 12) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(comment.poster)
+                                    .font(.subheadline)
+                                    .bold()
+                                
+                                Text(comment.text)
+                                    .font(.body)
+                                
+                                if let timestamp = comment.timestamp {
+                                    Text(timestamp, style: .relative)
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                }
+                            }
+                            
+                            Spacer()
+                            Image(systemName: "heart")
+                        }
+                        .padding(.horizontal)
+                    }
+                }
+                .padding(.vertical)
+            }
+
+
+            Divider()
+
+            HStack {
+                TextField("Add comment...", text: $viewModel.newCommentText)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                Button("Post") {
+                    viewModel.postComment(for: recipeID, poster: currentUsername)
+                    viewModel.fetchComments(for: recipeID)
+                }
+                .foregroundColor(.blue)
+            }
+            .padding()
+        }
+        .onAppear {
+            Task {
+                Task {
+                    if let userData = await UVM.getCurrentUserInfo() {
+                        currentUsername = userData["username"] as? String ?? "Unknown"
+                    }
+                    viewModel.fetchComments(for: recipeID)
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+}
+
 
 struct BulletPoint: View {
     var text: String
