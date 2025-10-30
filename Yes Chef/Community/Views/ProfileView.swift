@@ -4,6 +4,10 @@ struct ProfileView: View {
     @State private var selectedTab = 0
     @State private var isFollowing = false
     @State private var postVM = PostViewModel()
+    @State private var UVM = UserViewModel()
+    @State private var username: String = ""
+    @State private var profilePhoto: String = ""
+    @State private var showingEditProfile = false
     //@Environment var authVM: AuthenticationVM
     let user: User
     // Simple boolean to toggle between own profile vs other's profile for UI demo
@@ -30,7 +34,11 @@ struct ProfileView: View {
                 actionButton
                 
                 // Tab Selection
-                tabSelection
+                if(isOwnProfile){
+                    tabSelection
+                }
+                
+                
                 if postVM.selfRecipes.isEmpty {
                     Text("No posts yet")
                         .font(.caption)
@@ -43,6 +51,10 @@ struct ProfileView: View {
             .task {
                 do {
                     try await postVM.fetchUserPosts(userID: user.userId)
+                    if !(user.userId.isEmpty) {
+                        let posterData = await UVM.getUserInfo(userID: user.userId)
+                        profilePhoto = posterData?["profilePhoto"] as? String ?? ""
+                    }
                 } catch {
                     print("Failed to fetch recipes: \(error)")
                 }
@@ -77,10 +89,22 @@ struct ProfileView: View {
                 .foregroundColor(.secondary)
             
             // Profile Image
-            Circle()
-                .fill(Color.gray.opacity(0.3))
-                .frame(width: 120, height: 120)
+            let photoURL = URL(string: profilePhoto)
             
+            AsyncImage(url: photoURL) { phase in
+                if let image = phase.image{
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .clipShape(Circle())
+                        .frame(width: 120, height: 120)
+                        
+                } else{
+                    Circle()
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(width: 120, height: 120)
+                }
+            }
             // Display Name
             Text(user.username)
                 .font(.title2)
@@ -130,57 +154,145 @@ struct ProfileView: View {
     }
     
     // MARK: - Action Button
+    @ViewBuilder
     private var actionButton: some View {
-        Button(action: {
-            if !isOwnProfile {
-                isFollowing.toggle()
+        if(isOwnProfile){
+             Button{
+                 showingEditProfile = true
+            } label: {
+                Text("Edit")
+                    .font(.body)
+                    .fontWeight(.medium)
+                    .foregroundColor( .white)
+                    .frame(width: 120, height: 36)
+                    .background(
+                        RoundedRectangle(cornerRadius: 18)
+                            .fill(Color.orange.opacity(0.83))
+                    )
             }
-        }) {
-            Text(isOwnProfile ? "edit" : (isFollowing ? "following" : "follow"))
-                .font(.body)
-                .fontWeight(.medium)
-                .foregroundColor(isOwnProfile ? .black : (isFollowing ? .black : .white))
-                .frame(width: 120, height: 36)
-                .background(
-                    RoundedRectangle(cornerRadius: 18)
-                        .fill(isOwnProfile ? Color.gray.opacity(0.2) : (isFollowing ? Color.gray.opacity(0.2) : Color.black))
-                )
+            .padding(.bottom, 15)
+            .sheet(isPresented: $showingEditProfile) {
+                        EditProfileView(user: user)
+                    }
+            
+        } else {
+             HStack{
+                Button{
+                    isFollowing.toggle()
+                } label: {
+                    Text((isFollowing ? "Following" : "Follow"))
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(isOwnProfile ? .black : (isFollowing ? .black : .white))
+                        .frame(width: 120, height: 36)
+                        .background(
+                            RoundedRectangle(cornerRadius: 18)
+                                .fill(Color.orange.opacity(0.83))
+                        )
+                } .padding(.bottom, 15)
+            
+                
+                Button{
+                    if !isOwnProfile {
+                        isFollowing.toggle()
+                    }
+                } label: {
+                    Text("Message")
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(isOwnProfile ? .black : (isFollowing ? .black : .white))
+                        .frame(width: 120, height: 36)
+                        .background(
+                            RoundedRectangle(cornerRadius: 18)
+                                .fill(Color.orange.opacity(0.83))
+                        )
+                }
+                .padding(.bottom, 15)
+            }
         }
-        .padding(.bottom, 30)
+            
+        
     }
     
     // MARK: - Tab Selection
     private var tabSelection: some View {
-        HStack(spacing: 0) {
-            Button(action: { selectedTab = 0 }) {
-                VStack(spacing: 8) {
-                    Text("my posts")
-                        .font(.body)
-                        .fontWeight(selectedTab == 0 ? .semibold : .regular)
-                        .foregroundColor(.black)
-                    
-                    Rectangle()
-                        .fill(selectedTab == 0 ? Color.black : Color.clear)
-                        .frame(height: 2)
-                }
-            }
-            .frame(maxWidth: .infinity)
+        ZStack(alignment: .bottomLeading){
             
-            Button(action: { selectedTab = 1 }) {
-                VStack(spacing: 8) {
-                    Text(isOwnProfile ? "saved" : "recipes")
-                        .font(.body)
-                        .fontWeight(selectedTab == 1 ? .semibold : .regular)
-                        .foregroundColor(.black)
-                    
-                    Rectangle()
-                        .fill(selectedTab == 1 ? Color.black : Color.clear)
-                        .frame(height: 2)
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(Color.white))
+                        .frame(height: 56)
+            
+            
+            HStack(spacing: 0) {
+                
+                Button(action: { selectedTab = 0 }) {
+                    VStack(spacing: 8) {
+                        Text("My Posts")
+                            .font(.body)
+                            .fontWeight(selectedTab == 0 ? .semibold : .regular)
+                            .foregroundColor(.black)
+                        
+                    }
                 }
+                .padding(.bottom , 10)
+                .frame(maxWidth: .infinity)
+                .zIndex(selectedTab == 0 ? 1 : 0)
+                .background(
+                        RoundedCorner(radius: 25, corners: selectedTab == 0 ? [.topLeft, .topRight] : [.bottomRight,.topRight,.topLeft])
+                            .fill(selectedTab == 0 ? Color.white: Color(.systemGray6))
+                            .frame(width: (UIScreen.main.bounds.width)/2, height: 50)
+                            .background(
+                                //Border over top/bottom of tab
+                                RoundedCorner(radius: 25, corners: selectedTab == 0 ? [.topLeft, .topRight] : [.bottomRight,.topRight,.topLeft])
+                                    .fill(Color(.systemGray4))
+                                    .frame(width: (UIScreen.main.bounds.width)/2 + 1, height: 50)
+                                    .padding(selectedTab == 0 ? .bottom : .top, 3)
+                                    .overlay(
+                                        //White Rectangle cuts off bottom half of border
+                                        Rectangle()
+                                            .fill(Color.white)
+                                            .padding(selectedTab == 0 ? .top : .bottom, 35)
+                                    )
+                            )
+                    )
+                
+                Button(action: { selectedTab = 1 }) {
+                    VStack(spacing: 8) {
+                        Text("Saved")
+                            .font(.body)
+                            .fontWeight(selectedTab == 1 ? .semibold : .regular)
+                            .foregroundColor(.black)
+                        
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .zIndex(selectedTab == 1 ? 2 : 0)
+                .background(
+                    RoundedCorner(radius: 25, corners: selectedTab == 1 ? [.topLeft, .topRight] : [.bottomRight,.bottomLeft,.topRight,.topLeft])
+                        .fill(selectedTab == 1 ? Color.white: Color(.systemGray6))
+                        .frame(width: (UIScreen.main.bounds.width)/2 , height: 50)
+                        .background(
+                            //Border over top of tab
+                            RoundedCorner(radius: 25, corners: selectedTab == 1 ? [.topLeft, .topRight] : [.bottomRight,.bottomLeft, .topRight,.topLeft])
+                                .fill(Color(.systemGray4))
+                                .frame(width: (UIScreen.main.bounds.width)/2 + 1, height: 50)
+                                .padding(selectedTab == 1 ? .bottom : .top, 3)
+                                .overlay(
+                                    //White Rectangle cuts off bottom half of border
+                                    Rectangle()
+                                        .fill(Color.white)
+                                        .padding(selectedTab == 1 ? .top : .bottom, 35)
+                                )
+                        )
+                )
             }
-            .frame(maxWidth: .infinity)
+            .padding(.top, 8)
+            .padding(.bottom, 10)
+            .padding(.horizontal, 0)
+
         }
-        .padding(.horizontal, 20)
+        
+        
     }
     
     let foods = ["Apple Pie", "Cheddar Omelet", "Fried Rice", "Butter Chicken", "Steak and Potatoes", "Homemade Yogurt"]
@@ -188,44 +300,46 @@ struct ProfileView: View {
     
     // MARK: - Content Grid
     private var contentGrid: some View {
-        LazyVGrid(columns: [
-            GridItem(.flexible(), spacing: 8),
-            GridItem(.flexible(), spacing: 8)
-        ], spacing: 8) {
-            ForEach(postVM.selfRecipes) { recipe in
-                NavigationLink(destination: PostView(recipe: recipe)) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        // Recipe Image
-                        if let firstImage = recipe.media.first,
-                           let url = URL(string: firstImage) {
-                            AsyncImage(url: url) { image in
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                                
-                            } placeholder: {
-                                Color.gray.opacity(0.3)
-                            }
-                            .frame(width: 150, height: 140)
-                            .cornerRadius(10)
-                            .clipped()
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            
-                        } else {
-                            Color.gray.opacity(0.3)
-                                .frame(height: 150)
-                                .cornerRadius(10)
-                        }
-                        
-                        // Recipe Title
-                        Text(recipe.name)
-                            .font(.body)
-                            .fontWeight(.medium)
-                            .lineLimit(2)
-                            .padding(.horizontal, 4)
+        let leftColumnItems = postVM.selfRecipes.enumerated().compactMap { (idx, recipe) -> (Recipe, Bool)? in
+            if idx % 2 == 0 {
+                // decide which ones are tall in the left column
+                let tall = true  // left column tends to show big hero images in your mock
+                return (recipe, tall)
+            } else {
+                return nil
+            }
+        }
+        
+        let rightColumnItems = postVM.selfRecipes.enumerated().compactMap { (idx, recipe) -> (Recipe, Bool)? in
+            if idx % 2 == 1 {
+                // right column tends to be shorter stacked cards in your mock
+                let tall = false
+                return (recipe, tall)
+            } else {
+                return nil
+            }
+        }
+        
+        return HStack(alignment: .top, spacing: 12) {
+            // LEFT COLUMN
+            VStack(alignment: .leading, spacing: 16) {
+                ForEach(Array(leftColumnItems.enumerated()), id: \.1.0.id) { id , pair in
+                    let (recipe, isTall) = pair
+                    
+                    NavigationLink(destination: PostView(recipe: recipe)) {
+                        RecipeTile(recipe: recipe, tall: id % 2 == 0)
                     }
-                    .background(Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+            }
+            
+            // RIGHT COLUMN
+            VStack(alignment: .leading, spacing: 16) {
+                ForEach(Array(rightColumnItems.enumerated()), id: \.1.0.id) { id, pair in
+                    let (recipe, isTall) = pair
+                    
+                    NavigationLink(destination: PostView(recipe: recipe)) {
+                        RecipeTile(recipe: recipe, tall: id % 2 - 1 == 0)
+                    }
                 }
             }
         }
@@ -234,34 +348,83 @@ struct ProfileView: View {
     }
 }
 
+//
+    private func RecipeTile(recipe: Recipe, tall: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+
+            if let firstImage = recipe.media.first,
+               let url = URL(string: firstImage) {
+                AsyncImage(url: url) { phase in
+                    if let image = phase.image {
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        Color.gray.opacity(0.3)
+                    }
+                }
+                .frame(width: 160, height: tall ? 220 : 150)  // 🔥 height variant
+                .clipped()
+                .cornerRadius(10)
+            } else {
+                Color.gray.opacity(0.3)
+                    .frame(height: tall ? 220 : 150)
+                    .cornerRadius(10)
+            }
+
+            Text(recipe.name)
+                .font(.body)
+                .foregroundColor(Color(.darkGray))
+                .fontWeight(.medium)
+                .lineLimit(2)
+        }
+    }
+
+//
+
+struct RoundedCorner: Shape {
+    var radius: CGFloat
+    var corners: UIRectCorner
+
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(
+            roundedRect: rect,
+            byRoundingCorners: corners,
+            cornerRadii: CGSize(width: radius, height: radius)
+        )
+        return Path(path.cgPath)
+    }
+}
+
 // MARK: - Preview
-/*
+
 struct ProfileView_Previews: PreviewProvider {
     static var previews: some View {
         let mockOwnUser = User(
-            userId: "001",
+            userId: "yWKqjhEGoeRmBagAr9WyrXFaRBc2",
             username: "kushi",
             email: "kushi@example.com",
             bio: "Lover of food, code, and community!"
         )
         
         let mockOtherUser = User(
-            userId: "002",
+            userId: "yWKqjhEGoeRmBagAr9WyrXFaRBc2",
             username: "foodie123",
             email: "foodie@example.com",
             bio: "Always experimenting with flavors 🍜"
         )
         
         Group {
+            /*
             NavigationView {
-                ProfileView(isOwnProfile: true)
+                ProfileView(user: mockOwnUser, isOwnProfile: true)
             }
             .previewDisplayName("Own Profile")
-            
+            */
             NavigationView {
-                ProfileView(user: mockOtherUser, isOwnProfile: false)
+                ProfileView(user: mockOtherUser, isOwnProfile: true)
             }
             .previewDisplayName("Other User Profile")
         }
     }
-}*/
+}
