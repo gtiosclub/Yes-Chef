@@ -198,7 +198,7 @@ struct PostView: View {
                     }
                 }.padding(.top, screen.height/50)
                 
-                CarouselView(recipe: recipe)
+                CaroulselView(recipe: recipe)
             }
             .padding(15)
             .padding(.bottom, 80)
@@ -221,7 +221,7 @@ struct PostView: View {
             .hidden()
 
             NavigationLink("", isActive: $goToRemixTree) {
-                DummyRemixTreeViewForPost(postID: recipe.recipeId)
+                RemixTreeView(nodeID: recipe.recipeId)
             }
             .hidden()
 
