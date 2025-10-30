@@ -145,6 +145,15 @@ struct FeedView: View {
                     print("Failed to fetch recipes: \(error)")
                 }
             }
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    NavigationLink(destination: UserListView()) {
+                        Image(systemName: "message.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(.blue)
+                    }
+                }
+            }
         }
     }
 }
