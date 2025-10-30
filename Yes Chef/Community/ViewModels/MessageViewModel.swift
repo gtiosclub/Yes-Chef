@@ -11,7 +11,7 @@ import FirebaseFirestore
 
 @Observable class MessageViewModel {
     var chats: [Chat] = []
-    var messages: [Message] = []
+    var messages: [Message2] = []
     var isLoading = false
     var errorMessage: String?
     
@@ -86,7 +86,7 @@ import FirebaseFirestore
                 .getDocuments()
             
             messages = snapshot.documents.compactMap { document in
-                try? document.data(as: Message.self)
+                try? document.data(as: Message2.self)
             }
         } catch {
             errorMessage = "Failed to fetch messages: \(error.localizedDescription)"
@@ -96,10 +96,10 @@ import FirebaseFirestore
         isLoading = false
     }
     
-    func sendMessage(chatID: String, receiverID: String, text: String, messageType: Message.MessageType = .text) async {
+    func sendMessage(chatID: String, receiverID: String, text: String, messageType: Message2.MessageType = .text) async {
         guard let currentUserID = currentUserID else { return }
         
-        let message = Message(
+        let message = Message2(
             chatID: chatID,
             senderID: currentUserID,
             receiverID: receiverID,
@@ -143,7 +143,7 @@ import FirebaseFirestore
                 guard let documents = snapshot?.documents else { return }
                 
                 self?.messages = documents.compactMap { document in
-                    try? document.data(as: Message.self)
+                    try? document.data(as: Message2.self)
                 }
             }
     }

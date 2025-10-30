@@ -41,7 +41,7 @@ struct DMListView: View {
         }
         .sheet(item: $selectedChat) { chat in
             if let chatID = chat.id {
-                ChatView(chatID: chatID, otherUserID: getOtherUserID(from: chat))
+                ChatView2(chatID: chatID, otherUserID: getOtherUserID(from: chat))
             }
         }
     }
@@ -158,11 +158,12 @@ struct ChatRowView: View {
                     
                     // Last Message
                     HStack {
+                        /*
                         if chat.messageType == .recipe {
                             Image(systemName: "book.fill")
                                 .font(.caption)
                                 .foregroundColor(.gray)
-                        }
+                        }*/
                         
                         Text(chat.lastMessage ?? "Most recent chat")
                             .font(.subheadline)

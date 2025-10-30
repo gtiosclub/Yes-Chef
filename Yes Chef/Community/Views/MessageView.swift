@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ChatView: View {
+struct ChatView2: View {
     let chatID: String
     let otherUserID: String?
     
@@ -50,6 +50,7 @@ struct ChatView: View {
     }
     
     // MARK: - Messages List
+    
     private var messagesList: some View {
         ScrollViewReader { proxy in
             ScrollView {
@@ -116,7 +117,7 @@ struct ChatView: View {
 
 // MARK: - Message Bubble View
 struct MessageBubbleView: View {
-    let message: Message
+    let message: Message2
     let isFromCurrentUser: Bool
     
     var body: some View {
@@ -156,7 +157,7 @@ struct MessageBubbleView: View {
 // MARK: - Preview
 struct ChatView_Previews: PreviewProvider {
     static var previews: some View {
-        ChatView(chatID: "test", otherUserID: "test")
+        ChatView2(chatID: "test", otherUserID: "test")
             .environment(AuthenticationVM())
     }
 }
