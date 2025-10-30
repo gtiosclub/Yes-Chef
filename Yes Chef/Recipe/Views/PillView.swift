@@ -11,13 +11,11 @@ import SwiftUI
 enum AcceptedTypes {
     case tags(Tag)
     case allergens(Allergen)
-    case ingredients(Ingredient)
     case customString(String)
     
     var displayName: String {
         switch self {
         case .tags(let tag): return tag.rawValue.capitalized
-        case .ingredients(let ingredient): return ingredient.rawValue.capitalized
         case .allergens(let allergen): return allergen.rawValue.capitalized
         case .customString(let string): return string
         }
@@ -49,7 +47,6 @@ struct PillView_Previews: PreviewProvider {
     static var previews: some View {
         VStack(spacing: 12) {
             PillView(value: .tags(.flavor(.spicy))) {}
-            PillView(value: .ingredients(.vegetable(.tomato))) { }
             PillView(value: .allergens(.nuts)) { }
         }
         .padding()

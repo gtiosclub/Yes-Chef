@@ -29,6 +29,10 @@ struct Home: View {
                 Image(systemName: "trophy")
             }
             .tag(TabSelection.leaderboard)
+            /*DMListView().tabItem {
+                Image(systemName: "message")
+            }
+            .tag(TabSelection.messages)*/
             if let currentUser = authVM.currentUser {
                 ProfileView(user: currentUser, isOwnProfile:true).tabItem {
                     Image(systemName: "person.circle")
@@ -39,22 +43,17 @@ struct Home: View {
                     Image(systemName: "person.circle")
                 }.tag(TabSelection.profile)
             }
+//            RemixTreeView().tabItem {
+//                Image(systemName: "tree")
+//            }
+//            .tag(TabSelection.remixtreedemo)
             
-            RemixTreeView().tabItem {
-                Image(systemName: "tree")
-            }
-            .tag(TabSelection.remixtreedemo)
-        }
-        .onAppear {
-            Task {
-                await authVM.updateCurrentUser()
-            }
         }
     }
 }
 
 enum TabSelection: Hashable {
-    case home, search, post, leaderboard, profile, remixtreedemo
+    case home, search, post, leaderboard, messages, profile, remixtreedemo
 }
 
 #Preview {

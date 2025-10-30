@@ -13,13 +13,51 @@ import FirebaseFirestore
 struct ToolCallEntry: Codable {
     let item: String
     let removing: [String]
-    let adding: [String]
+    let adding: [AddingItem]
     
+}
+
+enum AddingItem: Codable {
+    case string(String)
+    case ingredient(Ingredient)
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        
+        if let ingredient = try? container.decode(Ingredient.self) {
+            self = .ingredient(ingredient)
+            return
+        }
+        
+        if let string = try? container.decode(String.self) {
+            self = .string(string)
+            return
+        }
+        
+        throw DecodingError.typeMismatch(
+            AddingItem.self,
+            DecodingError.Context(
+                codingPath: decoder.codingPath,
+                debugDescription: "Expected String or IngredientObject"
+            )
+        )
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch self {
+        case .string(let string):
+            try container.encode(string)
+        case .ingredient(let ingredient):
+            try container.encode(ingredient)
+        }
+    }
 }
 
 struct SmartSuggestion: Codable {
     let toolcall: [ToolCallEntry]
     let message: String
+    let title: String
 }
 
 @Observable class AIViewModel {
@@ -324,22 +362,35 @@ Return ONLY valid JSON with this exact shape and key names (no markdown, no extr
       "adding": ["..."]
     }
   ],
-  "message": "short, friendly explanation"
+  "message": "short, friendly explanation",
+  "title": "A short title for the changes made. Ex. 'Peanut-Free Recipe Alteration'"
 }
 
 Rules:
 - Use arrays for both "removing" and "adding" (use [] if none).
 - Prefer substitutions over deletions when feasible.
+- When adding with ingredients, replicate the structure of the ingredient object passed in, giving good estimates for the quantity necessary to fit the current serving size of the recipe.
+- When removing with ingredients, make it an array of Strings instead, only including the name of the ingredient to be removed.
 - Keep cuisine and texture intact, propose common grocery items.
 - If the request conflicts with the dish, make conservative edits and explain in "message".
+- If an ingredient is removed or replaced, update any step that mentions it.
 """
 
 private func smartUserContent(recipe: Recipe, userMessage: String) -> String {
+    let ingredientsArray = recipe.ingredients.map { ing -> [String: Any] in
+        return [
+            "name": ing.name,
+            "quantity": ing.quantity,
+            "unit": ing.unit,
+            "preparation": ing.preparation
+        ]
+    }
+    
     let payload: [String: Any] = [
         "user_request": userMessage,
         "recipe": [
             "name": recipe.name,
-            "ingredients": recipe.ingredients,
+            "ingredients": ingredientsArray,
             "allergens": recipe.allergens,
             "tags": recipe.tags,
             "steps": recipe.steps,
@@ -349,11 +400,19 @@ private func smartUserContent(recipe: Recipe, userMessage: String) -> String {
         ],
         "examples": [
             [
-                "user_request": "How can I make this vegetarian?",
-                "expected": [
-                    ["item":"ingredients","removing":["bacon","chicken"],"adding":["smoked paprika","chickpeas"]],
-                    ["item":"steps","removing":[],"adding":["Crisp chickpeas with olive oil and smoked paprika to add savoriness."]]
-                ]
+                "user_request": "Make it vegetarian",
+                    "expected": [
+                        [
+                            "item": "ingredients",
+                            "removing": ["chicken"],
+                            "adding": ["tofu"]
+                        ],
+                        [
+                            "item": "steps",
+                            "removing": ["Stir-fry chicken"],
+                            "adding": ["Sauté tofu until golden"]
+                        ]
+                    ]
             ],
             [
                 "user_request": "I can't eat peanuts",

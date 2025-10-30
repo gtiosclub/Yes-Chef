@@ -28,7 +28,7 @@ class PostViewModel {
             
             let name = data["name"] as? String ?? "Untitled"
             let media = data["media"] as? [String] ?? []
-            let ingredients: [String] = data["ingredients"] as? [String] ?? []
+            let ingredients: [Ingredient] = data["ingredients"] as? [Ingredient] ?? []
             let allergens: [String] = data["allergens"] as? [String] ?? []
             let tags: [String] = data["tags"] as? [String] ?? []
             let steps: [String] = data["steps"] as? [String] ?? []
@@ -69,7 +69,7 @@ class PostViewModel {
             
             let name = data["name"] as? String ?? "Untitled"
             let media = data["media"] as? [String] ?? []
-            let ingredients: [String] = data["ingredients"] as? [String] ?? []
+            let ingredients: [Ingredient] = data["ingredients"] as? [Ingredient] ?? []
             let allergens: [String] = data["allergens"] as? [String] ?? []
             let tags: [String] = data["tags"] as? [String] ?? []
             let steps: [String] = data["steps"] as? [String] ?? []

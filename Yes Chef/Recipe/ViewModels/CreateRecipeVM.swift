@@ -15,7 +15,7 @@ import SwiftUI
     var userIdInput: String = ""
     var name: String = ""
     var description: String = ""
-    var selectedIngredients: [SearchableValue<Ingredient>] = []
+    var ingredients: [Ingredient] = []
     var selectedAllergens: [SearchableValue<Allergen>] = []
     var selectedTags: [SearchableValue<Tag>] = []
     var prepTimeInput: String = ""
@@ -25,9 +25,10 @@ import SwiftUI
     var mediaItems: [MediaItem] = []
     var chefsNotes = ""
     
-    var ingredients: [String] {
-        selectedIngredients.map { $0.displayName }
-    }
+    var messages: [SmartMessage] = []
+    var isThinking: Bool = false
+    
+    private let ai = AIViewModel()
     
     var allergens: [String] {
         selectedAllergens.map { $0.displayName }
@@ -47,22 +48,12 @@ import SwiftUI
         self.userIdInput = recipe.userId
         self.name = recipe.name
         self.description = recipe.description
+        self.ingredients = recipe.ingredients
         self.prepTimeInput = String(recipe.prepTime)
         self.difficulty = recipe.difficulty
         self.servingSize = recipe.servingSize
         self.steps = recipe.steps.isEmpty ? [""] : recipe.steps
         self.chefsNotes = recipe.chefsNotes
-        
-        // Convert ingredients to SearchableValue
-        self.selectedIngredients = recipe.ingredients.map { ingredient in
-            if let matchingIngredient = Ingredient.allIngredients.first(where: {
-                $0.displayName.lowercased() == ingredient.lowercased()
-            }) {
-                return .predefined(matchingIngredient)
-            } else {
-                return .custom(ingredient)
-            }
-        }
         
         // Convert allergens to SearchableValue
         self.selectedAllergens = recipe.allergens.filter { !$0.isEmpty }.map { allergen in
@@ -98,25 +89,25 @@ import SwiftUI
                     name = newTitle
                 }
                 
-            case "ingredients":
-                let removingSet = Set(removing.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
-                selectedIngredients.removeAll { value in
-                    removingSet.contains(value.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines))
-                }
-                
-                let existingSet = Set(selectedIngredients.map { $0.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
-                for add in adding {
-                    let key = add.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-                    if !existingSet.contains(key) {
-                        if let matchingIngredient = Ingredient.allIngredients.first(where: {
-                            $0.displayName.lowercased() == key
-                        }) {
-                            selectedIngredients.append(.predefined(matchingIngredient))
-                        } else {
-                            selectedIngredients.append(.custom(add.trimmingCharacters(in: .whitespacesAndNewlines)))
-                        }
-                    }
-                }
+//            case "ingredients":
+//                let removingSet = Set(removing.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
+//                selectedIngredients.removeAll { value in
+//                    removingSet.contains(value.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines))
+//                }
+//                
+//                let existingSet = Set(selectedIngredients.map { $0.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
+//                for add in adding {
+//                    let key = add.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+//                    if !existingSet.contains(key) {
+//                        if let matchingIngredient = Ingredient.allIngredients.first(where: {
+//                            $0.displayName.lowercased() == key
+//                        }) {
+//                            selectedIngredients.append(.predefined(matchingIngredient))
+//                        } else {
+//                            selectedIngredients.append(.custom(add.trimmingCharacters(in: .whitespacesAndNewlines)))
+//                        }
+//                    }
+//                }
                 
             case "allergens":
                 let removingSet = Set(removing.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
@@ -211,7 +202,80 @@ import SwiftUI
         return postUUID
     }
     
-    func createRecipe(userId: String, name: String, ingredients: [String], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, servingSize: Int, mediaItems: [MediaItem], chefsNotes: String) async -> String {
+    func sendMessage(userMessage: String) async {
+        let trimmed = userMessage.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        messages.append(.init(sender: .user, text: trimmed))
+        isThinking = true
+        defer { isThinking = false }
+
+        do {
+            let suggestion = try await ai.smartSuggestion(recipe: toRecipeForAI(), userMessage: trimmed)
+
+            // Handle toolcall here
+
+            messages.append(.init(sender: .aiChef, text: suggestion.message))
+            print(messages)
+
+        } catch {
+            messages.append(.init(sender: .aiChef, text: "Sorry, I couldn't process that. Please try again."))
+            print("smartSuggestion error:", error)
+        }
+    }
+
+    private func toRecipeForAI() -> Recipe {
+        Recipe(
+            userId: userIdInput,
+            recipeId: "temp",
+            name: name,
+            ingredients: ingredients,
+            allergens: allergens,
+            tags: tags,
+            steps: steps,
+            description: description,
+            prepTime: Int(prepTimeInput) ?? 0,
+            difficulty: difficulty,
+            servingSize: servingSize,
+            media: [],
+            chefsNotes: chefsNotes
+        )
+    }
+  
+    func addRecipeToRemixTreeAsNode(description: String, parentID: String) async -> String {
+        let postID = UUID()
+        let postUUID = postID.uuidString
+        
+        let db = Firestore.firestore()
+        
+        var rootNodeID = parentID
+        do {
+            let parent = try await db.collection("remixTreeNode").document(parentID).getDocument()
+            if let parentInfo = parent.data(), let parentRoot = parentInfo["rootNodeID"] as? String {
+                rootNodeID = parentRoot
+            }
+        } catch {
+            print("⚠️ Could not fetch parent node: \(error.localizedDescription)")
+        }
+        
+        let nodeInfo: [String: Any] = [
+            "postID": postUUID,
+            "childrenID": [],
+            "description": description,
+            "parentID": parentID,
+            "rootNodeID": rootNodeID,
+        ]
+            
+        do {
+            try await db.collection("remixTreeNode").document(postUUID).setData(nodeInfo)
+            print("Document added successfully!")
+        } catch {
+            print("Error adding document: \(error.localizedDescription)")
+        }
+        return postUUID
+    }
+    
+    func createRecipe(userId: String, name: String, ingredients: [Ingredient], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, servingSize: Int, media: [MediaItem], chefsNotes: String) async -> String {
         
         let recipeID = UUID()
         let recipeUUID = recipeID.uuidString
@@ -234,10 +298,19 @@ import SwiftUI
         
         print("All uploaded media: \(uploadedMediaURLs)")
         
+        let ingredientsData = ingredients.map { ingredient in
+            [
+                "name": ingredient.name,
+                "quantity": ingredient.quantity,
+                "unit": ingredient.unit,
+                "preparation": ingredient.preparation
+            ] as [String: Any]
+        }
+        
         let data: [String: Any] = [
             "userId": userId,
             "name": name,
-            "ingredients": ingredients,
+            "ingredients": ingredientsData,
             "allergens": allergens,
             "tags": tags,
             "steps": steps,

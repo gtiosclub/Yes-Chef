@@ -10,24 +10,34 @@ struct AddRecipeMain: View {
     @State private var selectedTab: String = "EditDetails"
     @State private var recipeVM: CreateRecipeVM
     
+    var comeFromRemix: Bool = false
+    var remixParentID: String = ""
+    
     init(remixRecipe: Recipe? = nil) {
         if let recipe = remixRecipe {
             _recipeVM = State(initialValue: CreateRecipeVM(fromRecipe: recipe))
+            self.comeFromRemix = true
+            self.remixParentID = recipe.id
         } else {
             _recipeVM = State(initialValue: CreateRecipeVM())
         }
     }
 
     @Environment(AuthenticationVM.self) var authVM
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack{
             VStack(){
                 HStack{
-                    Image(systemName: "xmark")
-                        .resizable()
-                        .frame(width:20, height:20)
-                        .foregroundStyle(.black)
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .resizable()
+                            .frame(width: 20, height: 20)
+                            .foregroundStyle(.black)
+                    }
                     Spacer()
                     
                     Text("Add Recipe")
@@ -50,13 +60,22 @@ struct AddRecipeMain: View {
                                 prepTime: recipeVM.prepTime,
                                 difficulty: recipeVM.difficulty,
                                 servingSize: recipeVM.servingSize,
-                                mediaItems: recipeVM.mediaItems,
+                                media: recipeVM.mediaItems,
                                 chefsNotes: recipeVM.chefsNotes
                             )
                             
                             await recipeVM.addRecipeToRemixTreeAsRoot(
                                 description: recipeVM.description
                             )
+                            
+                            if comeFromRemix {
+                                await recipeVM.addRecipeToRemixTreeAsNode(
+                                    description: recipeVM.description,
+                                    parentID: remixParentID
+                                )
+                            }
+                            
+                            dismiss()
                         }
                     } label: {
                         Image(systemName: "checkmark")
@@ -79,12 +98,7 @@ struct AddRecipeMain: View {
                 if selectedTab == "EditDetails" {
                     CreateRecipe(recipeVM: recipeVM)
                 } else if selectedTab == "AIChef" {
-                    Text("Coming Soon")
-                        .font(.title2)
-                        .foregroundColor(.gray)
-                        .padding()
-                    
-                    Spacer()
+                    AIChefBaseView(recipeVM: recipeVM)
                 }
             }
             .background(Color(hex: "#fffdf5"))
@@ -197,4 +211,5 @@ struct TabBorder: Shape {
 
 #Preview {
     AddRecipeMain()
+        .environment(AuthenticationVM())
 }

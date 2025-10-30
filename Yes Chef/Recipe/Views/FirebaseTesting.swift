@@ -18,6 +18,23 @@ struct FirebaseTesting: View {
                     await testCreateRecipe()
                 }
             }
+            
+            Button("Test Send Message") {
+                Task {
+                    recipeVM.name = "Pizza"
+                    recipeVM.ingredients = [
+                        Ingredient(name: "Tomato Sauce", quantity: 1, unit: "cup", preparation: "" ),
+                        Ingredient(name: "Mozarella Cheese", quantity: 1, unit: "cup", preparation: ""),
+                        Ingredient(name: "Pizza Dough", quantity: 1, unit: "serving", preparation: "" )
+                    ]
+                    recipeVM.servingSize = 1
+                    recipeVM.description = "A classic Italian dish."
+                    recipeVM.prepTimeInput = "10"
+                    recipeVM.steps = ["Put sauce on dough.", "Add cheese.", "Bake for 20 minutes.", "Cut into wedges."]
+                    
+                    await recipeVM.sendMessage(userMessage: "make it vegan")
+                }
+            }
         }
         
         Section("AI requests") {

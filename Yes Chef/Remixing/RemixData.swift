@@ -10,37 +10,45 @@ import FirebaseFirestore
 import Firebase
 import FirebaseAuth
 
-class DummyNode  {
-    
+class DummyNode: Identifiable, Codable, Hashable {
     let currNodeID: String
     var parentNodeID: String
     let rootNodeOfTreeID: String
-    
     var childrenIDs: [String]
-    
     var descriptionOfRecipeChanges: String
-    
-    init(currNodeID: String,
-         parentNodeID: String,
-         rootNodeOfTreeID: String,
-         childrenIDs: [String],
-         descriptionOfRecipeChanges: String = "") {
-        
+
+    init(
+        currNodeID: String,
+        parentNodeID: String,
+        rootNodeOfTreeID: String,
+        childrenIDs: [String],
+        descriptionOfRecipeChanges: String = ""
+    ) {
         self.currNodeID = currNodeID
         self.parentNodeID = parentNodeID
         self.rootNodeOfTreeID = rootNodeOfTreeID
         self.childrenIDs = childrenIDs
         self.descriptionOfRecipeChanges = descriptionOfRecipeChanges
     }
-    
+
+    static func == (lhs: DummyNode, rhs: DummyNode) -> Bool {
+        lhs.currNodeID == rhs.currNodeID
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(currNodeID)
+    }
 }
+
 
 
 @MainActor
 class RemixData: ObservableObject {
+    static let shared = RemixData()
+    
     @Published var nodes : [DummyNode] = []
 
-    init() {
+    private init() {
        
     }
     
@@ -125,8 +133,8 @@ class RemixData: ObservableObject {
         ]
         
         let numberOfTrees = 1
-        let maxDepth = 2
-        let maxChildrenPerNode = 3
+        let maxDepth = 4
+        let maxChildrenPerNode = 8
         
         var allNodes: [String: [String: Any]] = [:]
         
@@ -163,7 +171,7 @@ class RemixData: ObservableObject {
                     generateChildren(for: childID, rootID: rootID, depth: depth + 1)
                 }
                 
-                // update parent’s childrenIDs
+                // update parent's childrenIDs
                 if var parentNode = allNodes[parentID] {
                     parentNode["childrenIDs"] = childIDs
                     allNodes[parentID] = parentNode

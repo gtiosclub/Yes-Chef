@@ -145,10 +145,10 @@ struct PostViewRemix: View {
                     Text("Ingredients")
                         .font(.title)
                         .padding(.vertical, UIConst.screen.height/100)
-                    ForEach(recipe.ingredients, id: \.self) { each in
-                        BulletPointRemix(text: each, type: 1, num: 0)
-                            .frame(maxHeight: 25)
-                    }
+//                    ForEach(recipe.ingredients, id: \.self) { each in
+//                        BulletPointRemix(text: each, type: 1, num: 0)
+//                            .frame(maxHeight: 25)
+//                    }
 
                     Text("Instructions")
                         .font(.title)
@@ -230,18 +230,22 @@ struct BulletPointRemix: View {
 
 #Preview {
     let rec = Recipe(
-        userId: "userid",
+        userId: "zvUtxNaS4FRTC1522AsZLxCXl5s1",
         recipeId: "recipeID",
         name: "Chaffle",
-        ingredients: ["1 egg", "3 cups of flour", "1 teaspoon butter"],
+        ingredients: [
+            Ingredient(name: "egg", quantity: 1, unit: "", preparation: ""),
+            Ingredient(name: "flour", quantity: 3, unit: "cups", preparation: ""),
+            Ingredient(name: "butter", quantity: 1, unit: "teaspoon", preparation: "")
+        ],
         allergens: [""],
         tags: ["american", "keto", "gluten free"],
         steps: [
-            "Preheat waffle iron to medium-high.",
-            "Coat iron, add 1/4 cup batter per section.",
-            "Top with butter and syrup."
+            "Preheat a waffle iron to medium-high. Whisk the eggs in a large bowl until well beaten and smooth.",
+            "Coat the waffle iron with nonstick cooking spray, then ladle a heaping 1/4 cup of batter into each section.",
+            "Top each chaffle with a pat of butter and drizzle with maple syrup."
         ],
-        description: "A chaffle is a low-carb, cheese-and-egg-based waffle with fluffy texture and crispy edges.",
+        description: "A chaffle is a low-carb, cheese-and-egg-based waffle that's taken the keto world by storm, thanks to its fluffy texture and crispy edges.",
         prepTime: 120,
         difficulty: .easy,
         servingSize: 1,
@@ -249,9 +253,9 @@ struct BulletPointRemix: View {
             "https://www.themerchantbaker.com/wp-content/uploads/2019/10/Basic-Chaffles-REV-Total-3-480x480.jpg",
             "https://thebestketorecipes.com/wp-content/uploads/2022/01/Easy-Basic-Chaffle-Recipe-Easy-Keto-Chaffle-5.jpg",
             ""
-        ],
-        chefsNotes: "", likes: 0
-    )
+        ],chefsNotes: "String",
+        likes: 0)
+    
     NavigationStack {
         PostViewRemix(recipe: rec, poster: nil)
     }
