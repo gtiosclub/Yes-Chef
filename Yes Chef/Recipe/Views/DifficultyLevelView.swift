@@ -10,7 +10,7 @@ struct DifficultyLevelView: View {
     @Binding var difficulty: Difficulty
     
     var body: some View{
-        HStack(spacing: 8){
+        HStack(spacing: 25.33){
             VStack(spacing: 10){
                 Image(systemName: "flame.fill")
                     .resizable()

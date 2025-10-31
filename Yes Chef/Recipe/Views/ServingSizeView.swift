@@ -41,12 +41,8 @@ struct ServingSizeView: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 10)
-        .background(Color(uiColor: .systemGray5))
+        .background(Color(hex:"#F9F5F2"))
         .cornerRadius(15)
-        .overlay(
-            RoundedRectangle(cornerRadius: 15)
-                .stroke(Color.primary, lineWidth: 2)
-        )
     }
 }
 
