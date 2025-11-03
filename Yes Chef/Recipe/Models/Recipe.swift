@@ -123,7 +123,8 @@ enum Difficulty: String, CaseIterable, Identifiable {
                 difficulty: difficulty,
                 servingSize: servingSize,
                 media: media,
-                chefsNotes: chefsNotes
+                chefsNotes: chefsNotes,
+                likes: 0
             )
 
             // Set optional fields if they exist

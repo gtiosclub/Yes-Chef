@@ -264,47 +264,40 @@ struct PostView: View {
             }
             .hidden()
             ZStack {
-                HStack {
-                    Text(String(recipe.likes))
-                    Button {
-                        if (!liked) {
-                            Task {
-                                try await postVM.likePost(recipeId: recipe.id)
-                                try await UVM.like(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
-                            }
-                            recipe.likes += 1
-                            authVM.currentUser?.likedRecipes.append(recipe.id)
-                            liked = true
-                        } else {
-                            Task {
-                                try await postVM.unlikePost(recipeId: recipe.id)
-                                try await UVM.unlike(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
-                            }
-                            recipe.likes -= 1
-                            authVM.currentUser?.likedRecipes.removeAll { $0 == recipe.id }
-                            liked = false
-                        }
-                    } label : {
-                        if (!liked) {
-                            Image(systemName: "heart").foregroundColor(.black)
-                        } else {
-                            Image(systemName: "heart.fill").foregroundColor(.red)
-                        }
-                        
-                    }.frame(width: 20, height: 20)
-                    
-                    Button {
-                        goToAddRecipe = true
-                    } label: {
-                        HStack(spacing: 8) {
-                            Image(systemName: "sparkles").font(.headline)
-                            Text("Remix").fontWeight(.semibold)
-                        }
-                    }
-                }
-                .fullScreenCover(isPresented: $goToAddRecipe) {
-                    AddRecipeMain(remixRecipe: recipe)
-                }
+//                HStack {
+//                    Text(String(recipe.likes))
+//                    Button {
+//                        if (!liked) {
+//                            Task {
+//                                try await postVM.likePost(recipeId: recipe.id)
+//                                try await UVM.like(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
+//                            }
+//                            recipe.likes += 1
+//                            authVM.currentUser?.likedRecipes.append(recipe.id)
+//                            liked = true
+//                        } else {
+//                            Task {
+//                                try await postVM.unlikePost(recipeId: recipe.id)
+//                                try await UVM.unlike(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
+//                            }
+//                            recipe.likes -= 1
+//                            authVM.currentUser?.likedRecipes.removeAll { $0 == recipe.id }
+//                            liked = false
+//                        }
+//                    } label : {
+//                        if (!liked) {
+//                            Image(systemName: "heart").foregroundColor(.black)
+//                        } else {
+//                            Image(systemName: "heart.fill").foregroundColor(.red)
+//                        }
+//                        
+//                    }.frame(width: 20, height: 20)
+//
+//                    
+//                }
+                //.fullScreenCover(isPresented: $goToAddRecipe) {
+                //                   AddRecipeMain(remixRecipe: recipe)
+                //}
             }
 
             NavigationLink("", isActive: $goToRemixTree) {
@@ -359,6 +352,39 @@ struct PostView: View {
                     .foregroundColor(.white)
                     .shadow(radius: 4, y: 2)
                 }
+                
+                HStack {
+                    Text(String(recipe.likes))
+                    Button {
+                        if (!liked) {
+                            Task {
+                                try await postVM.likePost(recipeId: recipe.id)
+                                try await UVM.like(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
+                            }
+                            recipe.likes += 1
+                            authVM.currentUser?.likedRecipes.append(recipe.id)
+                            liked = true
+                        } else {
+                            Task {
+                                try await postVM.unlikePost(recipeId: recipe.id)
+                                try await UVM.unlike(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
+                            }
+                            recipe.likes -= 1
+                            authVM.currentUser?.likedRecipes.removeAll { $0 == recipe.id }
+                            liked = false
+                        }
+                    } label : {
+                        if (!liked) {
+                            Image(systemName: "heart").foregroundColor(.black)
+                        } else {
+                            Image(systemName: "heart.fill").foregroundColor(.red)
+                        }
+                        
+                    }.frame(width: 20, height: 20)
+
+                    
+                }
+
                 .accessibilityLabel("Remix recipe")
             }
             .padding(.trailing, 16)
@@ -411,6 +437,9 @@ struct DummyRemixTreeViewForPost: View {
     }
 }
 // End of Eesh New Edit
+
+
+
 
 
 #Preview {
