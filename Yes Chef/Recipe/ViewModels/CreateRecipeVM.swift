@@ -306,7 +306,8 @@ import SwiftUI
             difficulty: difficulty,
             servingSize: servingSize,
             media: [],
-            chefsNotes: chefsNotes
+            chefsNotes: chefsNotes,
+            likes: 0
         )
     }
   
@@ -407,7 +408,8 @@ import SwiftUI
             "difficulty": difficulty.rawValue,
             "servingSize": servingSize,
             "media": uploadedMediaURLs,
-            "chefsNotes": chefsNotes
+            "chefsNotes": chefsNotes,
+            "likes": 0
         ]
         
         do {

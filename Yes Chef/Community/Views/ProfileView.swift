@@ -4,14 +4,15 @@ struct ProfileView: View {
     @State private var selectedTab = 0
     @State private var isFollowing = false
     @State private var postVM = PostViewModel()
+    @Environment(AuthenticationVM.self) var authVM
     @State private var showingMessage = false
     @State private var messageVM = MessageViewModel()
     @State private var UVM = UserViewModel()
     @State private var username: String = ""
     @State private var profilePhoto: String = ""
     @State private var showingEditProfile = false
-    //@Environment var authVM: AuthenticationVM
-    let user: User
+
+    @State var user: User
     // Simple boolean to toggle between own profile vs other's profile for UI demo
     let isOwnProfile: Bool
     
@@ -24,7 +25,7 @@ struct ProfileView: View {
         ScrollView {
             VStack(spacing: 0) {
                 // Header
-                headerView
+                //headerView
                 
                 // Profile Info
                 profileInfoSection
@@ -57,6 +58,7 @@ struct ProfileView: View {
                         let posterData = await UVM.getUserInfo(userID: user.userId)
                         profilePhoto = posterData?["profilePhoto"] as? String ?? ""
                     }
+                    self.user = await UVM.updateUser(userID: user.userId)
                 } catch {
                     print("Failed to fetch recipes: \(error)")
                 }
@@ -64,18 +66,27 @@ struct ProfileView: View {
 
         }
         .navigationBarHidden(false)
+        /*.toolbar {
+            if isOwnProfile {
+                Button {
+                    
+                } label : {
+                    Image(systemName: "gearshape.fill")
+                        .font(.title2)
+                        .foregroundColor(.gray)
+                }
+            }
+        }*/
     }
     
     // MARK: - Header
     private var headerView: some View {
         HStack {
-            Spacer()
-            
             if isOwnProfile {
                 Button(action: {}) {
                     Image(systemName: "gearshape.fill")
                         .font(.title2)
-                        .foregroundColor(.black)
+                        .foregroundColor(.gray)
                 }
             }
         }
@@ -85,10 +96,25 @@ struct ProfileView: View {
     
     // MARK: - Profile Info
     private var profileInfoSection: some View {
-        VStack(spacing: 12) {
-            Text("@\(user.username)")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+        VStack(spacing: 10) {
+            ZStack {
+                Text("@\(user.username)")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                HStack {
+                    if isOwnProfile {
+                        Spacer()
+                        Button{
+                            print("SETTINGS")
+                        }label:{
+                            Image(systemName: "gearshape.fill")
+                                .font(.title2)
+                                .foregroundColor(.gray)
+                        }
+                        .padding(.trailing, 10)
+                    }
+                }
+            }
             
             // Profile Image
             let photoURL = URL(string: profilePhoto)
@@ -119,7 +145,7 @@ struct ProfileView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 20)
         }
-        .padding(.top, 20)
+        //.padding(.top, 20)
     }
     
     // MARK: - Stats
@@ -326,7 +352,7 @@ struct ProfileView: View {
                 ForEach(Array(leftColumnItems.enumerated()), id: \.1.0.id) { id , pair in
                     let (recipe, isTall) = pair
                     
-                    NavigationLink(destination: PostView(recipe: recipe)) {
+                    NavigationLink(destination: PostView(recipe: recipe).environment(authVM)){
                         RecipeTile(recipe: recipe, tall: id % 2 == 0)
                     }
                 }
@@ -337,7 +363,7 @@ struct ProfileView: View {
                 ForEach(Array(rightColumnItems.enumerated()), id: \.1.0.id) { id, pair in
                     let (recipe, isTall) = pair
                     
-                    NavigationLink(destination: PostView(recipe: recipe)) {
+                    NavigationLink(destination: PostView(recipe: recipe).environment(authVM)) {
                         RecipeTile(recipe: recipe, tall: id % 2 - 1 == 0)
                     }
                 }
@@ -348,7 +374,7 @@ struct ProfileView: View {
     }
 }
 
-//
+
     private func RecipeTile(recipe: Recipe, tall: Bool) -> some View {
         VStack(alignment: .leading, spacing: 8) {
 

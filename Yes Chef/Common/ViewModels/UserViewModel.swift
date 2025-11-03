@@ -11,7 +11,6 @@ import FirebaseFirestore
 import UIKit
 
 @Observable class UserViewModel{
-    
     func getUserInfo(userID: String) async -> [String: Any]?{
         let db = Firestore.firestore()        
         let info = db.collection("users")
@@ -26,12 +25,34 @@ import UIKit
         catch {
             print("Error getting document: \(error)")
         }
-        
         return nil
     }
+
+    func like(recipeID: String, userID: String) async throws {
+        let db = Firestore.firestore()
+        let userRef = db.collection("users").document(userID)
+        
+        do {
+            try await userRef.updateData(["likedRecipes": FieldValue.arrayUnion([recipeID])])
+
+        } catch {
+            print("Error adding document:\(error.localizedDescription)")
+        }
+    }
     
+    func unlike(recipeID: String, userID: String) async throws {
+        let db = Firestore.firestore()
+        let userRef = db.collection("users").document(userID)
+        
+        do {
+            try await userRef.updateData(["likedRecipes": FieldValue.arrayRemove([recipeID])])
+            
+        } catch {
+            print("Error adding document:\(error.localizedDescription)")
+        }
+    }
+
     // MARK: - Profile Update Functions
-    
     func updateUserProfile(userID: String, username: String, bio: String?, profilePhoto: String) async -> Bool {
         let userData: [String: Any] = [
             "username": username,
@@ -50,7 +71,6 @@ import UIKit
     }
     
     // MARK: - Image Upload Functions
-    
     func uploadProfileImage(userID: String, image: UIImage) async -> String? {
         guard let imageData = image.jpegData(compressionQuality: 0.8) else {
             print("Error: Could not convert image to data")
@@ -114,7 +134,38 @@ import UIKit
         } catch {
             print("Error updating profile photo: \(error)")
             return false
+
         }
+    }
+    
+    func updateUser(userID: String) async -> User{
+        let db = Firestore.firestore()
+        let userRef = db.collection("users").document(userID)
+        
+        do {
+            let document = try await userRef.getDocument()
+            let data = document.data()
+            let profilePhotoURL = data?["profilePhoto"] as? String ?? ""
+            let username = data?["username"] as? String ?? "username"
+            let bio = data?["bio"] as? String ?? "bio"
+            let email = data?["email"] as? String ?? "email"
+            let followers = data?["followers"] as? [String] ?? []
+            let following = data?["following"] as? [String] ?? []
+            let likedRecipes = data?["likedRecipes"] as? [String] ?? []
+            let savedRecipes = data?["savedRecipes"] as? [String] ?? []
+            let badges = data?["badges"] as? [String] ?? []
+            let tempuser = User(userId: userID, username: username, email: email, bio: bio, password: "")
+            tempuser.following = following
+            tempuser.followers = followers
+            tempuser.likedRecipes = likedRecipes
+            tempuser.savedRecipes = savedRecipes
+            tempuser.badges = badges
+            print("User \(username) updated!")
+            return tempuser
+        } catch {
+            print("Can't find user")
+        }
+        return User(userId: "userID", username: "username", email: "email", bio: "bio", password: "")
     }
 }
 

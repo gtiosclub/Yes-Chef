@@ -418,7 +418,7 @@ struct ChangePasswordView: View {
 struct FeedView: View {
     @State private var viewModel = PostViewModel()
     @State private var selectedTab: Tab = .forYou
-    
+    @Environment(AuthenticationVM.self) var authVM
     enum Tab {
         case forYou, following
     }
@@ -436,7 +436,7 @@ struct FeedView: View {
             VStack(alignment: .leading, spacing: 0) {
                 // Title with icon
                 HStack {
-                    Text("Welcome Link!")
+                    Text("Welcome \(authVM.currentUser?.username ?? "User")")
                         .font(.custom("Georgia", size: 32))
                         .fontWeight(.bold)
                         .foregroundColor(Color(hex: "#404741"))
@@ -616,6 +616,11 @@ struct FeedView: View {
                     }
                 }
             }*/
+        }
+        .onAppear {
+            Task {
+                await authVM.updateCurrentUser()
+            }
         }
     }
     
