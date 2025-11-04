@@ -28,7 +28,7 @@ struct AddRecipeMain: View {
 
     var body: some View {
         NavigationStack{
-            VStack(){
+            VStack(spacing: 0){
                 HStack{
                     Button {
                         dismiss()
@@ -101,10 +101,7 @@ struct AddRecipeMain: View {
                     curvedTab(title: "Edit Details", tag: "EditDetails", leftSide: true)
                     curvedTab(title: "AI Chef", tag: "AIChef", leftSide: false)
                 }.frame(height: 50)
-            }
-            .background(Color(hex: "#fffdf5"))
-            
-            VStack {
+                
                 if selectedTab == "EditDetails" {
                     CreateRecipe(recipeVM: recipeVM)
                 } else if selectedTab == "AIChef" {
@@ -115,7 +112,6 @@ struct AddRecipeMain: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
     }
-    
     private func curvedTab(title: String, tag: String, leftSide: Bool) -> some View {
         ZStack {
             Button(action: {

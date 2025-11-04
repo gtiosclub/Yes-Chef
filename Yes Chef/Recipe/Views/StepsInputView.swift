@@ -18,8 +18,8 @@ struct StepsInputView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                SectionHeader(title: "Steps")
-                    .padding(.leading, -12)
+                Spacer()
+                SectionHeader(title: "Steps").padding(.leading, 35)
                 Spacer()
                 Button {
                     withAnimation(.easeInOut(duration: 0.15)) {
@@ -31,17 +31,14 @@ struct StepsInputView: View {
                         Text("Done")
                             .font(.subheadline).bold()
                             .padding(.horizontal, 10).padding(.vertical, 6)
-                            .background(Color.gray.opacity(0.2))
                             .cornerRadius(10)
-                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
                             .foregroundColor(.primary)
                     } else {
                         Image(systemName: "square.and.pencil")
-                            .font(.title3)
+                            .font(.title3).bold()
                             .foregroundColor(.black)
                             .frame(width: 34, height: 34)
-                            .background(Circle().fill(Color.gray.opacity(0.3)))
-                    }
+                }
                 }
             }
             .padding(.horizontal)
@@ -78,9 +75,9 @@ struct StepsInputView: View {
                                steps.append("")
                             } label: {
                                 Circle()
-                                    .fill(Color.gray.opacity(0.3))
+                                    .fill(Color(hex:"#FFA947"))
                                     .frame(width: 34, height: 34)
-                                    .overlay(Image(systemName: "plus").foregroundColor(.black).font(.title3))
+                                    .overlay(Image(systemName: "plus").foregroundColor(.white).font(.title3))
                             }
                             Spacer()
                         }
@@ -124,18 +121,18 @@ private struct StepRow: View {
             if isEditing && canDelete {
                 Button(action: onDelete) {
                     Circle()
-                        .fill(Color(.gray.opacity(0.3)))
+                        .fill(Color(hex:"#FFA947"))
                         .frame(width: 34, height: 34)
-                        .overlay(Image(systemName: "minus").foregroundColor(.black).font(.title3))
+                        .overlay(Image(systemName: "minus").foregroundColor(.white).font(.title3))
                 }
                 .buttonStyle(.plain)
             }
 
             if isEditing {
                 Circle()
-                    .fill(Color.gray.opacity(0.3))
+                    .fill(Color(hex:"#FFA947"))
                     .frame(width: 34, height: 34)
-                    .overlay(Image(systemName: "line.3.horizontal").foregroundColor(.black).font(.title3))
+                    .overlay(Image(systemName: "line.3.horizontal").foregroundColor(.white).font(.title3))
             }
         }
     }
@@ -175,6 +172,8 @@ struct StepEditor: View {
     @Binding var text: String
     var placeholder: String
     var isEditing: Bool
+    var keyboardType: UIKeyboardType = .default
+    var padding: EdgeInsets = EdgeInsets(top: 10, leading: 12, bottom: 5, trailing: 12)
 
     var body: some View {
         ZStack(alignment: .leading) {
@@ -189,14 +188,20 @@ struct StepEditor: View {
                 .background(Color.clear)
                 .font(.subheadline)
                 .frame(minHeight: 40, maxHeight: 100)
-                .padding(.horizontal, 4)
-                .padding(.vertical, 2)
                 .disabled(!isEditing)
                 .opacity(isEditing ? 1 : 0.6)
+                .keyboardType(keyboardType)
+                .foregroundColor(Color(hex: "#877872"))
+                .padding(padding)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color(hex: "#F9F5F2"))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.black.opacity(0.3), lineWidth: 1)
+                )
         }
-        .background(Color(.systemGray6))
-        .cornerRadius(10)
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
     }
 }
 
