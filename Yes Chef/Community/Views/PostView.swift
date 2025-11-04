@@ -7,7 +7,7 @@
 import SwiftUI
 
 
-//let screen = UIScreen.main.bounds
+let screen = UIScreen.main.bounds
 
 struct PostView: View {
     var recipe: Recipe
@@ -246,7 +246,7 @@ struct PostView: View {
         }
     }
 }
-/*
+
 struct BulletPoint: View {
     var text: String
     let type: Int
