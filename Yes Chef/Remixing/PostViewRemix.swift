@@ -253,9 +253,8 @@ struct BulletPointRemix: View {
             "https://www.themerchantbaker.com/wp-content/uploads/2019/10/Basic-Chaffles-REV-Total-3-480x480.jpg",
             "https://thebestketorecipes.com/wp-content/uploads/2022/01/Easy-Basic-Chaffle-Recipe-Easy-Keto-Chaffle-5.jpg",
             ""
-        ],
-        chefsNotes: "String"
-    )
+        ],chefsNotes: "String",
+        likes: 0)
     
     NavigationStack {
         PostViewRemix(recipe: rec, poster: nil)

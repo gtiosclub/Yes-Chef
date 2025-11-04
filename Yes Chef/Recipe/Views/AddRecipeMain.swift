@@ -24,15 +24,20 @@ struct AddRecipeMain: View {
     }
 
     @Environment(AuthenticationVM.self) var authVM
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack{
             VStack(){
                 HStack{
-                    Image(systemName: "xmark")
-                        .resizable()
-                        .frame(width:20, height:20)
-                        .foregroundStyle(.black)
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .resizable()
+                            .frame(width: 20, height: 20)
+                            .foregroundStyle(.black)
+                    }
                     Spacer()
                     
                     Text("Add Recipe")
@@ -44,7 +49,8 @@ struct AddRecipeMain: View {
                     
                     Button {
                         Task {
-                            await recipeVM.createRecipe(
+                            print("📝 Creating recipe...")
+                            let recipeID = await recipeVM.createRecipe(
                                 userId: authVM.currentUser?.userId ?? "",
                                 name: recipeVM.name,
                                 ingredients: recipeVM.ingredients,
@@ -58,17 +64,28 @@ struct AddRecipeMain: View {
                                 media: recipeVM.mediaItems,
                                 chefsNotes: recipeVM.chefsNotes
                             )
-                            
-                            await recipeVM.addRecipeToRemixTreeAsRoot(
-                                description: recipeVM.description
-                            )
-                            
+                            print("✅ Recipe created with ID: \(recipeID)")
+
+                            // Add to remix tree - either as root OR as child, never both
                             if comeFromRemix {
+                                print("🌳 Adding as CHILD node (remix) with parent: \(remixParentID)")
+                                let remixDescription = recipeVM.chefsNotes.isEmpty ? "Remixed version" : recipeVM.chefsNotes
                                 await recipeVM.addRecipeToRemixTreeAsNode(
-                                    description: recipeVM.description,
+                                    recipeID: recipeID,
+                                    description: remixDescription,
                                     parentID: remixParentID
                                 )
+                            } else {
+                                print("🌳 Adding as ROOT node (new recipe)")
+                                await recipeVM.addRecipeToRemixTreeAsRoot(
+                                    recipeID: recipeID,
+                                    description: "Original recipe"
+                                )
                             }
+
+                            
+                            dismiss()
+
                         }
                     } label: {
                         Image(systemName: "checkmark")
