@@ -9,6 +9,8 @@ import SwiftUI
 struct AddRecipeMain: View {
     @State private var selectedTab: Int = 0
     @State private var recipeVM: CreateRecipeVM
+    @State private var showValidationAlert = false
+    @State private var validationErrorMessage = ""
     
     var comeFromRemix: Bool = false
     var remixParentID: String = ""
@@ -49,6 +51,15 @@ struct AddRecipeMain: View {
                         Spacer()
                         
                         Button {
+                            // Validate form before submitting
+                            let validation = recipeVM.validate()
+                            
+                            if !validation.isValid {
+                                validationErrorMessage = validation.errorMessage ?? "Please fill in all required fields"
+                                showValidationAlert = true
+                                return
+                            }
+                            
                             Task {
                                 print("📝 Creating recipe...")
                                 let recipeID = await recipeVM.createRecipe(
@@ -86,6 +97,10 @@ struct AddRecipeMain: View {
                                     )
                                 }
                                 
+                                // Reset form fields only if not coming from remix
+                                if !comeFromRemix {
+                                    recipeVM.reset()
+                                }
                                 
                                 dismiss()
                                 
@@ -150,6 +165,11 @@ struct AddRecipeMain: View {
                     }
                 }
                     
+            }
+            .alert("Validation Error", isPresented: $showValidationAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(validationErrorMessage)
             }
         }
     }

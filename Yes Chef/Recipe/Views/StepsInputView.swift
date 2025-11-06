@@ -122,7 +122,6 @@ private struct StepRow: View {
 
             HStack {
                 if isAdding {
-                    // For preview additions, use a Text view with green background
                     Text(text)
                         .font(.subheadline)
                         .foregroundColor(Color(hex: "#877872"))
