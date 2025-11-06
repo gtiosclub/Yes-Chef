@@ -45,11 +45,24 @@ struct SearchView : View {
         } else {
             let allSearchableItems = postVM.recipes
             return allSearchableItems.filter {recipe in
-                recipe.name.localizedCaseInsensitiveContains(searchText)
-                &&
-                recipe.tags.contains{ element in
-                    selectedDietary.contains(element) 
+                let matchesSearch = recipe.name.localizedCaseInsensitiveContains(searchText)
+                let matchesCuisine = selectedCuisine.isEmpty || recipe.tags.contains { element in
+                   selectedCuisine.contains(element)
                 }
+                let matchesDietary = selectedDietary.isEmpty || recipe.tags.contains { element in
+                    selectedDietary.contains(element)
+                }
+                let matchesDifficulty = selectedDifficulty.isEmpty || recipe.tags.contains { element in
+                    selectedDifficulty.contains(element)
+                }
+                let matchesTime = selectedTime.isEmpty || recipe.tags.contains { element in
+                    selectedTime.contains(element)
+                }
+                let matchesTags = selectedTags.isEmpty || recipe.tags.contains { element in
+                    selectedTags.contains(element)
+                }
+                return matchesSearch && matchesCuisine && matchesDietary && matchesDifficulty && matchesTime && matchesTags
+                
                 
             }
         }
@@ -72,28 +85,14 @@ struct SearchView : View {
                 } label: {
                     if(selectedCuisine.isEmpty && selectedDietary.isEmpty && selectedDifficulty.isEmpty && selectedTime.isEmpty && selectedTags.isEmpty) {
                         
-//                        RoundedRectangle(cornerRadius: 10)
-//                            .fill(Color(.systemGray6))
-//                            .stroke(Color.orange, lineWidth: 1).overlay(
-//                                Image(systemName: "slider.horizontal.2.square").font(.system(size: 30))
-//                                    .padding(.horizontal, 10)
-//                                    .padding(.vertical, 10)
-//                            
-//                                .foregroundColor(.orange)
-//                            )
-                        
-                        
-                        
                         RoundedRectangle(cornerRadius: 10)
-                            .fill(.orange)
+                            .fill(Color(.systemGray6))
                             .stroke(Color.orange, lineWidth: 1).overlay(
-                                HStack {
-                                    Image(systemName: "slider.horizontal.2.square").font(.system(size: 30))
-                                        .padding(.horizontal, 10)
-                                        .padding(.vertical, 10)
-                                    .foregroundColor(.white)
-        
-                                }
+                                Image(systemName: "slider.horizontal.2.square").font(.system(size: 30))
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 10)
+                            
+                                .foregroundColor(.orange)
                             )
                         
                         
