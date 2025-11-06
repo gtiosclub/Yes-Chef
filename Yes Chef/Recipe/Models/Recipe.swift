@@ -35,6 +35,7 @@ enum Difficulty: String, CaseIterable, Identifiable {
     var likes: Int
     
     var comments: [String] = []
+    var score: Double = 0.0 
     
 
     init(userId: String, recipeId: String, name: String, ingredients: [Ingredient], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, servingSize: Int, media: [String], chefsNotes: String, likes: Int) {

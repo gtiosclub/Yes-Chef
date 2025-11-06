@@ -11,6 +11,13 @@ import FirebaseFirestore
 import UIKit
 
 @Observable class UserViewModel{
+    let weights : [String: Double] = ["like":0.5,
+                                      "share":0.6,
+                                      "save":0.7,
+                                      "comment": 0.8,
+                                      "view": 0.1
+    
+    ]
     func getUserInfo(userID: String) async -> [String: Any]?{
         let db = Firestore.firestore()        
         let info = db.collection("users")
@@ -166,6 +173,31 @@ import UIKit
             print("Can't find user")
         }
         return User(userId: "userID", username: "username", email: "email", bio: "bio", password: "")
+    }
+    
+    func updateSuggestionProfile(userID: String, suggestionProfile: inout [String: Double], recipe: Recipe, interaction: String) async {
+        guard let multiplier = weights[interaction] else { return }
+        for tag in recipe.tags {
+            suggestionProfile[tag, default: 1.0] += multiplier
+        }
+        
+        do {
+            try await Firebase.db.collection("users").document(userID).updateData(["suggestionProfile": suggestionProfile])
+            print("SuggestionProfile updated successfully")
+        } catch {
+            print("Error updating suggestionProfile: \(error)")
+        }
+    }
+    //function to determine similarity of recipe to user suggestion profile
+    func calculateScore(recipe: Recipe, user: [String: Double]) -> Double{
+        let commonKeys = Set(user.keys).intersection(recipe.tags)
+            
+        let dot = recipe.tags.reduce(0.0) { $0 + (user[$1] ?? 1.0) }
+        let userMagnitude = sqrt(user.values.reduce(0.0) { $0 + $1 * $1 })
+        let recipeMagnitude = sqrt(Double(recipe.tags.count))
+            
+        guard userMagnitude != 0 && recipeMagnitude != 0 else { return 0 }
+        return dot / (userMagnitude * recipeMagnitude)
     }
 }
 

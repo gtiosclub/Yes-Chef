@@ -66,7 +66,8 @@ import Observation
                 "myRecipes": newUser.myRecipes,
                 "savedRecipes": newUser.savedRecipes,
                 "likedRecipes": newUser.likedRecipes,
-                "badges": newUser.badges
+                "badges": newUser.badges,
+                "suggestionProfile": newUser.suggestionProfile
             ]
             Firebase.db.collection("users").document(newUser.userId).setData(userData) { err in
                         if let err = err {
@@ -112,6 +113,7 @@ import Observation
             self.currentUser?.likedRecipes = data?["likedRecipes"] as? [String] ?? []
             self.currentUser?.savedRecipes = data?["savedRecipes"] as? [String] ?? []
             self.currentUser?.badges = data?["badges"] as? [String] ?? []
+            self.currentUser?.suggestionProfile = data?["suggestionProfile"] as? [String: Double] ?? [:]
         } catch {
             print("Can't find user")
         }

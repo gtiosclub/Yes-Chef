@@ -417,7 +417,10 @@ struct ChangePasswordView: View {
 
 struct FeedView: View {
     @State private var viewModel = PostViewModel()
+    @State private var UVM = UserViewModel()
     @State private var selectedTab: Tab = .forYou
+    @State private var suggested: [Recipe] = []
+    
     @Environment(AuthenticationVM.self) var authVM
     enum Tab {
         case forYou, following
@@ -621,12 +624,29 @@ struct FeedView: View {
             Task {
                 await authVM.updateCurrentUser()
             }
+            let user = authVM.currentUser ?? User(userId: "String", username: "String", email: "String")
+            suggestedSort(user: user, recipes: viewModel.recipes)
         }
     }
     
     // MARK: - Helper
     private func deterministicHeight(for hash: Int) -> CGFloat {
         imageHeights[abs(hash) % imageHeights.count]
+    }
+    private func suggestedSort(user: User, recipes: [Recipe]) {
+        for recipe in recipes {
+            
+            if user.likedRecipes.contains(recipe.id) {
+                continue
+            }
+            
+            if suggested.contains(where: {$0.id == recipe.id}) {
+                continue
+            }
+            
+            recipe.score = UVM.calculateScore(recipe: recipe, user: user.suggestionProfile)
+            suggested.append(recipe)
+        }
     }
 }
 
