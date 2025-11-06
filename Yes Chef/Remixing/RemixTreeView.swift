@@ -27,6 +27,7 @@ struct NodeCard: View {
     var onTap: (() -> Void)? = nil
     var onHold: (() -> Void)? = nil
     var sizeMultiplier: CGFloat = 1.0
+    @State private var recipeName: String? = nil
 
     private var backgroundColor: Color {
         if isHeld { return Color.blue.opacity(0.85) }
@@ -40,14 +41,19 @@ struct NodeCard: View {
     }
 
     var body: some View {
-        VStack(spacing: 4 * sizeMultiplier) {
-            Text(node.descriptionOfRecipeChanges.isEmpty ? "Recipe" : node.descriptionOfRecipeChanges)
+        // Load recipe info for this node so we can show image + name
+        VStack(spacing: 6 * sizeMultiplier) {
+            // Async load recipe and display first media image if available
+            RecipeNodeImageView(recipeID: node.currNodeID, sizeMultiplier: sizeMultiplier, title: $recipeName)
+
+            // Show recipe name if available, otherwise fall back to description
+            Text(recipeName ?? nodeDescriptionTitle)
                 .font(.system(size: 13 * sizeMultiplier, weight: .semibold))
                 .multilineTextAlignment(.center)
-                .lineLimit(3)
+                .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 6 * sizeMultiplier)
-            
+
             Text(node.currNodeID.prefix(5))
                 .font(.system(size: 10 * sizeMultiplier, weight: .medium))
                 .foregroundColor(.gray.opacity(0.7))
@@ -68,6 +74,75 @@ struct NodeCard: View {
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isTapped)
         .onTapGesture { onTap?() }
         .onLongPressGesture(minimumDuration: 0.5) { onHold?() }
+    }
+
+    // Prefer showing the recipe name when available, otherwise the node description
+    private var nodeDescriptionTitle: String {
+        // We don't have a direct Recipe object here; RecipeNodeImageView will fetch the recipe.
+        // To keep a sensible fallback title, prefer descriptionOfRecipeChanges when present.
+        if !node.descriptionOfRecipeChanges.isEmpty {
+            return node.descriptionOfRecipeChanges
+        }
+        return "Recipe"
+    }
+}
+
+// Small helper view that fetches a Recipe by ID and displays its first media image (or placeholder)
+private struct RecipeNodeImageView: View {
+    let recipeID: String
+    var sizeMultiplier: CGFloat = 1.0
+    @Binding var title: String?
+
+    @State private var recipe: Recipe? = nil
+
+    var body: some View {
+        Group {
+            if let mediaURLString = recipe?.media.first, let url = URL(string: mediaURLString) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .empty:
+                        placeholder
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 56 * sizeMultiplier, height: 56 * sizeMultiplier)
+                            .clipped()
+                            .cornerRadius(8 * sizeMultiplier)
+                    case .failure:
+                        placeholder
+                    @unknown default:
+                        placeholder
+                    }
+                }
+            } else {
+                placeholder
+            }
+        }
+        .task(id: recipeID) {
+            // Avoid duplicate fetches if already loaded
+            if recipe?.recipeId != recipeID {
+                recipe = await Recipe.fetchById(recipeID)
+                // update parent with recipe name when available
+                if let fetched = recipe {
+                    title = fetched.name
+                }
+            }
+        }
+    }
+
+    private var placeholder: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 8 * sizeMultiplier)
+                .fill(
+                    LinearGradient(colors: [Color.gray.opacity(0.12), Color.gray.opacity(0.06)], startPoint: .top, endPoint: .bottom)
+                )
+                .frame(width: 56 * sizeMultiplier, height: 56 * sizeMultiplier)
+
+            Image(systemName: "photo.on.rectangle")
+                .font(.system(size: 20 * sizeMultiplier))
+                .foregroundColor(.gray.opacity(0.6))
+        }
     }
 }
 
@@ -185,27 +260,43 @@ struct CircularCarouselView: View {
     @State private var dragOffset: CGFloat = 0
     @ObservedObject private var inertia = InertiaController()
 
-    private var centeredNode: FirebaseRemixTreeNode? {
-    // End of Eesh New Edit
-        guard !nodes.isEmpty else { return nil }
-        let totalRotation = rotation + dragOffset
-        let normalizedRotation = totalRotation.truncatingRemainder(dividingBy: 360)
-        let adjustedRotation = normalizedRotation < 0 ? normalizedRotation + 360 : normalizedRotation
-        let anglePerNode = 360.0 / CGFloat(nodes.count)
-        let centeredIndex = Int(round(adjustedRotation / anglePerNode)) % nodes.count
-        return nodes[centeredIndex]
+    private var anglePerNode: CGFloat {
+       360.0 / CGFloat(max(nodes.count, 1))
     }
+    
+    private var centeredNodeIndex: Int? {
+        guard !nodes.isEmpty else { return nil }
+        let totalRotation = (rotation + dragOffset).truncatingRemainder(dividingBy: 360)
+        let normalized = totalRotation < 0 ? totalRotation + 360 : totalRotation
+        let index = Int((normalized / anglePerNode).rounded()) % nodes.count
+        return (nodes.count - index) % nodes.count
+    }
+
+    private var centeredNode: FirebaseRemixTreeNode? {
+        // End of Eesh New Edit
+        guard let idx = centeredNodeIndex else { return nil }
+        return nodes[idx]
+    }
+
 
     var body: some View {
         GeometryReader { geo in
             let radius = min(geo.size.width / 2.5, 140)
             ZStack {
                 ForEach(Array(nodes.enumerated()), id: \.1.currNodeID) { index, node in
-                    let angle = (CGFloat(index) / CGFloat(nodes.count)) * 360 + rotation + dragOffset
-                    let xOffset = cos(angle * .pi / 180) * radius
-                    let zOffset = sin(angle * .pi / 180) * radius
-                    let scale = 0.7 + 0.3 * ((zOffset / radius) + 1) / 2
-                    let opacity = 0.4 + 0.6 * ((zOffset / radius) + 1) / 2
+                    let baseAngle = CGFloat(index) * anglePerNode
+                    let angle = baseAngle + rotation + dragOffset
+                    let radians = angle * .pi / 180
+                    let xOffset = sin(radians) * radius
+                    let zOffset = cos(radians) * radius
+                    
+                    let normalizedDepth = (zOffset / radius + 1) / 2
+                    
+                    let isCenter = (index == centeredNodeIndex)
+                    
+                    let scale: CGFloat = isCenter ? 1.45 : (0.7 + 0.3 * normalizedDepth)
+                    let opacity: Double = isCenter ? 1.0 : (0.4 + 0.6 * normalizedDepth)
+                    let blur: CGFloat = isCenter ? 0 : (1 - normalizedDepth) * 6
                     
                     NodeCard(
                         node: node,
@@ -215,31 +306,60 @@ struct CircularCarouselView: View {
                         onHold: { onNodeHold?(node) }
                     )
                     .frame(width: 95, height: 90)
+                    .blur (radius: blur)
                     .scaleEffect(scale)
                     .opacity(opacity)
                     .offset(x: xOffset)
                     .zIndex(zOffset)
+                    .animation(.easeInOut(duration: 0.25), value: centeredNodeIndex)
                 }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-            .gesture(
-                DragGesture()
-                    .onChanged { value in
-                        dragOffset = -value.translation.width / 8
-                    }
-                    .onEnded { value in
-                        rotation += dragOffset
-                        dragOffset = 0
-                        inertia.start(with: -value.predictedEndTranslation.width / 8) { delta in
-                            rotation += delta
+
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in
+                            dragOffset = -value.translation.width / 8
+                        }
+                        .onEnded { value in
+                            rotation += dragOffset
+                            dragOffset = 0
+                            inertia.start(with: -value.predictedEndTranslation.width / 8) { delta in
+                                rotation += delta
+                            }
+                        }
+                )
+                .onChange(of: centeredNode?.currNodeID) { newNodeID in
+                    onCenterNodeChange?(centeredNode)
+                }
+                .overlay(
+                    HStack {
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                rotation += anglePerNode
+                            }
+                        }) {
+                            Image(systemName: "chevron.left.circle.fill")
+                                .font(.system(size: 30))
+                                .foregroundColor(.blue.opacity(0.7))
+                        }
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                rotation -= anglePerNode
+                            }
+                        }) {
+                            Image(systemName: "chevron.right.circle.fill")
+                                .font(.system(size: 30))
+                                .foregroundColor(.blue.opacity(0.7))
                         }
                     }
-            )
-            .onChange(of: centeredNode?.currNodeID) { newNodeID in
-                onCenterNodeChange?(centeredNode)
+                        .padding(.horizontal, 10)
+                )
             }
+            .frame(height: 180)
         }
-        .frame(height: 180)
     }
 
     class InertiaController: ObservableObject {

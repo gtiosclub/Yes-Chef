@@ -25,7 +25,7 @@ struct AddIngredients: View {
                 } label: {
                     Image(systemName: "plus")
                         .foregroundColor(.white)
-                        .font(.system(size: 24, weight: .bold))
+                        .font(.system(size: 25, weight: .bold))
                         .frame(width: 40, height: 40)
                         .padding(2)
                         .background(Color(hex: "#ffa94a"))

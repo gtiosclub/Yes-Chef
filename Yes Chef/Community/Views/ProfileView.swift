@@ -259,6 +259,8 @@ struct ProfileView: View {
                             .foregroundColor(.black)
                         
                     }
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
                 }
                 .padding(.bottom , 10)
                 .frame(maxWidth: .infinity)
@@ -290,6 +292,8 @@ struct ProfileView: View {
                             .foregroundColor(.black)
                         
                     }
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
                 }
                 .frame(maxWidth: .infinity)
                 .zIndex(selectedTab == 1 ? 2 : 0)
@@ -449,6 +453,7 @@ struct ProfileView_Previews: PreviewProvider {
             */
             NavigationView {
                 ProfileView(user: mockOtherUser, isOwnProfile: true)
+                    .environment(AuthenticationVM())
             }
             .previewDisplayName("Other User Profile")
         }

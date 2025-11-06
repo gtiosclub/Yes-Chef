@@ -130,4 +130,5 @@ struct RecipeCard: View {
 
 #Preview {
     CommunityView()
+        .environment(AuthenticationVM())
 }

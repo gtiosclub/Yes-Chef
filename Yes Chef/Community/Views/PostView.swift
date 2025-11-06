@@ -252,6 +252,10 @@ struct PostView: View {
         .onAppear {
             liked = (authVM.currentUser?.likedRecipes ?? []).contains(recipe.id)
             following = (authVM.currentUser?.following ?? []).contains(recipe.userId)
+            Task {
+                let user = authVM.currentUser ?? User(userId: "", username: "", email: "", bio: "")
+                await UVM.updateSuggestionProfile(userID: user.userId, suggestionProfile: &user.suggestionProfile, recipe: recipe, interaction: "view")
+            }
         }
         
         .navigationBarBackButtonHidden(true)
@@ -364,6 +368,10 @@ struct PostView: View {
                             recipe.likes += 1
                             authVM.currentUser?.likedRecipes.append(recipe.id)
                             liked = true
+                            Task {
+                                let user = authVM.currentUser ?? User(userId: "", username: "", email: "", bio: "")
+                                await UVM.updateSuggestionProfile(userID: user.userId, suggestionProfile: &user.suggestionProfile, recipe: recipe, interaction: "like")
+                            }
                         } else {
                             Task {
                                 try await postVM.unlikePost(recipeId: recipe.id)

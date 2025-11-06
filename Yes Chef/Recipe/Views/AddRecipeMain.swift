@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct AddRecipeMain: View {
-    @State private var selectedTab: String = "EditDetails"
+    @State private var selectedTab: Int = 0
     @State private var recipeVM: CreateRecipeVM
     
     var comeFromRemix: Bool = false
@@ -97,121 +97,89 @@ struct AddRecipeMain: View {
                 .padding(.horizontal, 10)
                 .padding()
                 
-                HStack{
-                    curvedTab(title: "Edit Details", tag: "EditDetails", leftSide: true)
-                    curvedTab(title: "AI Chef", tag: "AIChef", leftSide: false)
-                }.frame(height: 50)
-                
-                if selectedTab == "EditDetails" {
+                tabSelectionView
+                if selectedTab == 0 {
                     CreateRecipe(recipeVM: recipeVM)
-                } else if selectedTab == "AIChef" {
+                } else {
                     AIChefBaseView(recipeVM: recipeVM)
                 }
             }
-            .background(Color(hex: "#fffdf5"))
+            .background(Color(hex: "#fffffc"))
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
     }
-    private func curvedTab(title: String, tag: String, leftSide: Bool) -> some View {
-        ZStack {
-            Button(action: {
-                selectedTab = tag
-            }) {
-                Text(title)
-                    .font(.headline)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(
-                        Group {
-                            if selectedTab == tag {
-                                Color(hex: "#fffdf5")
-                            } else {
-                                Color(hex: "#cdc2ba")
-                            }
-                        }
-                    )
-                    .foregroundColor(.black)
-                    .clipShape(
-                        TabShape()
-                    )
-                    .overlay(
-                        TabBorder(cornerRadius: 16)
-                                    .stroke(Color.gray, lineWidth: 1)
-                    )
+    
+    private var tabSelectionView: some View {
+        ZStack(alignment: .bottomLeading){
+            
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(hex: "#fffffc"))
+                .frame(height: 56)
+            
+            HStack(spacing: 0) {
                 
+                Button(action: { selectedTab = 0 }) {
+                    VStack(spacing: 8) {
+                        Text("Edit Details")
+                            .font(.body)
+                            .foregroundColor(selectedTab == 0 ? Color(hex: "#404741") : Color(hex: "#7C887DF2"))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
+                }
+                .padding(.bottom, 10)
+                .frame(maxWidth: .infinity)
+                .zIndex(selectedTab == 0 ? 1 : 0)
+                .background(
+                    RoundedCorner(radius: 25, corners: selectedTab == 0 ? [.topLeft, .topRight] : [.bottomRight,.topRight,.topLeft])
+                        .fill(selectedTab == 0 ? Color(hex: "#fffffc") : Color(hex: "#F9F5F2"))
+                        .frame(width: (UIScreen.main.bounds.width)/2, height: 50)
+                        .background(
+                            RoundedCorner(radius: 25, corners: selectedTab == 0 ? [.topLeft, .topRight] : [.bottomRight,.topRight,.topLeft])
+                                .fill(Color(.systemGray4))
+                                .frame(width: (UIScreen.main.bounds.width)/2 + 1, height: 50)
+                                .padding(selectedTab == 0 ? .bottom : .top, 3)
+                                .overlay(
+                                    Rectangle()
+                                        .fill(Color(hex: "#fffffc"))
+                                        .padding(selectedTab == 0 ? .top : .bottom, 35)
+                                )
+                        )
+                )
+                
+                Button(action: { selectedTab = 1 }) {
+                    VStack(spacing: 8) {
+                        Text("AI Chef")
+                            .font(.body)
+                            .foregroundColor(selectedTab == 1 ? Color(hex: "#404741") : Color(hex: "#7C887DF2"))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
+                }
+                .frame(maxWidth: .infinity)
+                .zIndex(selectedTab == 1 ? 2 : 0)
+                .background(
+                    RoundedCorner(radius: 25, corners: selectedTab == 1 ? [.topLeft, .topRight] : [.bottomRight,.bottomLeft,.topRight,.topLeft])
+                        .fill(selectedTab == 1 ? Color(hex: "#fffffc") : Color(hex: "#F9F5F2"))
+                        .frame(width: (UIScreen.main.bounds.width)/2, height: 50)
+                        .background(
+                            //Border over top of tab
+                            RoundedCorner(radius: 25, corners: selectedTab == 1 ? [.topLeft, .topRight] : [.bottomRight,.bottomLeft, .topRight,.topLeft])
+                                .fill(Color(.systemGray4))
+                                .frame(width: (UIScreen.main.bounds.width)/2 + 1, height: 50)
+                                .padding(selectedTab == 1 ? .bottom : .top, 3)
+                                .overlay(
+                                    Rectangle()
+                                        .fill(Color(hex: "#fffffc"))
+                                        .padding(selectedTab == 1 ? .top : .bottom, 35)
+                                )
+                        )
+                )
             }
-            .buttonStyle(.plain)
+            .padding(.top, 8)
+            .padding(.bottom, 10)
+            .padding(.horizontal, 0)
         }
-    }
-}
-
-// MARK: - Custom shape for selective corners
-struct TabShape: Shape {
-    var cornerRadius: CGFloat = 12
-    
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        
-        path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
-        
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + cornerRadius))
-        
-        path.addArc(
-            center: CGPoint(x: rect.minX + cornerRadius, y: rect.minY + cornerRadius),
-            radius: cornerRadius,
-            startAngle: Angle(degrees: 180),
-            endAngle: Angle(degrees: 270),
-            clockwise: false
-        )
-        
-        path.addLine(to: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY))
-        
-        path.addArc(
-            center: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY + cornerRadius),
-            radius: cornerRadius,
-            startAngle: Angle(degrees: 270),
-            endAngle: Angle(degrees: 0),
-            clockwise: false
-        )
-        
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
-        
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
-        
-        return path
-    }
-}
-
-struct TabBorder: Shape {
-    var cornerRadius: CGFloat = 12
-    
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        
-        path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
-        
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + cornerRadius))
-        
-        path.addArc(
-            center: CGPoint(x: rect.minX + cornerRadius, y: rect.minY + cornerRadius),
-            radius: cornerRadius,
-            startAngle: Angle(degrees: 180),
-            endAngle: Angle(degrees: 270),
-            clockwise: false
-        )
-        
-        path.addLine(to: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY))
-        
-        path.addArc(
-            center: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY + cornerRadius),
-            radius: cornerRadius,
-            startAngle: Angle(degrees: 270),
-            endAngle: Angle(degrees: 0),
-            clockwise: false
-        )
-        
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
-        
-        return path
     }
 }
 
