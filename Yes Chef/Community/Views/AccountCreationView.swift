@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct AccountCreationView : View {
-    @State private var selectedTab = "Sign Up"
+    @State private var selectedTab = "Login"
+    
     
     var body: some View {
         VStack {
@@ -19,26 +20,75 @@ struct AccountCreationView : View {
                 Text("Sign up or login below")
                     .font(.system(.subheadline))
                     .foregroundColor(.gray)
-                HStack(spacing: 0) {
-                    Button(action: { selectedTab = "Login" }) {
-                        Text("Login")
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 15)
-                            .background(selectedTab == "Login" ? Color(.systemGray6) : Color(.systemGray5))
-                            .foregroundColor(.black)
+
+                ZStack(alignment: .bottomLeading) {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.white)
+                        .frame(height: 56)
+
+                    HStack(spacing: 0) {
+                        Button(action: { selectedTab = "Login" }) {
+                            VStack(spacing: 8) {
+                                Text("Login")
+                                    .font(.body)
+                                    .fontWeight(selectedTab == "Login" ? .semibold : .regular)
+                                    .foregroundColor(.black)
+                            }
+                        }
+                        .padding(.bottom , 10)
+                        .frame(maxWidth: .infinity)
+                        .zIndex(selectedTab == "Login" ? 1 : 0)
+                        .background(
+                            RoundedCorner(radius: 25, corners: selectedTab == "Login" ? [.topLeft, .topRight] : [.bottomRight,.topRight,.topLeft])
+                                .fill(selectedTab == "Login" ? Color.white : Color(.systemGray6))
+                                .frame(width: (UIScreen.main.bounds.width)/2, height: 50)
+                                .background(
+                                    RoundedCorner(radius: 25, corners: selectedTab == "Login" ? [.topLeft, .topRight] : [.bottomRight,.topRight,.topLeft])
+                                        .fill(Color(.systemGray4))
+                                        .frame(width: (UIScreen.main.bounds.width)/2 + 1, height: 50)
+                                        .padding(selectedTab == "Login" ? .bottom : .top, 3)
+                                        .overlay(
+                                            Rectangle()
+                                                .fill(Color.white)
+                                                .padding(selectedTab == "Login" ? .top : .bottom, 35)
+                                        )
+                                )
+                        )
+
+                        Button(action: { selectedTab = "Sign Up" }) {
+                            VStack(spacing: 8) {
+                                Text("Sign Up")
+                                    .font(.body)
+                                    .fontWeight(selectedTab == "Sign Up" ? .semibold : .regular)
+                                    .foregroundColor(.black)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .zIndex(selectedTab == "Sign Up" ? 2 : 0)
+                        .background(
+                            RoundedCorner(radius: 25, corners: selectedTab == "Sign Up" ? [.topLeft, .topRight] : [.bottomRight,.bottomLeft,.topRight,.topLeft])
+                                .fill(selectedTab == "Sign Up" ? Color.white : Color(.systemGray6))
+                                .frame(width: (UIScreen.main.bounds.width)/2, height: 50)
+                                .background(
+                                    RoundedCorner(radius: 25, corners: selectedTab == "Sign Up" ? [.topLeft, .topRight] : [.bottomRight,.bottomLeft,.topRight,.topLeft])
+                                        .fill(Color(.systemGray4))
+                                        .frame(width: (UIScreen.main.bounds.width)/2 + 1, height: 50)
+                                        .padding(selectedTab == "Sign Up" ? .bottom : .top, 3)
+                                        .overlay(
+                                            Rectangle()
+                                                .fill(Color.white)
+                                                .padding(selectedTab == "Sign Up" ? .top : .bottom, 35)
+                                        )
+                                )
+                        )
                     }
-                    .clipShape(UnevenRoundedRectangle(cornerRadii: .init(topLeading: 20, bottomLeading: 0, bottomTrailing: 0, topTrailing: 20)))
-                    Button(action: { selectedTab = "Sign Up" }) {
-                        Text("Sign Up")
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 15)
-                            .background(selectedTab == "Sign Up" ? Color(.systemGray6) : Color(.systemGray5))
-                            .foregroundColor(.black)
-                    }
-                    .clipShape(UnevenRoundedRectangle(cornerRadii: .init(topLeading: 20, bottomLeading: 0, bottomTrailing: 0, topTrailing: 20)))
+                    .padding(.top, 8)
+                    .padding(.bottom, 10)
+                    .padding(.horizontal, 0)
                 }
+
+
             }
-            .padding(.horizontal)
             if selectedTab == "Sign Up" {
                 NewRegister()
             } else {
@@ -48,10 +98,12 @@ struct AccountCreationView : View {
         .ignoresSafeArea(edges: .bottom)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .padding(.top, 100)
+        .navigationBarHidden(false)
+        .preferredColorScheme(.light)
+
     }
 }
 struct NewRegister : View {
-    @State private var nameText = ""
     @State private var usernameText = ""
     @State private var emailText = ""
     @State private var phoneNumberText = ""
@@ -63,9 +115,9 @@ struct NewRegister : View {
     @State private var passwordErrorMessage: String?
     @State private var confirmPasswordErrorMessage: String?
     @State private var error: Bool = false
-    @State private var viewModel = AuthenticationVM()
+    @State private var authVM = AuthenticationVM()
     var body : some View {
-            TextField("Enter your name", text: $nameText)
+            TextField("Enter your name", text: $usernameText)
                 .padding()
                 .background(Color(.systemGray6))
                 .cornerRadius(10)
@@ -78,7 +130,7 @@ struct NewRegister : View {
                     .foregroundColor(.red)
                     .padding(.horizontal, 40)
             }
-            TextField("Enter your email", text: $usernameText)
+            TextField("Enter your email", text: $emailText)
                 .padding()
                 .background(Color(.systemGray6))
                 .cornerRadius(10)
@@ -96,6 +148,9 @@ struct NewRegister : View {
                 .cornerRadius(10)
                 .padding(.horizontal, 40)
                 .padding(.bottom, 20)
+                .textContentType(.none)
+                .autocapitalization(.none)
+                .disableAutocorrection(true)
             if let passwordErrorMessage = passwordErrorMessage {
                 Text(passwordErrorMessage)
                     .font(.caption)
@@ -108,6 +163,9 @@ struct NewRegister : View {
                 .cornerRadius(10)
                 .padding(.horizontal, 40)
                 .padding(.bottom, 20)
+                .textContentType(.none)
+                .autocapitalization(.none)
+                .disableAutocorrection(true)
             if let confirmPasswordErrorMessage = confirmPasswordErrorMessage {
                 Text(confirmPasswordErrorMessage)
                     .font(.caption)
@@ -115,7 +173,14 @@ struct NewRegister : View {
                     .padding(.horizontal, 40)
             }
             Button(action: {
-                if nameText.isEmpty {
+                error = false
+                nameErrorMessage = nil
+                emailErrorMessage = nil
+                phoneErrorMessage = nil
+                passwordErrorMessage = nil
+                confirmPasswordErrorMessage = nil
+                
+                if usernameText.isEmpty {
                     nameErrorMessage = "Please enter a name."
                 }
                 if !passwordText.isValidPassword {
@@ -130,16 +195,16 @@ struct NewRegister : View {
                     emailErrorMessage = "Please enter a valid email."
                     error = true
                 }
-                if !phoneNumberText.isValidPhone {
-                    phoneErrorMessage = "Please enter a valid phone number."
-                    error = true
-                }
+//                if !phoneNumberText.isValidPhone {
+//                    phoneErrorMessage = "Please enter a valid phone number."
+//                    error = true
+//                }
                 if !error {
                     passwordErrorMessage = nil
                     confirmPasswordErrorMessage = nil
                     emailErrorMessage = nil
                     phoneErrorMessage = nil
-                    viewModel.register(email: emailText, password: passwordText, username: usernameText)
+                    authVM.register(email: emailText, password: passwordText, username: usernameText)
                 }
             }) {
                 Text("Sign Up")
@@ -167,13 +232,16 @@ struct NewLogin: View {
                     .padding(.top, 20)
                     .padding(.horizontal, 40)
                     .padding(.bottom, 20)
-                
+                    .autocapitalization(.none)
                 SecureField("Password", text: $password)
                     .padding()
                     .background(Color(.systemGray6))
                     .cornerRadius(10)
                     .padding(.horizontal, 40)
                     .padding(.bottom, 20)
+                    .textContentType(.none)
+                    .autocapitalization(.none)
+                    .disableAutocorrection(true)
                 Button(action: {
                     Task {
                         await authVM.login(email: email, password: password)
@@ -181,6 +249,7 @@ struct NewLogin: View {
                 }) {
                     if authVM.isLoading {
                         Text("Loading...")
+                            .foregroundColor(.gray)
                     } else {
                         Text("Log In")
                             .fontWeight(.semibold)
@@ -233,3 +302,5 @@ extension String {
 #Preview {
     AccountCreationView()
 }
+
+

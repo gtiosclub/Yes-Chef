@@ -23,7 +23,8 @@ struct MediaItem: Identifiable {
 struct AddMedia: View {
     @State private var selectedPhotoItems: [PhotosPickerItem] = []
     @Binding var mediaItems: [MediaItem]
-    var onImageTap: ((Int) -> Void)? 
+    var onImageTap: ((Int) -> Void)?
+    var padding: EdgeInsets = EdgeInsets(top: 16, leading: 12, bottom: 16, trailing: 12)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -35,11 +36,15 @@ struct AddMedia: View {
                 ) {
                     ZStack {
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.gray)
+                            .fill(Color(hex: "#F9F5F2"))
                             .frame(width: 120, height: 120)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color(hex: "#453A36"), lineWidth: 1)
+                            )
                         Image(systemName: "plus")
-                            .foregroundColor(.white)
-                            .font(.system(size: 30, weight: .bold))
+                            .foregroundColor(Color(hex: "#453A36"))
+                            .font(.system(size: 25))
                     }
                 }
                 .onChange(of: selectedPhotoItems) { newItems in

@@ -6,9 +6,11 @@
 //
 
 @preconcurrency import FirebaseAuth
+import FirebaseFirestore
 import Observation
 
 @Observable class AuthenticationVM {
+    
     var errorMessage: String?
     var isLoading = false
     var isLoggedIn = false
@@ -18,7 +20,6 @@ import Observation
     init() {
         self.auth = Auth.auth()
     }
-    
     
     func login(email: String, password: String) async {
         isLoading = true
@@ -30,7 +31,7 @@ import Observation
                 self.isLoading = false
                 self.isLoggedIn = true
                 print("Signed in as \(user.uid ?? "Anonymous")")
-                self.currentUser = User(userId: user.uid, username: "YesChef", email: email, bio: "Hi! Learning to cook!")
+                self.currentUser = User(userId: user.uid, username: user.uid, email: email, bio: "Hi! Learning to cook!")
             }
         } catch {
             DispatchQueue.main.async {
@@ -50,12 +51,13 @@ import Observation
             
             guard let user = result?.user else {return}
             
-            let newUser = User(userId: user.uid, username: username, email: email)
+            let newUser = User(userId: user.uid, username: username, email: email, password: password)
             
             let userData: [String: Any] = [
                 "userId": newUser.userId,
                 "username": newUser.username,
                 "email": newUser.email,
+                "password": newUser.password ?? "",
                 "phoneNumber": newUser.phoneNumber ?? "",
                 "bio": newUser.bio ?? "",
                 "profilePhoto": newUser.profilePhoto,
@@ -63,7 +65,9 @@ import Observation
                 "following": newUser.following,
                 "myRecipes": newUser.myRecipes,
                 "savedRecipes": newUser.savedRecipes,
-                "badges": newUser.badges
+                "likedRecipes": newUser.likedRecipes,
+                "badges": newUser.badges,
+                "suggestionProfile": newUser.suggestionProfile
             ]
             Firebase.db.collection("users").document(newUser.userId).setData(userData) { err in
                         if let err = err {
@@ -90,6 +94,28 @@ import Observation
             }
         } catch {
             self.errorMessage = error.localizedDescription
+        }
+    }
+    
+    func updateCurrentUser() async {
+        let db = Firestore.firestore()
+        let userRef = db.collection("users").document(self.currentUser?.userId ?? "")
+        
+        do {
+            let document = try await userRef.getDocument()
+            let data = document.data()
+            self.currentUser?.profilePhoto = data?["profilePhoto"] as? String ?? ""
+            self.currentUser?.username = data?["username"] as? String ?? "username"
+            self.currentUser?.bio = data?["bio"] as? String ?? "bio"
+            self.currentUser?.email = data?["email"] as? String ?? "email"
+            self.currentUser?.followers = data?["followers"] as? [String] ?? []
+            self.currentUser?.following = data?["following"] as? [String] ?? []
+            self.currentUser?.likedRecipes = data?["likedRecipes"] as? [String] ?? []
+            self.currentUser?.savedRecipes = data?["savedRecipes"] as? [String] ?? []
+            self.currentUser?.badges = data?["badges"] as? [String] ?? []
+            self.currentUser?.suggestionProfile = data?["suggestionProfile"] as? [String: Double] ?? [:]
+        } catch {
+            print("Can't find user")
         }
     }
 }

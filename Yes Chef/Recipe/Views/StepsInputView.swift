@@ -16,10 +16,9 @@ struct StepsInputView: View {
     @State private var draggingIndex: Int? = nil
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading) {
             HStack {
                 SectionHeader(title: "Steps")
-                    .padding(.leading, -12)
                 Spacer()
                 Button {
                     withAnimation(.easeInOut(duration: 0.15)) {
@@ -31,23 +30,21 @@ struct StepsInputView: View {
                         Text("Done")
                             .font(.subheadline).bold()
                             .padding(.horizontal, 10).padding(.vertical, 6)
-                            .background(Color.gray.opacity(0.2))
                             .cornerRadius(10)
-                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
                             .foregroundColor(.primary)
                     } else {
                         Image(systemName: "square.and.pencil")
-                            .font(.title3)
+                            .font(.title3).bold()
                             .foregroundColor(.black)
                             .frame(width: 34, height: 34)
-                            .background(Circle().fill(Color.gray.opacity(0.3)))
-                    }
+                }
                 }
             }
-            .padding(.horizontal)
+            .padding(.trailing)
+            .padding(.leading, 5)
 
             ScrollView {
-                LazyVStack(spacing: 8) {
+                LazyVStack {
                     ForEach(steps.indices, id: \.self) { index in
                         StepRow(
                             index: index,
@@ -77,10 +74,13 @@ struct StepsInputView: View {
                             Button {
                                steps.append("")
                             } label: {
-                                Circle()
-                                    .fill(Color.gray.opacity(0.3))
-                                    .frame(width: 34, height: 34)
-                                    .overlay(Image(systemName: "plus").foregroundColor(.black).font(.title3))
+                                Image(systemName: "plus")
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 25, weight: .bold))
+                                    .frame(width: 40, height: 40)
+                                    .padding(2)
+                                    .background(Color(hex: "#ffa94a"))
+                                    .clipShape(Circle())
                             }
                             Spacer()
                         }
@@ -108,34 +108,40 @@ private struct StepRow: View {
     var onDelete: () -> Void
 
     var body: some View {
-        HStack(alignment: .center, spacing: 10) {
+        VStack(alignment: .leading, spacing: 5) {
             Text(String(format: "%02d", index + 1))
                 .font(.custom("Georgia", size: 24))
                 .foregroundStyle(Color(hex: "#453736"))
                 .fontWeight(.semibold)
                 .frame(width: 40, alignment: .center)
 
-            StepEditor(
-                text: $text,
-                placeholder: "Enter step...",
-                isEditing: isEditing
-            )
-
-            if isEditing && canDelete {
-                Button(action: onDelete) {
-                    Circle()
-                        .fill(Color(.gray.opacity(0.3)))
-                        .frame(width: 34, height: 34)
-                        .overlay(Image(systemName: "minus").foregroundColor(.black).font(.title3))
+            HStack {
+                StepEditor(
+                    text: $text,
+                    placeholder: "Enter step...",
+                    isEditing: isEditing
+                )
+                
+                if isEditing && canDelete {
+                    Button(action: onDelete) {
+                        Circle()
+                            .fill(Color(hex:"#FFA947"))
+                            .frame(width: 34, height: 34)
+                            .overlay(Image(systemName: "minus").foregroundColor(.white).font(.title3))
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
-            }
-
-            if isEditing {
-                Circle()
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(width: 34, height: 34)
-                    .overlay(Image(systemName: "line.3.horizontal").foregroundColor(.black).font(.title3))
+                
+                if isEditing {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 34, height: 34)
+                        .overlay(
+                            Image(systemName: "line.3.horizontal")
+                                .foregroundColor(Color(hex:"#FFA947"))
+                                .font(.title3)
+                        )
+                }
             }
         }
     }
@@ -175,6 +181,8 @@ struct StepEditor: View {
     @Binding var text: String
     var placeholder: String
     var isEditing: Bool
+    var keyboardType: UIKeyboardType = .default
+    var padding: EdgeInsets = EdgeInsets(top: 10, leading: 12, bottom: 5, trailing: 12)
 
     var body: some View {
         ZStack(alignment: .leading) {
@@ -189,14 +197,16 @@ struct StepEditor: View {
                 .background(Color.clear)
                 .font(.subheadline)
                 .frame(minHeight: 40, maxHeight: 100)
-                .padding(.horizontal, 4)
-                .padding(.vertical, 2)
                 .disabled(!isEditing)
                 .opacity(isEditing ? 1 : 0.6)
+                .keyboardType(keyboardType)
+                .foregroundColor(Color(hex: "#877872"))
+                .padding(padding)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color(hex: "#F9F5F2"))
+                )
         }
-        .background(Color(.systemGray6))
-        .cornerRadius(10)
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
     }
 }
 

@@ -11,17 +11,37 @@ struct StyledTextField: View {
     @Binding var text: String
     var height: CGFloat = 0
     var keyboardType: UIKeyboardType = .default
+    var padding: EdgeInsets = EdgeInsets(top: 16, leading: 12, bottom: 16, trailing: 12)
     
     var body: some View {
-        TextField(placeholder, text: $text)
+        TextField("", text: $text)
+            .placeholder(when: text.isEmpty) {
+                Text(placeholder)
+                    .foregroundColor(Color(hex: "#7C887DF2"))
+                    .font(.subheadline)
+            }
             .keyboardType(keyboardType)
             .font(.subheadline)
-            .padding(10)
+            .foregroundColor(Color(hex: "#404741"))
+            .padding(padding)
             .padding(.bottom, height)
-            .foregroundColor(.primary)
-            .background(Color(.systemGray6))
-            .cornerRadius(10)
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.black, lineWidth: 1))
+            .background(
+                RoundedRectangle(cornerRadius: 17)
+                    .fill(Color(hex: "#F9F5F2"))
+            )
             .padding(.horizontal)
+    }
+}
+
+extension View {
+    func placeholder<Content: View>(
+        when shouldShow: Bool,
+        alignment: Alignment = .leading,
+        @ViewBuilder placeholder: () -> Content
+    ) -> some View {
+        ZStack(alignment: alignment) {
+            placeholder().opacity(shouldShow ? 1 : 0)
+            self
+        }
     }
 }

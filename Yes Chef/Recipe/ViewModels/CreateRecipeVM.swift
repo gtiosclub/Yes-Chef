@@ -15,7 +15,7 @@ import SwiftUI
     var userIdInput: String = ""
     var name: String = ""
     var description: String = ""
-    var ingredients: [Ingredient] = []
+    var ingredients: [Ingredient] = [Ingredient()]
     var selectedAllergens: [SearchableValue<Allergen>] = []
     var selectedTags: [SearchableValue<Tag>] = []
     var prepTimeInput: String = ""
@@ -27,6 +27,8 @@ import SwiftUI
     
     var messages: [SmartMessage] = []
     var isThinking: Bool = false
+    
+    var toolcall: [ToolCallEntry]? = nil
     
     private let ai = AIViewModel()
     
@@ -82,77 +84,150 @@ import SwiftUI
         // For now, they won't be populated in localMediaPaths
     }
 
-    func applyChanges(item: String, removing: [String], adding: [String]) {
-            switch item.lowercased() {
-            case "title":
-                if let newTitle = adding.first {
+    func applyChanges(toolCall: ToolCallEntry) {
+        let item = toolCall.item.lowercased()
+        let removing = toolCall.removing
+        let adding = toolCall.adding
+        
+        switch item {
+        case "title", "name":
+            if let firstAdding = adding.first {
+                switch firstAdding {
+                case .string(let newTitle):
                     name = newTitle
+                case .ingredient:
+                    print("error")
                 }
-                
-//            case "ingredients":
-//                let removingSet = Set(removing.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
-//                selectedIngredients.removeAll { value in
-//                    removingSet.contains(value.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines))
-//                }
-//                
-//                let existingSet = Set(selectedIngredients.map { $0.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
-//                for add in adding {
-//                    let key = add.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-//                    if !existingSet.contains(key) {
-//                        if let matchingIngredient = Ingredient.allIngredients.first(where: {
-//                            $0.displayName.lowercased() == key
-//                        }) {
-//                            selectedIngredients.append(.predefined(matchingIngredient))
-//                        } else {
-//                            selectedIngredients.append(.custom(add.trimmingCharacters(in: .whitespacesAndNewlines)))
-//                        }
-//                    }
-//                }
-                
-            case "allergens":
-                let removingSet = Set(removing.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
-                selectedAllergens.removeAll { value in
-                    removingSet.contains(value.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines))
+            }
+            
+        case "preptime", "prep time":
+            if let firstAdding = adding.first {
+                switch firstAdding {
+                case .string(let newPrepTime):
+                    prepTimeInput = newPrepTime
+                case .ingredient:
+                    print("error")
                 }
-                
-                let existingSet = Set(selectedAllergens.map { $0.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
-                for add in adding {
-                    let key = add.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+            
+        case "description":
+            if let firstAdding = adding.first {
+                switch firstAdding {
+                case .string(let newDescription):
+                    description = newDescription
+                case .ingredient:
+                    print("error")
+                }
+            }
+            
+        case "ingredients":
+            let removingSet = Set(removing.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
+            let filteredIngredients = ingredients.filter { !removingSet.contains($0.name.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)) }
+
+            var existingSet = Set(filteredIngredients.map { $0.name.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
+            var updatedIngredients = filteredIngredients
+
+            for addingItem in adding {
+                switch addingItem {
+                case .ingredient(let newIngredient):
+                    let key = newIngredient.name.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !existingSet.contains(key) {
+                        updatedIngredients.append(newIngredient)
+                        existingSet.insert(key)
+                    }
+                case .string(let ingredientString):
+                    let key = ingredientString.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !existingSet.contains(key) {
+                        updatedIngredients.append(
+                            Ingredient(name: ingredientString.trimmingCharacters(in: .whitespacesAndNewlines))
+                        )
+                        existingSet.insert(key)
+                    }
+                }
+            }
+
+            self.ingredients = updatedIngredients
+
+
+
+            
+        case "allergens":
+            let removingSet = Set(removing.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
+            selectedAllergens.removeAll { value in
+                removingSet.contains(value.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines))
+            }
+            
+            let existingSet = Set(selectedAllergens.map { $0.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
+            for addingItem in adding {
+                switch addingItem {
+                case .string(let allergenString):
+                    let key = allergenString.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
                     if !existingSet.contains(key) {
                         if let matchingAllergen = Allergen.allCases.first(where: {
                             $0.displayName.lowercased() == key
                         }) {
                             selectedAllergens.append(.predefined(matchingAllergen))
                         } else {
-                            selectedAllergens.append(.custom(add.trimmingCharacters(in: .whitespacesAndNewlines)))
+                            selectedAllergens.append(.custom(allergenString.trimmingCharacters(in: .whitespacesAndNewlines)))
                         }
                     }
+                case .ingredient:
+                    print("error")
                 }
-                
-            case "tags":
-                let removingSet = Set(removing.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
-                selectedTags.removeAll { value in
-                    removingSet.contains(value.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines))
-                }
-                
-                let existingSet = Set(selectedTags.map { $0.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
-                for add in adding {
-                    let key = add.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+            
+        case "tags":
+            let removingSet = Set(removing.map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
+            selectedTags.removeAll { value in
+                removingSet.contains(value.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines))
+            }
+            
+            let existingSet = Set(selectedTags.map { $0.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) })
+            for addingItem in adding {
+                switch addingItem {
+                case .string(let tagString):
+                    let key = tagString.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
                     if !existingSet.contains(key) {
                         if let matchingTag = Tag.allTags.first(where: {
                             $0.displayName.lowercased() == key
                         }) {
                             selectedTags.append(.predefined(matchingTag))
                         } else {
-                            selectedTags.append(.custom(add.trimmingCharacters(in: .whitespacesAndNewlines)))
+                            selectedTags.append(.custom(tagString.trimmingCharacters(in: .whitespacesAndNewlines)))
                         }
                     }
+                case .ingredient:
+                    print("error")
                 }
-                
-            default:
-                break
             }
+            
+        case "steps":
+            let removingSet = Set(removing.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) })
+            steps.removeAll { step in
+                removingSet.contains(step.trimmingCharacters(in: .whitespacesAndNewlines))
+            }
+            
+            let existingSet = Set(steps.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) })
+            for addingItem in adding {
+                switch addingItem {
+                case .string(let stepString):
+                    let trimmedStep = stepString.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !existingSet.contains(trimmedStep) && !trimmedStep.isEmpty {
+                        steps.append(stepString)
+                    }
+                case .ingredient:
+                    print("error")
+                }
+            }
+            
+            if steps.isEmpty {
+                steps = [""]
+            }
+            
+        default:
+            print("error: \(item)")
         }
+    }
     
 
     private func uploadMediaToFirebase(mediaItem: MediaItem, fileName: String, recipeUUID: String) async -> String? {
@@ -179,27 +254,22 @@ import SwiftUI
         }
     }
     
-    func addRecipeToRemixTreeAsRoot(description: String) async -> String {
-        let postID = UUID()
-        let postUUID = postID.uuidString
-        
+    func addRecipeToRemixTreeAsRoot(recipeID: String, description: String) async {
         let db = Firestore.firestore()
-        
+
         let nodeInfo: [String: Any] = [
-            "postID": postUUID,
-            "childrenID": [],
+            "childrenIDs": [],
             "description": description,
             "parentID": "",
-            "rootNodeID": postUUID,
+            "rootPostID": recipeID,
         ]
-        
+
         do {
-            try await db.collection("remixTreeNode").document(postUUID).setData(nodeInfo)
-            print("Document added successfully!")
+            try await db.collection("remixTreeNode").document(recipeID).setData(nodeInfo)
+            print("✅ Added recipe \(recipeID) as root node to remixTreeNode")
         } catch {
-            print("Error adding document: \(error.localizedDescription)")
+            print("❌ Error adding root node: \(error.localizedDescription)")
         }
-        return postUUID
     }
     
     func sendMessage(userMessage: String) async {
@@ -214,6 +284,7 @@ import SwiftUI
             let suggestion = try await ai.smartSuggestion(recipe: toRecipeForAI(), userMessage: trimmed)
 
             // Handle toolcall here
+            toolcall = suggestion.toolcall
 
             messages.append(.init(sender: .aiChef, text: suggestion.message))
             print(messages)
@@ -222,6 +293,22 @@ import SwiftUI
             messages.append(.init(sender: .aiChef, text: "Sorry, I couldn't process that. Please try again."))
             print("smartSuggestion error:", error)
         }
+    }
+    
+    func deny() {
+        toolcall = nil
+    }
+
+    func approve() {
+        guard let toolcalls = toolcall else { return }
+        
+        // Loop through all toolcalls and apply each one
+        for toolCall in toolcalls {
+            applyChanges(toolCall: toolCall)
+        }
+        
+        // Reset toolcall after applying
+        toolcall = nil
     }
 
     private func toRecipeForAI() -> Recipe {
@@ -238,41 +325,62 @@ import SwiftUI
             difficulty: difficulty,
             servingSize: servingSize,
             media: [],
-            chefsNotes: chefsNotes
+            chefsNotes: chefsNotes,
+            likes: 0
         )
     }
   
-    func addRecipeToRemixTreeAsNode(description: String, parentID: String) async -> String {
-        let postID = UUID()
-        let postUUID = postID.uuidString
-        
+    func addRecipeToRemixTreeAsNode(recipeID: String, description: String, parentID: String) async {
         let db = Firestore.firestore()
-        
-        var rootNodeID = parentID
+
+        print("🔍 Attempting to add recipe \(recipeID) as child of parent \(parentID)")
+
+        // Fetch parent node to get root ID and verify it exists
+        var rootPostID = parentID
         do {
             let parent = try await db.collection("remixTreeNode").document(parentID).getDocument()
-            if let parentInfo = parent.data(), let parentRoot = parentInfo["rootNodeID"] as? String {
-                rootNodeID = parentRoot
+
+            if !parent.exists {
+                print("⚠️ Parent recipe \(parentID) does NOT exist in remixTreeNode!")
+                print("🔧 Auto-fixing: Adding parent as root node first...")
+
+                // Add the parent as a root node (backward compatibility fix)
+                await addRecipeToRemixTreeAsRoot(recipeID: parentID, description: "Original recipe (auto-added)")
+
+                // Now the parent exists as a root, so rootPostID is the parent itself
+                rootPostID = parentID
+                print("✅ Parent successfully added as root node")
+            } else if let parentInfo = parent.data(), let parentRoot = parentInfo["rootPostID"] as? String {
+                rootPostID = parentRoot
+                print("✅ Found parent node. Root is: \(rootPostID)")
+            } else {
+                print("⚠️ Parent exists but missing rootPostID field, using parentID as root")
+                rootPostID = parentID
             }
         } catch {
-            print("⚠️ Could not fetch parent node: \(error.localizedDescription)")
+            print("❌ Error fetching parent node: \(error.localizedDescription)")
+            return
         }
-        
+
         let nodeInfo: [String: Any] = [
-            "postID": postUUID,
-            "childrenID": [],
+            "childrenIDs": [],
             "description": description,
             "parentID": parentID,
-            "rootNodeID": rootNodeID,
+            "rootPostID": rootPostID,
         ]
-            
+
         do {
-            try await db.collection("remixTreeNode").document(postUUID).setData(nodeInfo)
-            print("Document added successfully!")
+            try await db.collection("remixTreeNode").document(recipeID).setData(nodeInfo)
+            print("✅ Added recipe \(recipeID) as child node to remixTreeNode (parent: \(parentID))")
+
+            // Update parent's childrenIDs array
+            try await db.collection("remixTreeNode").document(parentID).updateData([
+                "childrenIDs": FieldValue.arrayUnion([recipeID])
+            ])
+            print("✅ Updated parent node \(parentID) with new child \(recipeID)")
         } catch {
-            print("Error adding document: \(error.localizedDescription)")
+            print("❌ Error adding child node: \(error.localizedDescription)")
         }
-        return postUUID
     }
     
     func createRecipe(userId: String, name: String, ingredients: [Ingredient], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, servingSize: Int, media: [MediaItem], chefsNotes: String) async -> String {
@@ -319,7 +427,8 @@ import SwiftUI
             "difficulty": difficulty.rawValue,
             "servingSize": servingSize,
             "media": uploadedMediaURLs,
-            "chefsNotes": chefsNotes
+            "chefsNotes": chefsNotes,
+            "likes": 0
         ]
         
         do {
