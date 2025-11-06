@@ -71,6 +71,7 @@ struct AddRecipeMain: View {
                                 print("🌳 Adding as CHILD node (remix) with parent: \(remixParentID)")
                                 let remixDescription = recipeVM.chefsNotes.isEmpty ? "Remixed version" : recipeVM.chefsNotes
                                 await recipeVM.addRecipeToRemixTreeAsNode(
+                                    postName: recipeVM.name,
                                     recipeID: recipeID,
                                     description: remixDescription,
                                     parentID: remixParentID
@@ -79,6 +80,7 @@ struct AddRecipeMain: View {
                                 print("🌳 Adding as ROOT node (new recipe)")
                                 await recipeVM.addRecipeToRemixTreeAsRoot(
                                     recipeID: recipeID,
+                                    postName: recipeVM.name,
                                     description: "Original recipe"
                                 )
                             }
