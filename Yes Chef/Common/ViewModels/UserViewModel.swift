@@ -21,7 +21,7 @@ import UIKit
     ]
     func getUserInfo(userID: String) async -> [String: Any]?{
         let db = Firestore.firestore()        
-        let info = db.collection("users")
+        let docRef = db.collection("users")
             .document(userID)
             
         do {
