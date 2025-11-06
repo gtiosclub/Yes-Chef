@@ -28,6 +28,8 @@ import SwiftUI
     var messages: [SmartMessage] = []
     var isThinking: Bool = false
     
+    var toolcall: [ToolCallEntry]? = nil
+    
     private let ai = AIViewModel()
     
     var allergens: [String] {
@@ -282,6 +284,7 @@ import SwiftUI
             let suggestion = try await ai.smartSuggestion(recipe: toRecipeForAI(), userMessage: trimmed)
 
             // Handle toolcall here
+            toolcall = suggestion.toolcall
 
             messages.append(.init(sender: .aiChef, text: suggestion.message))
             print(messages)
@@ -290,6 +293,22 @@ import SwiftUI
             messages.append(.init(sender: .aiChef, text: "Sorry, I couldn't process that. Please try again."))
             print("smartSuggestion error:", error)
         }
+    }
+    
+    func deny() {
+        toolcall = nil
+    }
+
+    func approve() {
+        guard let toolcalls = toolcall else { return }
+        
+        // Loop through all toolcalls and apply each one
+        for toolCall in toolcalls {
+            applyChanges(toolCall: toolCall)
+        }
+        
+        // Reset toolcall after applying
+        toolcall = nil
     }
 
     private func toRecipeForAI() -> Recipe {
