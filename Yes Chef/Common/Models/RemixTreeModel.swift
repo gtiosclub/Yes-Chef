@@ -13,6 +13,7 @@ import Firebase
 class RemixTreeNode  {
 
     let currNodeID: String
+    var postName: String
     var parentNode: RemixTreeNode?
     let rootNodeOfTree: RemixTreeNode
 
@@ -21,12 +22,14 @@ class RemixTreeNode  {
     var descriptionOfRecipeChanges: String
 
     init(currNodeID: String,
+         postName: String,
          parentNode: RemixTreeNode?,
          rootNodeOfTree: RemixTreeNode,
          children: [RemixTreeNode],
          descriptionOfRecipeChanges: String = "") {
 
         self.currNodeID = currNodeID
+        self.postName = postName
         self.parentNode = parentNode
         self.rootNodeOfTree = rootNodeOfTree
         self.children = children
@@ -52,18 +55,21 @@ class RemixTreeNode  {
  */
 class FirebaseRemixTreeNode: Identifiable, Codable, Hashable {
     let currNodeID: String              // Unique ID for this remix node (Recipe ID)
+    var postName: String
     var parentNodeID: String            // ID of parent recipe ("none" for root)
     let rootNodeOfTreeID: String        // ID of the root recipe in this tree
     var childrenIDs: [String]           // Array of child recipe IDs
     var descriptionOfRecipeChanges: String  // Description of changes in this remix
 
     init(currNodeID: String,
+         postName: String,
          parentNodeID: String,
          rootNodeOfTreeID: String,
          childrenIDs: [String],
          descriptionOfRecipeChanges: String = "") {
 
         self.currNodeID = currNodeID
+        self.postName = postName
         self.parentNodeID = parentNodeID
         self.rootNodeOfTreeID = rootNodeOfTreeID
         self.childrenIDs = childrenIDs
@@ -74,6 +80,7 @@ class FirebaseRemixTreeNode: Identifiable, Codable, Hashable {
     convenience init(from node: RemixTreeNode) {
         self.init(
             currNodeID: node.currNodeID,
+            postName: node.postName,
             parentNodeID: node.parentNode?.currNodeID ?? "none",
             rootNodeOfTreeID: node.rootNodeOfTree.currNodeID,
             childrenIDs: node.children.map { $0.currNodeID },
@@ -97,9 +104,10 @@ class RemixTree {
 
     var rootNode: RemixTreeNode?
 
-    init(nodeID: String, parentNode: RemixTreeNode?, rootNodeOfTree: RemixTreeNode, children: [RemixTreeNode], descriptionOfRecipeChanges: String = "") {
+    init(nodeID: String, postName: String, parentNode: RemixTreeNode?, rootNodeOfTree: RemixTreeNode, children: [RemixTreeNode], descriptionOfRecipeChanges: String = "") {
 
         self.rootNode = RemixTreeNode(currNodeID: nodeID,
+                                      postName: postName,
                                           parentNode: nil,
                                           rootNodeOfTree: rootNodeOfTree,
                                           children: children)
@@ -220,9 +228,10 @@ class RemixTree {
     }
     
     // Eesh New Edit: Restored original addNode and findNode methods
-    func addNode(nodeID: String, parentNode: RemixTreeNode?, rootNodeOfTree: RemixTreeNode, children: [RemixTreeNode], descriptionOfRecipeChanges: String = "") {
+    func addNode(nodeID: String, postName: String, parentNode: RemixTreeNode?, rootNodeOfTree: RemixTreeNode, children: [RemixTreeNode], descriptionOfRecipeChanges: String = "") {
 
         let newNode = RemixTreeNode(currNodeID: nodeID,
+                                    postName: postName,
                                     parentNode: parentNode,
                                     rootNodeOfTree: rootNodeOfTree,
                                     children: children,

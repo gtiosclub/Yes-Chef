@@ -252,10 +252,11 @@ import SwiftUI
         }
     }
     
-    func addRecipeToRemixTreeAsRoot(recipeID: String, description: String) async {
+    func addRecipeToRemixTreeAsRoot(recipeID: String, postName: String, description: String) async {
         let db = Firestore.firestore()
 
         let nodeInfo: [String: Any] = [
+            "postName": postName,
             "childrenIDs": [],
             "description": description,
             "parentID": "",
@@ -311,7 +312,7 @@ import SwiftUI
         )
     }
   
-    func addRecipeToRemixTreeAsNode(recipeID: String, description: String, parentID: String) async {
+    func addRecipeToRemixTreeAsNode(postName: String, recipeID: String, description: String, parentID: String) async {
         let db = Firestore.firestore()
 
         print("🔍 Attempting to add recipe \(recipeID) as child of parent \(parentID)")
@@ -326,7 +327,7 @@ import SwiftUI
                 print("🔧 Auto-fixing: Adding parent as root node first...")
 
                 // Add the parent as a root node (backward compatibility fix)
-                await addRecipeToRemixTreeAsRoot(recipeID: parentID, description: "Original recipe (auto-added)")
+                await addRecipeToRemixTreeAsRoot(recipeID: parentID, postName: postName, description: "Original recipe (auto-added)")
 
                 // Now the parent exists as a root, so rootPostID is the parent itself
                 rootPostID = parentID
@@ -344,6 +345,7 @@ import SwiftUI
         }
 
         let nodeInfo: [String: Any] = [
+            "postName": postName,
             "childrenIDs": [],
             "description": description,
             "parentID": parentID,
