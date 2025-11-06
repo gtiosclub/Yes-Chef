@@ -286,6 +286,7 @@ import SwiftUI
 
             // Handle toolcall here
             toolcall = suggestion.toolcall
+            print(toolcall)
 
             messages.append(.init(sender: .aiChef, text: suggestion.message))
             print(messages)
@@ -298,6 +299,7 @@ import SwiftUI
     
     func deny() {
         toolcall = nil
+        print(toolcall)
     }
 
     func approve() {
@@ -310,6 +312,7 @@ import SwiftUI
         
         // Reset toolcall after applying
         toolcall = nil
+        print(toolcall)
     }
 
     private func toRecipeForAI() -> Recipe {

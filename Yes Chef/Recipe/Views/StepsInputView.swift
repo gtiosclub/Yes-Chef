@@ -12,36 +12,20 @@ private let dragUTType: UTType = .plainText
 
 struct StepsInputView: View {
     @Binding var steps: [String]
-    @State private var isEditing = false
     @State private var draggingIndex: Int? = nil
+    var previewRemoving: [String] = []
+    var previewAdding: [String] = []
+    
+    private func isRemoving(_ step: String) -> Bool {
+        previewRemoving.contains { removing in
+            step.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == removing.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading) {
-            HStack {
-                SectionHeader(title: "Steps")
-                Spacer()
-                Button {
-                    withAnimation(.easeInOut(duration: 0.15)) {
-                        isEditing.toggle()
-                        if isEditing, steps.isEmpty { steps = [""] }
-                    }
-                } label: {
-                    if isEditing {
-                        Text("Done")
-                            .font(.subheadline).bold()
-                            .padding(.horizontal, 10).padding(.vertical, 6)
-                            .cornerRadius(10)
-                            .foregroundColor(.primary)
-                    } else {
-                        Image(systemName: "square.and.pencil")
-                            .font(.title3).bold()
-                            .foregroundColor(.black)
-                            .frame(width: 34, height: 34)
-                }
-                }
-            }
-            .padding(.trailing)
-            .padding(.leading, 5)
+            SectionHeader(title: "Steps")
+                .padding(.leading, 5)
 
             ScrollView {
                 LazyVStack {
@@ -49,43 +33,53 @@ struct StepsInputView: View {
                         StepRow(
                             index: index,
                             text: binding(for: index),
-                            isEditing: isEditing,
                             canDelete: steps.count > 1,
+                            isRemoving: isRemoving(steps[index]),
                             onDelete: { steps.remove(at: index) }
                         )
                         .padding(.horizontal)
-//                        .onDrag {
-//                            draggingIndex = index
-//                            return NSItemProvider(object: "\(index)" as NSString)
-//                        }
-//                        .onDrop(
-//                            of: [dragUTType],
-//                            delegate: StepReorderDropDelegate(
-//                                itemIndex: index,
-//                                steps: $steps,
-//                                draggingIndex: $draggingIndex
-//                            )
-//                        )
+                        .onDrag {
+                            draggingIndex = index
+                            return NSItemProvider(object: "\(index)" as NSString)
+                        }
+                        .onDrop(
+                            of: [dragUTType],
+                            delegate: StepReorderDropDelegate(
+                                itemIndex: index,
+                                steps: $steps,
+                                draggingIndex: $draggingIndex
+                            )
+                        )
                     }
 
-                    if isEditing {
-                        HStack {
-                            Spacer()
-                            Button {
-                               steps.append("")
-                            } label: {
-                                Image(systemName: "plus")
-                                    .foregroundColor(.white)
-                                    .font(.system(size: 25, weight: .bold))
-                                    .frame(width: 40, height: 40)
-                                    .padding(2)
-                                    .background(Color(hex: "#ffa94a"))
-                                    .clipShape(Circle())
-                            }
-                            Spacer()
-                        }
-                        .padding(.top, 8)
+                    ForEach(Array(previewAdding.enumerated()), id: \.offset) { offset, step in
+                        StepRow(
+                            index: steps.count + offset,
+                            text: .constant(step),
+                            canDelete: false,
+                            isRemoving: false,
+                            isAdding: true,
+                            onDelete: {}
+                        )
+                        .padding(.horizontal)
                     }
+                    
+                    HStack {
+                        Spacer()
+                        Button {
+                            steps.append("")
+                        } label: {
+                            Image(systemName: "plus")
+                                .foregroundColor(.white)
+                                .font(.system(size: 25, weight: .bold))
+                                .frame(width: 40, height: 40)
+                                .padding(2)
+                                .background(Color(hex: "#ffa94a"))
+                                .clipShape(Circle())
+                        }
+                        Spacer()
+                    }
+                    .padding(.top, 8)
                 }
                 .padding(.vertical, 4)
             }
@@ -103,9 +97,20 @@ struct StepsInputView: View {
 private struct StepRow: View {
     let index: Int
     @Binding var text: String
-    let isEditing: Bool
     let canDelete: Bool
+    var isRemoving: Bool = false
+    var isAdding: Bool = false
     var onDelete: () -> Void
+    
+    private var backgroundColor: Color {
+        if isRemoving {
+            return Color.red.opacity(0.2)
+        } else if isAdding {
+            return Color.green.opacity(0.2)
+        } else {
+            return Color.clear
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
@@ -116,13 +121,26 @@ private struct StepRow: View {
                 .frame(width: 40, alignment: .center)
 
             HStack {
-                StepEditor(
-                    text: $text,
-                    placeholder: "Enter step...",
-                    isEditing: isEditing
-                )
+                if isAdding {
+                    // For preview additions, use a Text view with green background
+                    Text(text)
+                        .font(.subheadline)
+                        .foregroundColor(Color(hex: "#877872"))
+                        .frame(maxWidth: .infinity, minHeight: 40, maxHeight: 100, alignment: .topLeading)
+                        .padding(EdgeInsets(top: 10, leading: 12, bottom: 5, trailing: 12))
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.green.opacity(0.2))
+                        )
+                } else {
+                    StepEditor(
+                        text: $text,
+                        placeholder: "Enter step...",
+                        backgroundColor: backgroundColor
+                    )
+                }
                 
-                if isEditing && canDelete {
+                if canDelete && !isAdding {
                     Button(action: onDelete) {
                         Circle()
                             .fill(Color(hex:"#FFA947"))
@@ -132,7 +150,7 @@ private struct StepRow: View {
                     .buttonStyle(.plain)
                 }
                 
-                if isEditing {
+                if !isAdding {
                     Circle()
                         .fill(Color.white)
                         .frame(width: 34, height: 34)
@@ -147,46 +165,46 @@ private struct StepRow: View {
     }
 }
 
-//private struct StepReorderDropDelegate: DropDelegate {
-//    let itemIndex: Int
-//    @Binding var steps: [String]
-//    @Binding var draggingIndex: Int?
-//
-//    func dropEntered(info: DropInfo) {
-//        guard let from = draggingIndex, from != itemIndex else { return }
-//        let to = (from < itemIndex) ? itemIndex + 1 : itemIndex
-//
-//        withAnimation(.spring(response: 0.25, dampingFraction: 0.9)) {
-//            steps.move(fromOffsets: IndexSet(integer: from), toOffset: to)
-//            let newIndex = (from < itemIndex) ? (to - 1) : to
-//            draggingIndex = newIndex
-//        }
-//    }
-//
-//    func dropUpdated(info: DropInfo) -> DropProposal? {
-//        DropProposal(operation: .move)
-//    }
-//
-//    func validateDrop(info: DropInfo) -> Bool {
-//        info.hasItemsConforming(to: [.plainText])
-//    }
-//
-//    func performDrop(info: DropInfo) -> Bool {
-//        draggingIndex = nil
-//        return true
-//    }
-//}
+private struct StepReorderDropDelegate: DropDelegate {
+    let itemIndex: Int
+    @Binding var steps: [String]
+    @Binding var draggingIndex: Int?
+
+    func dropEntered(info: DropInfo) {
+        guard let from = draggingIndex, from != itemIndex else { return }
+        let to = (from < itemIndex) ? itemIndex + 1 : itemIndex
+
+        withAnimation(.spring(response: 0.25, dampingFraction: 0.9)) {
+            steps.move(fromOffsets: IndexSet(integer: from), toOffset: to)
+            let newIndex = (from < itemIndex) ? (to - 1) : to
+            draggingIndex = newIndex
+        }
+    }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        DropProposal(operation: .move)
+    }
+
+    func validateDrop(info: DropInfo) -> Bool {
+        info.hasItemsConforming(to: [.plainText])
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        draggingIndex = nil
+        return true
+    }
+}
 
 struct StepEditor: View {
     @Binding var text: String
     var placeholder: String
-    var isEditing: Bool
     var keyboardType: UIKeyboardType = .default
     var padding: EdgeInsets = EdgeInsets(top: 10, leading: 12, bottom: 5, trailing: 12)
+    var backgroundColor: Color = Color.clear
 
     var body: some View {
         ZStack(alignment: .leading) {
-            if text.isEmpty {
+            if text.isEmpty && backgroundColor == Color.clear {
                 Text(placeholder)
                     .foregroundColor(.secondary)
                     .padding(.leading, 8)
@@ -197,14 +215,12 @@ struct StepEditor: View {
                 .background(Color.clear)
                 .font(.subheadline)
                 .frame(minHeight: 40, maxHeight: 100)
-                .disabled(!isEditing)
-                .opacity(isEditing ? 1 : 0.6)
                 .keyboardType(keyboardType)
                 .foregroundColor(Color(hex: "#877872"))
                 .padding(padding)
                 .background(
                     RoundedRectangle(cornerRadius: 16)
-                        .fill(Color(hex: "#F9F5F2"))
+                        .fill(backgroundColor == Color.clear ? Color(hex: "#F9F5F2") : backgroundColor)
                 )
         }
     }

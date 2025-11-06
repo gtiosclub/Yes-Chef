@@ -28,84 +28,129 @@ struct AddRecipeMain: View {
 
     var body: some View {
         NavigationStack{
-            VStack(spacing: 0){
-                HStack{
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .resizable()
-                            .frame(width: 20, height: 20)
-                            .foregroundStyle(.black)
-                    }
-                    Spacer()
-                    
-                    Text("Add Recipe")
-                        .font(.custom("Georgia", size: 30))
-                        .foregroundStyle(Color(hex: "#453736"))
-                        .fontWeight(.bold)
-                    
-                    Spacer()
-                    
-                    Button {
-                        Task {
-                            print("📝 Creating recipe...")
-                            let recipeID = await recipeVM.createRecipe(
-                                userId: authVM.currentUser?.userId ?? "",
-                                name: recipeVM.name,
-                                ingredients: recipeVM.ingredients,
-                                allergens: recipeVM.allergens,
-                                tags: recipeVM.tags,
-                                steps: recipeVM.steps,
-                                description: recipeVM.description,
-                                prepTime: recipeVM.prepTime,
-                                difficulty: recipeVM.difficulty,
-                                servingSize: recipeVM.servingSize,
-                                media: recipeVM.mediaItems,
-                                chefsNotes: recipeVM.chefsNotes
-                            )
-                            print("✅ Recipe created with ID: \(recipeID)")
-
-                            // Add to remix tree - either as root OR as child, never both
-                            if comeFromRemix {
-                                print("🌳 Adding as CHILD node (remix) with parent: \(remixParentID)")
-                                let remixDescription = recipeVM.chefsNotes.isEmpty ? "Remixed version" : recipeVM.chefsNotes
-                                await recipeVM.addRecipeToRemixTreeAsNode(
-                                    recipeID: recipeID,
-                                    description: remixDescription,
-                                    parentID: remixParentID
-                                )
-                            } else {
-                                print("🌳 Adding as ROOT node (new recipe)")
-                                await recipeVM.addRecipeToRemixTreeAsRoot(
-                                    recipeID: recipeID,
-                                    description: "Original recipe"
-                                )
-                            }
-
-                            
+            ZStack {
+                VStack(spacing: 0) {
+                    HStack{
+                        Button {
                             dismiss()
-
+                        } label: {
+                            Image(systemName: "xmark")
+                                .resizable()
+                                .frame(width: 20, height: 20)
+                                .foregroundStyle(.black)
                         }
-                    } label: {
-                        Image(systemName: "checkmark")
-                            .resizable()
-                            .frame(width: 20, height: 20)
-                            .foregroundStyle(.black)
+                        Spacer()
+                        
+                        Text("Add Recipe")
+                            .font(.custom("Georgia", size: 30))
+                            .foregroundStyle(Color(hex: "#453736"))
+                            .fontWeight(.bold)
+                        
+                        Spacer()
+                        
+                        Button {
+                            Task {
+                                print("📝 Creating recipe...")
+                                let recipeID = await recipeVM.createRecipe(
+                                    userId: authVM.currentUser?.userId ?? "",
+                                    name: recipeVM.name,
+                                    ingredients: recipeVM.ingredients,
+                                    allergens: recipeVM.allergens,
+                                    tags: recipeVM.tags,
+                                    steps: recipeVM.steps,
+                                    description: recipeVM.description,
+                                    prepTime: recipeVM.prepTime,
+                                    difficulty: recipeVM.difficulty,
+                                    servingSize: recipeVM.servingSize,
+                                    media: recipeVM.mediaItems,
+                                    chefsNotes: recipeVM.chefsNotes
+                                )
+                                print("✅ Recipe created with ID: \(recipeID)")
+                                
+                                // Add to remix tree - either as root OR as child, never both
+                                if comeFromRemix {
+                                    print("🌳 Adding as CHILD node (remix) with parent: \(remixParentID)")
+                                    let remixDescription = recipeVM.chefsNotes.isEmpty ? "Remixed version" : recipeVM.chefsNotes
+                                    await recipeVM.addRecipeToRemixTreeAsNode(
+                                        postName: recipeVM.name,
+                                        recipeID: recipeID,
+                                        description: remixDescription,
+                                        parentID: remixParentID
+                                    )
+                                } else {
+                                    print("🌳 Adding as ROOT node (new recipe)")
+                                    await recipeVM.addRecipeToRemixTreeAsRoot(
+                                        recipeID: recipeID,
+                                        postName: recipeVM.name,
+                                        description: "Original recipe"
+                                    )
+                                }
+                                
+                                
+                                dismiss()
+                                
+                            }
+                        } label: {
+                            Image(systemName: "checkmark")
+                                .resizable()
+                                .frame(width: 20, height: 20)
+                                .foregroundStyle(.black)
+                        }
+                    }
+                    .padding(.horizontal, 10)
+                    .padding()
+                    
+                    tabSelectionView
+                    if selectedTab == 0 {
+                        CreateRecipe(recipeVM: recipeVM)
+                    } else {
+                        AIChefBaseView(recipeVM: recipeVM)
                     }
                 }
-                .padding(.horizontal, 10)
-                .padding()
+                .background(Color(hex: "#fffffc"))
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 
-                tabSelectionView
-                if selectedTab == 0 {
-                    CreateRecipe(recipeVM: recipeVM)
-                } else {
-                    AIChefBaseView(recipeVM: recipeVM)
+                if recipeVM.toolcall != nil {
+                    VStack {
+                        Spacer()
+                        HStack(spacing: 16) {
+                            Button(action: {
+                                recipeVM.approve()
+                            }) {
+                                Text("Approve")
+                                    .foregroundColor(.white)
+                                    .padding(.vertical, 15)
+                                    .padding(.horizontal, 60)
+                                    .background(Color(hex: "#FFA947"))
+                                    .clipShape(Capsule())
+                            }
+                            
+                            Button(action: {
+                                recipeVM.deny()
+                            }) {
+                                Text("Deny")
+                                    .foregroundColor(Color(hex: "#404741"))
+                                    .padding(.vertical, 15)
+                                    .padding(.horizontal, 60)
+                                    .background(Color(hex: "#FFEABC"))
+                                    .clipShape(Capsule())
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .init(horizontal: .center, vertical: .center))
+                        .padding(.top)
+                        .background(
+                            VStack(spacing: 0) {
+                                Rectangle()
+                                    .fill(Color(.systemGray4))
+                                    .frame(height: 1)
+                                Color(hex: "#fffffc")
+                            }
+                            .ignoresSafeArea(edges: .bottom)
+                        )
+                    }
                 }
+                    
             }
-            .background(Color(hex: "#fffffc"))
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
     }
     
