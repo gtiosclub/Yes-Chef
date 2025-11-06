@@ -15,7 +15,7 @@ import SwiftUI
     var userIdInput: String = ""
     var name: String = ""
     var description: String = ""
-    var ingredients: [Ingredient] = []
+    var ingredients: [Ingredient] = [Ingredient()]
     var selectedAllergens: [SearchableValue<Allergen>] = []
     var selectedTags: [SearchableValue<Tag>] = []
     var prepTimeInput: String = ""

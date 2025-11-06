@@ -116,7 +116,7 @@ struct AIChefBaseView: View {
             
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
-        .background(Color(hex: "#FFFDF4"))
+        .background(Color(hex: "#FFFFFC"))
     }
 }
 

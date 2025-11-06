@@ -16,10 +16,9 @@ struct StepsInputView: View {
     @State private var draggingIndex: Int? = nil
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading) {
             HStack {
-                Spacer()
-                SectionHeader(title: "Steps").padding(.leading, 35)
+                SectionHeader(title: "Steps")
                 Spacer()
                 Button {
                     withAnimation(.easeInOut(duration: 0.15)) {
@@ -41,10 +40,11 @@ struct StepsInputView: View {
                 }
                 }
             }
-            .padding(.horizontal)
+            .padding(.trailing)
+            .padding(.leading, 5)
 
             ScrollView {
-                LazyVStack(spacing: 8) {
+                LazyVStack {
                     ForEach(steps.indices, id: \.self) { index in
                         StepRow(
                             index: index,
@@ -74,10 +74,13 @@ struct StepsInputView: View {
                             Button {
                                steps.append("")
                             } label: {
-                                Circle()
-                                    .fill(Color(hex:"#FFA947"))
-                                    .frame(width: 34, height: 34)
-                                    .overlay(Image(systemName: "plus").foregroundColor(.white).font(.title3))
+                                Image(systemName: "plus")
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 25, weight: .bold))
+                                    .frame(width: 40, height: 40)
+                                    .padding(2)
+                                    .background(Color(hex: "#ffa94a"))
+                                    .clipShape(Circle())
                             }
                             Spacer()
                         }
@@ -105,34 +108,40 @@ private struct StepRow: View {
     var onDelete: () -> Void
 
     var body: some View {
-        HStack(alignment: .center, spacing: 10) {
+        VStack(alignment: .leading, spacing: 5) {
             Text(String(format: "%02d", index + 1))
                 .font(.custom("Georgia", size: 24))
                 .foregroundStyle(Color(hex: "#453736"))
                 .fontWeight(.semibold)
                 .frame(width: 40, alignment: .center)
 
-            StepEditor(
-                text: $text,
-                placeholder: "Enter step...",
-                isEditing: isEditing
-            )
-
-            if isEditing && canDelete {
-                Button(action: onDelete) {
-                    Circle()
-                        .fill(Color(hex:"#FFA947"))
-                        .frame(width: 34, height: 34)
-                        .overlay(Image(systemName: "minus").foregroundColor(.white).font(.title3))
+            HStack {
+                StepEditor(
+                    text: $text,
+                    placeholder: "Enter step...",
+                    isEditing: isEditing
+                )
+                
+                if isEditing && canDelete {
+                    Button(action: onDelete) {
+                        Circle()
+                            .fill(Color(hex:"#FFA947"))
+                            .frame(width: 34, height: 34)
+                            .overlay(Image(systemName: "minus").foregroundColor(.white).font(.title3))
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
-            }
-
-            if isEditing {
-                Circle()
-                    .fill(Color(hex:"#FFA947"))
-                    .frame(width: 34, height: 34)
-                    .overlay(Image(systemName: "line.3.horizontal").foregroundColor(.white).font(.title3))
+                
+                if isEditing {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 34, height: 34)
+                        .overlay(
+                            Image(systemName: "line.3.horizontal")
+                                .foregroundColor(Color(hex:"#FFA947"))
+                                .font(.title3)
+                        )
+                }
             }
         }
     }
@@ -196,10 +205,6 @@ struct StepEditor: View {
                 .background(
                     RoundedRectangle(cornerRadius: 16)
                         .fill(Color(hex: "#F9F5F2"))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.black.opacity(0.3), lineWidth: 1)
                 )
         }
     }

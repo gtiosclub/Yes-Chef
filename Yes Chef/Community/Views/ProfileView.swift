@@ -449,6 +449,7 @@ struct ProfileView_Previews: PreviewProvider {
             */
             NavigationView {
                 ProfileView(user: mockOtherUser, isOwnProfile: true)
+                    .environment(AuthenticationVM())
             }
             .previewDisplayName("Other User Profile")
         }

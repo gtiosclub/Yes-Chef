@@ -17,14 +17,14 @@ struct CreateRecipe: View {
         NavigationStack {
             ZStack {
                 ScrollView {
-                    VStack(alignment: .leading) {
+                    VStack(alignment: .leading, spacing: 7) {
                         SectionHeader(title: "Recipe Name")
                         
-                        StyledTextField(placeholder: "Enter Recipe Name", text: $recipeVM.name)
+                        StyledTextField(placeholder: "What is your dish called?", text: $recipeVM.name)
                         
                         SectionHeader(title: "Recipe Description")
                         
-                        StyledTextField(placeholder: "Enter Recipe Description", text: $recipeVM.description, height: 60)
+                        StyledTextField(placeholder: "Describe your recipe in a few words...", text: $recipeVM.description, height: 40)
                         
                         SectionHeader(title: "Add Media")
                         AddMedia(mediaItems: $recipeVM.mediaItems) { index in
@@ -33,14 +33,17 @@ struct CreateRecipe: View {
                         }
                         .padding(.leading, 15)
                         
-                        SectionHeader(title: "Prep Time")
+                        SectionHeader(title: "Prep & Cook Time")
                         
-                        StyledTextField(placeholder: "Enter Prep Time in Minutes", text: $recipeVM.prepTimeInput, keyboardType: .numberPad)
+                        StyledTextField(placeholder: "How many minutes will it take to cook this?", text: $recipeVM.prepTimeInput, keyboardType: .numberPad)
                         
                         SectionHeader(title: "Difficulty")
-                        DifficultyLevelView(difficulty: $recipeVM.difficulty).padding(.leading, 10)
+                        DifficultyLevelView(difficulty: $recipeVM.difficulty)
+                            .padding(.horizontal, 10)
+                        
                         SectionHeader(title: "Serving Size")
                         ServingSizeView(selectedServingSize: $recipeVM.servingSize)
+                        
                         SectionHeader(title: "Ingredients")
                         
                         AddIngredients(ingredients: $recipeVM.ingredients)

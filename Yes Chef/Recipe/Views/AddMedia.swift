@@ -44,7 +44,7 @@ struct AddMedia: View {
                             )
                         Image(systemName: "plus")
                             .foregroundColor(Color(hex: "#453A36"))
-                            .font(.system(size: 30, weight: .bold))
+                            .font(.system(size: 25))
                     }
                 }
                 .onChange(of: selectedPhotoItems) { newItems in
