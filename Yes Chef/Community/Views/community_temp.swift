@@ -647,6 +647,7 @@ struct FeedView: View {
             recipe.score = UVM.calculateScore(recipe: recipe, user: user.suggestionProfile)
             suggested.append(recipe)
         }
+        suggested = suggested.sorted { $0.score > $1.score }
     }
 }
 
