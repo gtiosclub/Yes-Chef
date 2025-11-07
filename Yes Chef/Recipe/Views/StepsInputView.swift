@@ -28,7 +28,7 @@ struct StepsInputView: View {
                 .padding(.leading, 5)
 
             ScrollView {
-                LazyVStack {
+                VStack {
                     ForEach(steps.indices, id: \.self) { index in
                         StepRow(
                             index: index,
@@ -121,23 +121,12 @@ private struct StepRow: View {
                 .frame(width: 40, alignment: .center)
 
             HStack {
-                if isAdding {
-                    Text(text)
-                        .font(.subheadline)
-                        .foregroundColor(Color(hex: "#877872"))
-                        .frame(maxWidth: .infinity, minHeight: 40, maxHeight: 100, alignment: .topLeading)
-                        .padding(EdgeInsets(top: 10, leading: 12, bottom: 5, trailing: 12))
-                        .background(
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(Color.green.opacity(0.2))
-                        )
-                } else {
-                    StepEditor(
-                        text: $text,
-                        placeholder: "Enter step...",
-                        backgroundColor: backgroundColor
-                    )
-                }
+                
+                StepEditor(
+                    text: $text,
+                    placeholder: "Enter step...",
+                    backgroundColor: backgroundColor
+                )
                 
                 if canDelete && !isAdding {
                     Button(action: onDelete) {
@@ -230,5 +219,5 @@ struct StepEditor: View {
         "Preheat oven to 350°F.",
         "Mix flour and sugar.",
         "Add eggs and whisk."
-    ]))
+    ]), previewAdding: ["New Step"])
 }
