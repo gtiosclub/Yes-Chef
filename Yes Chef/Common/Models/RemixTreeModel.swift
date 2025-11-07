@@ -146,9 +146,9 @@ class RemixTree {
             Handles node deletion in firebase
      */
 
-    // Eesh New Edit: Updated to use realRemixTreeNodes collection
+    // Eesh New Edit: Updated to use REMIXTREENODES collection
     static func deleteNodeFirebase(nodeId: String) {
-        let nodeRef = Firebase.db.collection("remixTreeNode").document(nodeId)
+        let nodeRef = Firebase.db.collection("REMIXTREENODES").document(nodeId)
     // End of Eesh New Edit
 
         
@@ -165,10 +165,10 @@ class RemixTree {
                 if let children = node.get("childrenIDs") as? [String] {
                     //asumes children are valid
                     if let parent = node.get("parentID") as? String {
-                        let parentRef = Firebase.db.collection("remixTreeNode").document(parent)
+                        let parentRef = Firebase.db.collection("REMIXTREENODES").document(parent)
 
                         for childID in children {
-                            let childRef = Firebase.db.collection("remixTreeNode").document(childID)
+                            let childRef = Firebase.db.collection("REMIXTREENODES").document(childID)
                             childRef.updateData([
                                 "parentID": parent
                             ])
@@ -177,11 +177,11 @@ class RemixTree {
 //                if let children = node.get("childrenID") as? [String] {
 //                    //asumes children are valid
 //                    if let parent = node.get("parentID") as? String, !parent.isEmpty {
-//                        let parentRef = Firebase.db.collection("remixTreeNode").document(parent)
-//                        
+//                        let parentRef = Firebase.db.collection("REMIXTREENODES").document(parent)
+//
 //                        for childID in children {
 //                                guard !childID.isEmpty else { continue } // <--- skip empty strings
-//                                let childRef = Firebase.db.collection("remixTreeNode").document(childID)
+//                                let childRef = Firebase.db.collection("REMIXTREENODES").document(childID)
 //                                childRef.updateData([
 //                                    "parentID": parent
 //                                ])
@@ -204,7 +204,7 @@ class RemixTree {
 //                       //root node
 //                        for childID in children {
 //                                guard !childID.isEmpty else { continue } // <--- skip empty strings
-//                                let childRef = Firebase.db.collection("remixTreeNode").document(childID)
+//                                let childRef = Firebase.db.collection("REMIXTREENODES").document(childID)
 //                                childRef.updateData([
 //                                    "parentID": nil,
 //                                    "rootNodeID": childID

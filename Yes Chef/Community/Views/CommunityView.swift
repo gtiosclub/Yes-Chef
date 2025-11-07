@@ -10,7 +10,6 @@ struct CommunityView : View {
     @State private var searchText = ""
     @State private var viewModel = SearchViewModel()
     @State private var postVM = PostViewModel()
-    
     let allItems = ["Pizza", "Pasta", "Salad", "Soup", "Sandwich", "Cake", "Curry"]
 
     var filteredItems: [String] {
@@ -94,6 +93,7 @@ struct CommunityView : View {
             }
         }
     }
+    
 }
 struct RecipeSection: View {
     let title: String
