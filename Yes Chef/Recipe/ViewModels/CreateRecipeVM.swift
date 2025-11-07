@@ -42,51 +42,6 @@ import SwiftUI
 
     var prepTime: Int { Int(prepTimeInput) ?? 0 }
     
-    // Validation
-    func validate() -> (isValid: Bool, errorMessage: String?) {
-        // Check name
-        if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            return (false, "Please enter a recipe name")
-        }
-        
-        // Check ingredients - at least one ingredient with a name
-        let validIngredients = ingredients.filter { !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-        if validIngredients.isEmpty {
-            return (false, "Please add at least one ingredient")
-        }
-        
-        // Check steps - at least one non-empty step
-        let validSteps = steps.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-        if validSteps.isEmpty {
-            return (false, "Please add at least one step")
-        }
-        
-        // Check prep time
-        if prepTime <= 0 {
-            return (false, "Please enter a valid prep time (greater than 0)")
-        }
-        
-        return (true, nil)
-    }
-    
-    // Reset all fields
-    func reset() {
-        userIdInput = ""
-        name = ""
-        description = ""
-        ingredients = [Ingredient()]
-        selectedAllergens = []
-        selectedTags = []
-        prepTimeInput = ""
-        difficulty = .easy
-        servingSize = 1
-        steps = [""]
-        mediaItems = []
-        chefsNotes = ""
-        messages = []
-        toolcall = nil
-    }
-    
     // Default initializer
     init() {}
     
@@ -299,11 +254,10 @@ import SwiftUI
         }
     }
     
-    func addRecipeToRemixTreeAsRoot(recipeID: String, postName: String, description: String) async {
+    func addRecipeToRemixTreeAsRoot(recipeID: String, description: String) async {
         let db = Firestore.firestore()
 
         let nodeInfo: [String: Any] = [
-            "postName": postName,
             "childrenIDs": [],
             "description": description,
             "parentID": "",
@@ -311,8 +265,8 @@ import SwiftUI
         ]
 
         do {
-            try await db.collection("remixTreeNode").document(recipeID).setData(nodeInfo)
-            print("✅ Added recipe \(recipeID) as root node to remixTreeNode")
+            try await db.collection("REMIXTREENODES").document(recipeID).setData(nodeInfo)
+            print("✅ Added recipe \(recipeID) as root node to REMIXTREENODES")
         } catch {
             print("❌ Error adding root node: \(error.localizedDescription)")
         }
@@ -331,7 +285,6 @@ import SwiftUI
 
             // Handle toolcall here
             toolcall = suggestion.toolcall
-            print(toolcall)
 
             messages.append(.init(sender: .aiChef, text: suggestion.message))
             print(messages)
@@ -344,7 +297,6 @@ import SwiftUI
     
     func deny() {
         toolcall = nil
-        print(toolcall)
     }
 
     func approve() {
@@ -357,7 +309,6 @@ import SwiftUI
         
         // Reset toolcall after applying
         toolcall = nil
-        print(toolcall)
     }
 
     private func toRecipeForAI() -> Recipe {
@@ -379,7 +330,7 @@ import SwiftUI
         )
     }
   
-    func addRecipeToRemixTreeAsNode(postName: String, recipeID: String, description: String, parentID: String) async {
+    func addRecipeToRemixTreeAsNode(recipeID: String, description: String, parentID: String) async {
         let db = Firestore.firestore()
 
         print("🔍 Attempting to add recipe \(recipeID) as child of parent \(parentID)")
@@ -387,14 +338,14 @@ import SwiftUI
         // Fetch parent node to get root ID and verify it exists
         var rootPostID = parentID
         do {
-            let parent = try await db.collection("remixTreeNode").document(parentID).getDocument()
+            let parent = try await db.collection("REMIXTREENODES").document(parentID).getDocument()
 
             if !parent.exists {
-                print("⚠️ Parent recipe \(parentID) does NOT exist in remixTreeNode!")
+                print("⚠️ Parent recipe \(parentID) does NOT exist in REMIXTREENODES!")
                 print("🔧 Auto-fixing: Adding parent as root node first...")
 
                 // Add the parent as a root node (backward compatibility fix)
-                await addRecipeToRemixTreeAsRoot(recipeID: parentID, postName: postName, description: "Original recipe (auto-added)")
+                await addRecipeToRemixTreeAsRoot(recipeID: parentID, description: "Original recipe (auto-added)")
 
                 // Now the parent exists as a root, so rootPostID is the parent itself
                 rootPostID = parentID
@@ -412,7 +363,6 @@ import SwiftUI
         }
 
         let nodeInfo: [String: Any] = [
-            "postName": postName,
             "childrenIDs": [],
             "description": description,
             "parentID": parentID,
@@ -420,11 +370,11 @@ import SwiftUI
         ]
 
         do {
-            try await db.collection("remixTreeNode").document(recipeID).setData(nodeInfo)
-            print("✅ Added recipe \(recipeID) as child node to remixTreeNode (parent: \(parentID))")
+            try await db.collection("REMIXTREENODES").document(recipeID).setData(nodeInfo)
+            print("✅ Added recipe \(recipeID) as child node to REMIXTREENODES (parent: \(parentID))")
 
             // Update parent's childrenIDs array
-            try await db.collection("remixTreeNode").document(parentID).updateData([
+            try await db.collection("REMIXTREENODES").document(parentID).updateData([
                 "childrenIDs": FieldValue.arrayUnion([recipeID])
             ])
             print("✅ Updated parent node \(parentID) with new child \(recipeID)")
@@ -433,18 +383,18 @@ import SwiftUI
         }
     }
     
-    func createRecipe(userId: String, name: String, ingredients: [Ingredient], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, servingSize: Int, media: [MediaItem], chefsNotes: String) async -> String {
-        
+    func createRecipe(userId: String, name: String, ingredients: [Ingredient], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, servingSize: Int, media: [MediaItem], chefsNotes: String, submitToWeeklyChallenge: Bool = false) async -> String {
+
         let recipeID = UUID()
         let recipeUUID = recipeID.uuidString
-        
+
         let db = Firestore.firestore()
         var uploadedMediaURLs: [String] = []
-        
+
         for (index, mediaItem) in mediaItems.enumerated() {
             let ext = mediaItem.mediaType == .video ? "mov" : "jpg"
             let fileName = "media_\(index).\(ext)"
-            
+
             if let urlString = await uploadMediaToFirebase(
                 mediaItem: mediaItem,
                 fileName: fileName,
@@ -453,9 +403,9 @@ import SwiftUI
                 uploadedMediaURLs.append(urlString)
             }
         }
-        
+
         print("All uploaded media: \(uploadedMediaURLs)")
-        
+
         let ingredientsData = ingredients.map { ingredient in
             [
                 "name": ingredient.name,
@@ -464,7 +414,7 @@ import SwiftUI
                 "preparation": ingredient.preparation
             ] as [String: Any]
         }
-        
+
         let data: [String: Any] = [
             "userId": userId,
             "name": name,
@@ -480,14 +430,43 @@ import SwiftUI
             "chefsNotes": chefsNotes,
             "likes": 0
         ]
-        
+
         do {
             try await db.collection("RECIPES").document(recipeUUID).setData(data)
             print("Document added successfully!")
+
+            // If submitting to weekly challenge, copy to CURRENT_CHALLENGE_SUBMISSIONS
+            if submitToWeeklyChallenge {
+                print("🏆 Submitting recipe to weekly challenge...")
+                try await db.collection("CURRENT_CHALLENGE_SUBMISSIONS").document(recipeUUID).setData([
+                    "recipeId": recipeUUID,
+                    "submittedAt": FieldValue.serverTimestamp()
+                ])
+                print("✅ Recipe submitted to weekly challenge!")
+            }
         } catch {
             print("Error adding document: \(error.localizedDescription)")
         }
-        
+
         return recipeUUID
+    }
+
+    // Reset all fields to initial state
+    func reset() {
+        userIdInput = ""
+        name = ""
+        description = ""
+        ingredients = [Ingredient()]
+        selectedAllergens = []
+        selectedTags = []
+        prepTimeInput = ""
+        difficulty = .easy
+        servingSize = 1
+        steps = [""]
+        mediaItems = []
+        chefsNotes = ""
+        messages = []
+        isThinking = false
+        toolcall = nil
     }
 }
