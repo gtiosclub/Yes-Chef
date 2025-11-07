@@ -114,12 +114,14 @@ class RemixData: ObservableObject {
                         
                         // Eesh New Edit: Changed to use FirebaseRemixTreeNode
                         if let rootPostID = data["rootPostID"] as? String,
+                           let postName = data["postName"] as? String,
                            let parentID = data["parentID"] as? String,
                            let childrenIDs = data["childrenIDs"] as? [String],
                            let description = data["description"] as? String {
 
                             let node = FirebaseRemixTreeNode(
                                 currNodeID: doc.documentID,
+                                postName: postName,
                                 parentNodeID: parentID,
                                 rootNodeOfTreeID: rootPostID,
                                 childrenIDs: childrenIDs,
@@ -258,12 +260,14 @@ class RemixData: ObservableObject {
             for doc in snapshot.documents {
                 let data = doc.data()
                 if let rootPostID = data["rootPostID"] as? String,
+                   let postName = data["postName"] as? String,
                    let parentID = data["parentID"] as? String,
                    let childrenIDs = data["childrenIDs"] as? [String],
                    let description = data["description"] as? String {
 
                     let node = FirebaseRemixTreeNode(
                         currNodeID: doc.documentID,
+                        postName: postName,
                         parentNodeID: parentID,
                         rootNodeOfTreeID: rootPostID,
                         childrenIDs: childrenIDs,
