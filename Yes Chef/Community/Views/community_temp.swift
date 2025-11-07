@@ -420,6 +420,8 @@ struct FeedView: View {
     @State private var selectedTab: Tab = .forYou
     @Binding var navigationRecipe: Recipe?
     @Environment(AuthenticationVM.self) var authVM
+    @State private var suggested: [Recipe] = []
+    @State private var UVM = UserViewModel()
     enum Tab {
         case forYou, following
     }
@@ -631,6 +633,22 @@ struct FeedView: View {
     }
     
     // MARK: - Helper
+    private func suggestedSort(user: User, recipes: [Recipe]) {
+            for recipe in recipes {
+                
+                if user.likedRecipes.contains(recipe.id) {
+                    continue
+                }
+                
+                if suggested.contains(where: {$0.id == recipe.id}) {
+                    continue
+                }
+                
+                recipe.score = UVM.calculateScore(recipe: recipe, user: user.suggestionProfile)
+                suggested.append(recipe)
+            }
+            suggested = suggested.sorted { $0.score > $1.score }
+    }
     private func deterministicHeight(for hash: Int) -> CGFloat {
         imageHeights[abs(hash) % imageHeights.count]
     }
