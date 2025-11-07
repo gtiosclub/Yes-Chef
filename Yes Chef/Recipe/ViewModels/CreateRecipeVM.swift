@@ -42,6 +42,33 @@ import SwiftUI
 
     var prepTime: Int { Int(prepTimeInput) ?? 0 }
     
+    // Validation
+    func validate() -> (isValid: Bool, errorMessage: String?) {
+        // Check name
+        if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return (false, "Please enter a recipe name")
+        }
+
+        // Check ingredients - at least one ingredient with a name
+        let validIngredients = ingredients.filter { !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        if validIngredients.isEmpty {
+            return (false, "Please add at least one ingredient")
+        }
+
+        // Check steps - at least one non-empty step
+        let validSteps = steps.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        if validSteps.isEmpty {
+            return (false, "Please add at least one step")
+        }
+
+        // Check prep time
+        if prepTime <= 0 {
+            return (false, "Please enter a valid prep time (greater than 0)")
+        }
+
+        return (true, nil)
+    }
+    
     // Default initializer
     init() {}
     
