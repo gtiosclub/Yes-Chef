@@ -15,7 +15,7 @@ class CarouselViewModel: ObservableObject, Identifiable {
     
     func checkPostChildren(for postId: String) async -> Bool {
         do {
-            let document = try await db.collection("remixTreeNode").document(postId).getDocument()
+            let document = try await db.collection("REMIXTREENODES").document(postId).getDocument()
             guard let data = document.data() else { return false }
             
             let childrenIDs = data["childrenID"] as? [String] ?? []
@@ -27,7 +27,7 @@ class CarouselViewModel: ObservableObject, Identifiable {
 
     func fetchPostChildren(for postId: String) async -> [String] {
         do {
-            let document = try await db.collection("remixTreeNode").document(postId).getDocument()
+            let document = try await db.collection("REMIXTREENODES").document(postId).getDocument()
             guard let data = document.data() else { return [] }
             
             return data["childrenID"] as? [String] ?? []
