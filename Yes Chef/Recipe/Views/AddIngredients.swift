@@ -162,16 +162,16 @@ struct IngredientCardView: View {
                 .frame(height: 1)
                 .foregroundColor(.black)
                 .padding(.horizontal, -10)
-        
-            if !isAdding {
-                Button(action: onRemove) {
-                    Text("Remove")
-                        .foregroundColor(Color(hex: "#FF3F49"))
-                        .font(.system(size: 16))
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.plain)
+    
+       
+            Button(action: onRemove) {
+                Text("Remove")
+                    .foregroundColor(Color(hex: "#FF3F49"))
+                    .font(.system(size: 16))
+                    .frame(maxWidth: .infinity)
             }
+            .buttonStyle(.plain)
+            .disabled(isRemoving || isAdding)
         }
         .padding(.vertical, 10)
         .padding(.horizontal, 10)
