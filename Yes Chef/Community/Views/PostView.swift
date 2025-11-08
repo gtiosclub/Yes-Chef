@@ -24,6 +24,7 @@ struct PostView: View {
 
     @State private var liked: Bool = false
     @State private var following: Bool = false
+    @State private var saved: Bool = false
 
     @State private var goToAddRecipe = false
     // Eesh New Edit: Add state for navigating to remix tree view
@@ -47,8 +48,22 @@ struct PostView: View {
                     //Bookmark Button
                     //Divider().padding(.horizontal, 5)
                     Spacer()
-                    Image(systemName: "bookmark")
-                        .font(Font.title2)
+                    Button {
+                        Task {
+                            if !saved {
+                                await authVM.saveRecipe(recipeId: recipe.id)
+                                authVM.currentUser?.savedRecipes.append(recipe.id)
+                                saved = true
+                            } else {
+                                await authVM.unsaveRecipe(recipeId: recipe.id)
+                                authVM.currentUser?.savedRecipes.removeAll { $0 == recipe.id }
+                                saved = false
+                            }
+                        }
+                    } label: {
+                        Image(systemName: saved ? "bookmark.fill" : "bookmark")
+                            .font(Font.title2)
+                    }
                     //... Button
                     Image(systemName: "ellipsis")
                         .font(Font.title2)
@@ -252,6 +267,7 @@ struct PostView: View {
         .onAppear {
             liked = (authVM.currentUser?.likedRecipes ?? []).contains(recipe.id)
             following = (authVM.currentUser?.following ?? []).contains(recipe.userId)
+            saved = (authVM.currentUser?.savedRecipes ?? []).contains(recipe.id)
             Task {
                 let user = authVM.currentUser ?? User(userId: "", username: "", email: "", bio: "")
                 await UVM.updateSuggestionProfile(userID: user.userId, suggestionProfile: &user.suggestionProfile, recipe: recipe, interaction: "view")

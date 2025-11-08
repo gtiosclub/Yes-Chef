@@ -16,7 +16,6 @@ class AuthenticationVM {
     var isLoggedIn = false
     var currentUser: User?
     var auth: Auth
-    
     private var handler: AuthStateDidChangeListenerHandle?
     init() {
         self.auth = Auth.auth()
@@ -25,7 +24,6 @@ class AuthenticationVM {
                             guard let self = self else { return }
 
                             if let user = user {
-                                // Keep currentUser in sync with FirebaseAuth
                                 self.currentUser = User(userId: user.uid, username: user.displayName ?? "", email: user.email ?? "")
                             } else {
                                 self.currentUser = nil
@@ -57,7 +55,34 @@ class AuthenticationVM {
             }
         }
     }
-    
+    func saveRecipe(recipeId: String) async {
+        guard let userId = currentUser?.userId else {
+            return
+        }
+        let db = Firestore.firestore()
+        let userReferenceInFirebase = db.collection("users").document(userId)
+        do {
+            try await userReferenceInFirebase.setData(["savedRecipes": FieldValue.arrayUnion([recipeId])
+                                                      ])
+        } catch {
+            print("could not save to firebase \(error)")
+        }
+    }
+    func unsaveRecipe(recipeId: String) async {
+        guard let userId = currentUser?.userId else {
+            return
+        }
+        let db = Firestore.firestore()
+        let userReferenceInFirebase = db.collection("users").document(userId)
+        do {
+            try await userReferenceInFirebase.setData(
+                ["savedRecipes": FieldValue.arrayRemove([recipeId])],
+                merge: true
+            )
+        } catch {
+            print("coudl not save to firebase \(error.localizedDescription)")
+        }
+    }
     func register(email: String, password: String, username: String) {
         auth.createUser(withEmail: email, password: password) {result, error in
             if let error = error {
