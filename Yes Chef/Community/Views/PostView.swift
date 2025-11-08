@@ -61,7 +61,7 @@ struct PostView: View {
                             }
                         }
                     } label: {
-                        Image(systemName: "bookmark")
+                        Image(systemName: saved ? "bookmark.fill" : "bookmark")
                             .font(Font.title2)
                     }
                     //... Button
