@@ -437,9 +437,11 @@ struct FeedView: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 0) {
+
                 headerSection
                 tabBarSection
                 contentSection
+
             }
             .background(Color.white)
             .task {

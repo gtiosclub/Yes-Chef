@@ -9,16 +9,33 @@
 import FirebaseFirestore
 import Observation
 
-@Observable class AuthenticationVM {
-    
+@Observable
+class AuthenticationVM {
     var errorMessage: String?
     var isLoading = false
     var isLoggedIn = false
     var currentUser: User?
     var auth: Auth
     
+    private var handler: AuthStateDidChangeListenerHandle?
     init() {
         self.auth = Auth.auth()
+        self.handler = Auth.auth().addStateDidChangeListener { [weak self] _, user in
+            DispatchQueue.main.async {
+                            guard let self = self else { return }
+
+                            if let user = user {
+                                // Keep currentUser in sync with FirebaseAuth
+                                self.currentUser = User(userId: user.uid, username: user.displayName ?? "", email: user.email ?? "")
+                            } else {
+                                self.currentUser = nil
+                            }
+                        }
+        }
+    }
+    
+    public var isSignedIn: Bool {
+        return Auth.auth().currentUser != nil
     }
     
     func login(email: String, password: String) async {
@@ -50,7 +67,15 @@ import Observation
             }
             
             guard let user = result?.user else {return}
-            
+            let changeRequest = user.createProfileChangeRequest()
+            changeRequest.displayName = username
+            changeRequest.commitChanges { error in
+                if let error = error {
+                    print("Failed to set displayName: \(error.localizedDescription)")
+                } else {
+                    print("FirebaseAuth displayName set successfully")
+                }
+            }
             let newUser = User(userId: user.uid, username: username, email: email, password: password)
             
             let userData: [String: Any] = [
@@ -98,8 +123,13 @@ import Observation
     }
     
     func updateCurrentUser() async {
+        guard let userId = self.currentUser?.userId, !userId.isEmpty else {
+                print("Error: currentUser or userId is nil/empty")
+                return
+        }
+
         let db = Firestore.firestore()
-        let userRef = db.collection("users").document(self.currentUser?.userId ?? "")
+        let userRef = db.collection("users").document(userId)
         
         do {
             let document = try await userRef.getDocument()
