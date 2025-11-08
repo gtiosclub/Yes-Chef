@@ -33,13 +33,10 @@ struct Yes_ChefApp: App {
     }
     var body: some Scene {
       WindowGroup {
-        NavigationView {
+        NavigationStack {
             ContentView()
               .environment(authVM)
         }
-      
-     
-      
      }
   }
 }

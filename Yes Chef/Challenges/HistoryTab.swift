@@ -38,7 +38,6 @@ struct HistoryTab: View {
 
 
     var body: some View {
-        NavigationStack {
             VStack(spacing: 10) {
                 HStack {
                     Text("History")
@@ -81,7 +80,6 @@ struct HistoryTab: View {
                 .cornerRadius(10)
 
 
-            NavigationView {
                 //Custom Search
                 VStack(spacing: 0) {
                     HStack {
@@ -164,7 +162,6 @@ struct HistoryTab: View {
                 }
             }
             .frame(width: 328, height: 400)
-        } // Close NavigationView
         } // Close main VStack
         .task {
             await fetchWeeklyPrompt()
@@ -203,7 +200,6 @@ struct HistoryTab: View {
                 }
             }
         )
-        } // Close NavigationStack
     } // Close body
 
     // Fetch the current weekly challenge prompt

@@ -38,7 +38,6 @@ struct AddRecipeMain: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack{
             VStack(spacing: 0){
                 headerView
                 
@@ -87,7 +86,6 @@ struct AddRecipeMain: View {
             }
             .overlay(successOverlay)
             .overlay(cancelOverlay)
-        }
     }
 
     // MARK: - Header View

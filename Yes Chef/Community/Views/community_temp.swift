@@ -17,7 +17,6 @@ struct SettingsView: View {
     @State private var showingPasswordChange = false
     
     var body: some View {
-        NavigationStack {
             ZStack(alignment: .topLeading) {
                 Color(.systemBackground)
                     .ignoresSafeArea()
@@ -181,7 +180,6 @@ struct SettingsView: View {
                 }
             }
             .navigationBarHidden(true)
-        }
     }
     
     // MARK: - Helper
@@ -208,7 +206,6 @@ struct ChangeEmailView: View {
     @State private var newEmail = ""
     
     var body: some View {
-        NavigationStack {
             VStack(spacing: 16) {
                 
                 // Top buttons
@@ -288,7 +285,6 @@ struct ChangeEmailView: View {
                 Spacer()
             }
             .frame(maxWidth: .infinity)
-        }
     }
 }
 
@@ -301,7 +297,6 @@ struct ChangePasswordView: View {
     var authVM: AuthenticationVM
     
     var body: some View {
-        NavigationStack {
             VStack(spacing: 16) {
                 
                 // Top buttons
@@ -403,7 +398,6 @@ struct ChangePasswordView: View {
                 Spacer()
             }
             .frame(maxWidth: .infinity)
-        }
     }
 }
 
@@ -435,7 +429,6 @@ struct FeedView: View {
     let imageHeights: [CGFloat] = [160, 190, 220]
 
     var body: some View {
-        NavigationStack {
             VStack(alignment: .leading, spacing: 0) {
 
                 headerSection
@@ -455,7 +448,6 @@ struct FeedView: View {
                 PostView(recipe: recipe)
                     .environment(authVM)
             }
-        }
         .onAppear {
             Task {
                 await authVM.updateCurrentUser()
@@ -597,7 +589,7 @@ struct FeedView: View {
             } else {
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(viewModel.recipes, id: \.id) { recipe in
-                        NavigationLink(destination: PostView(recipe: recipe)) {
+                        NavigationLink(destination: PostView(recipe: recipe).environment(authVM)) {
                             VStack(alignment: .leading, spacing: 6) {
                                 let height = deterministicHeight(for: recipe.id.uuidHash)
 

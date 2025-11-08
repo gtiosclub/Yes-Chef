@@ -322,6 +322,7 @@ struct PostView: View {
 
             NavigationLink("", isActive: $goToRemixTree) {
                 RemixTreeView(nodeID: recipe.recipeId)
+                    .environment(authVM)
 
 //            Button {
 //                goToAddRecipe = true

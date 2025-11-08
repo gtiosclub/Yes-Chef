@@ -12,7 +12,6 @@ struct LeaderboardView: View {
 
 
     var body: some View {
-        NavigationStack {
             VStack(spacing: 0) {
                 // Fixed header with title and history button
                 HStack {
@@ -44,7 +43,6 @@ struct LeaderboardView: View {
             data.fetchUserRecipes()
             await fetchWeeklyPrompt()
         }
-        } // Close NavigationStack
     } // Close body
 
     // MARK: - Tab Selection

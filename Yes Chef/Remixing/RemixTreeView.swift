@@ -408,6 +408,8 @@ struct RemixTreeView: View {
     @State private var isNavigatingToNode: Bool = false
     @State private var isNavigatingToPost: Bool = false
     // End of Eesh New Edit
+    
+    @Environment(AuthenticationVM.self) var authVM: AuthenticationVM
 
     private var currentNodeID: String { nodeID }
 
@@ -594,6 +596,7 @@ struct RemixTreeView: View {
                 destination: Group {
                     if let node = navigateToNode {
                         RemixTreeView(nodeID: node.currNodeID)
+                            .environment(authVM)
                     } else {
                         EmptyView()
                     }
@@ -607,6 +610,7 @@ struct RemixTreeView: View {
                 destination: Group {
                     if let postID = navigateToPostID {
                         RecipeLoadingView(recipeID: postID)
+                            .environment(authVM)
                     } else {
                         EmptyView()
                     }
