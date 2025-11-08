@@ -260,8 +260,6 @@ struct ProfileView: View {
                             .foregroundColor(.black)
                         
                     }
-                    .frame(maxWidth: .infinity)
-                    .contentShape(Rectangle())
                 }
                 .padding(.bottom , 10)
                 .frame(maxWidth: .infinity)
@@ -293,8 +291,6 @@ struct ProfileView: View {
                             .foregroundColor(.black)
                         
                     }
-                    .frame(maxWidth: .infinity)
-                    .contentShape(Rectangle())
                 }
                 .frame(maxWidth: .infinity)
                 .zIndex(selectedTab == 1 ? 2 : 0)
@@ -411,9 +407,8 @@ struct ProfileView: View {
         }
     }
 
-//
-/*
-struct RoundedCorner: Shape {
+// MARK: - Custom Shapes
+fileprivate struct RoundedCorner: Shape {
     var radius: CGFloat
     var corners: UIRectCorner
 
@@ -426,7 +421,7 @@ struct RoundedCorner: Shape {
         return Path(path.cgPath)
     }
 }
-*/
+
 // MARK: - Preview
 
 struct ProfileView_Previews: PreviewProvider {

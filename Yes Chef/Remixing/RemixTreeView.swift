@@ -720,6 +720,6 @@ struct DummyRemixPostView: View {
 
 #Preview {
     NavigationView {
-        RemixTreeView(nodeID: "FC26767A-B7DE-4F44-85C8-EA28930E3462")
+        RemixTreeView(nodeID: "FCD2ABD0-36D1-4E80-9533-AC161A727930")
     }
 }

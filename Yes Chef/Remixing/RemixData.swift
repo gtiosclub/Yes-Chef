@@ -93,7 +93,7 @@ class RemixData: ObservableObject {
     //done
     // Eesh New Edit: Changed to use FirebaseRemixTreeNode
     func fetchRemixNodes(completion: @escaping ([FirebaseRemixTreeNode]) -> Void) {
-            db.collection("remixTreeNode")
+            db.collection("REMIXTREENODES")
                 .getDocuments { snapshot, error in
                     var nodes: [FirebaseRemixTreeNode] = []
     // End of Eesh New Edit
@@ -114,12 +114,14 @@ class RemixData: ObservableObject {
                         
                         // Eesh New Edit: Changed to use FirebaseRemixTreeNode
                         if let rootPostID = data["rootPostID"] as? String,
+                           let postName = data["postName"] as? String,
                            let parentID = data["parentID"] as? String,
                            let childrenIDs = data["childrenIDs"] as? [String],
                            let description = data["description"] as? String {
 
                             let node = FirebaseRemixTreeNode(
                                 currNodeID: doc.documentID,
+                                postName: postName,
                                 parentNodeID: parentID,
                                 rootNodeOfTreeID: rootPostID,
                                 childrenIDs: childrenIDs,
@@ -204,9 +206,9 @@ class RemixData: ObservableObject {
         }
         
         // Now write to Firestore
-        // Eesh New Edit: Changed collection to "realRemixTreeNodes"
+        // Eesh New Edit: Changed collection to "REMIXTREENODES"
         for (nodeID, data) in allNodes {
-            db.collection("remixTreeNode").document(nodeID).setData(data) { error in
+            db.collection("REMIXTREENODES").document(nodeID).setData(data) { error in
                 if let error = error {
                     print("Error writing node \(nodeID): \(error.localizedDescription)")
                 } else {
@@ -248,7 +250,7 @@ class RemixData: ObservableObject {
     // Eesh New Edit: Changed to use FirebaseRemixTreeNode
     func startListening() {
         listener?.remove() // stop old one if active
-        listener = db.collection("remixTreeNode").addSnapshotListener { snapshot, error in
+        listener = db.collection("REMIXTREENODES").addSnapshotListener { snapshot, error in
             guard let snapshot = snapshot else {
                 print("Error listening for updates: \(error?.localizedDescription ?? "unknown")")
                 return
@@ -258,12 +260,14 @@ class RemixData: ObservableObject {
             for doc in snapshot.documents {
                 let data = doc.data()
                 if let rootPostID = data["rootPostID"] as? String,
+                   let postName = data["postName"] as? String,
                    let parentID = data["parentID"] as? String,
                    let childrenIDs = data["childrenIDs"] as? [String],
                    let description = data["description"] as? String {
 
                     let node = FirebaseRemixTreeNode(
                         currNodeID: doc.documentID,
+                        postName: postName,
                         parentNodeID: parentID,
                         rootNodeOfTreeID: rootPostID,
                         childrenIDs: childrenIDs,
