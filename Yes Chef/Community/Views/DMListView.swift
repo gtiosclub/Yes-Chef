@@ -14,7 +14,6 @@ struct DMListView: View {
     @Environment(AuthenticationVM.self) var authVM
     
     var body: some View {
-        NavigationView {
             ZStack {
                 // Background
                 Color(.systemGroupedBackground)
@@ -32,7 +31,6 @@ struct DMListView: View {
                 }
             }
             .navigationBarHidden(true)
-        }
         .task {
             if let userID = authVM.currentUser?.userId {
                 messageVM.setCurrentUser(userID)

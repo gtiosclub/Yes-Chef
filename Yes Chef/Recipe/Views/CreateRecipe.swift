@@ -150,7 +150,6 @@ struct CreateRecipe: View {
     }
     
     var body: some View {
-        NavigationStack {
             ZStack {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 7) {
@@ -265,7 +264,6 @@ struct CreateRecipe: View {
                     .hidden()
                 }
             }
-        }
     }
 }
     struct SectionHeader: View {

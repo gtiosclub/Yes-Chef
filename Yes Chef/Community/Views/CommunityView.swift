@@ -22,7 +22,6 @@ struct CommunityView : View {
     }
     
     var body: some View {
-        NavigationStack {
             VStack {
                 Text("Hi Chef!")
                     .font(.largeTitle)
@@ -91,7 +90,6 @@ struct CommunityView : View {
                     print("Failed to fetch recipes: \(error)")
                 }
             }
-        }
     }
     
 }
