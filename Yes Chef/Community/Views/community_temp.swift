@@ -444,6 +444,7 @@ struct FeedView: View {
                         .fontWeight(.bold)
                         .foregroundColor(Color(hex: "#404741"))
                     
+                    
                     Spacer()
                     NavigationLink(destination: UserListView()) {
                         Image(systemName: "paperplane")
