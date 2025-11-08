@@ -589,7 +589,7 @@ struct FeedView: View {
             } else {
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(viewModel.recipes, id: \.id) { recipe in
-                        NavigationLink(destination: PostView(recipe: recipe)) {
+                        NavigationLink(destination: PostView(recipe: recipe).environment(authVM)) {
                             VStack(alignment: .leading, spacing: 6) {
                                 let height = deterministicHeight(for: recipe.id.uuidHash)
 
