@@ -104,7 +104,7 @@ struct CustomBottomNavBar: View {
             .frame(height: 60)
             .padding(.bottom, 8)
         }
-        .background(Color(uiColor: .systemBackground))
+        .background(Color(hex: "#fffdf7"))
         .frame(maxWidth: .infinity)
         .ignoresSafeArea(edges: .bottom)
     }

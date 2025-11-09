@@ -89,7 +89,7 @@ struct AddRecipeMain: View {
                 .padding(.vertical, 10)
             }
             .navigationBarHidden(true)
-            .background(Color(hex: "#fffffc"))
+            .background(Color(hex: "#fffdf7"))
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .task {
                 await fetchWeeklyPrompt()

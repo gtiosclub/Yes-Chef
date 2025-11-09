@@ -200,6 +200,7 @@ struct HistoryTab: View {
                 }
             }
         )
+        .background(Color(hex: "#fffdf7"))
     } // Close body
 
     // Fetch the current weekly challenge prompt

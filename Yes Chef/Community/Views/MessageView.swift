@@ -92,7 +92,7 @@ struct ChatView2: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .background(Color(.systemBackground))
+        .background(Color(hex: "#fffdf7"))
     }
     
     // MARK: - Helper Functions

@@ -40,6 +40,7 @@ struct LeaderboardView: View {
                     leaderboardView
                 }
             } // Close outer VStack
+        .background(Color(hex: "#fffdf7"))
         .task {
             data.fetchUserRecipes()
             await fetchWeeklyPrompt()

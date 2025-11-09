@@ -153,6 +153,7 @@ struct CommunityView : View {
                 }
                 Spacer()
             }
+            .background(Color(hex: "#fffdf7"))
             .task {
                 await viewModel.getAllUsers()
                 await viewModel.getAllUsernames()

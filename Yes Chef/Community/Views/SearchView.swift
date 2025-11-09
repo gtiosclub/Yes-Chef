@@ -155,6 +155,7 @@ struct SearchView : View {
                 
             }
         }
+        .background(Color(hex: "#fffdf7"))
         .navigationBarBackButtonHidden(true)
         
         

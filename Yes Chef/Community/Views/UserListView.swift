@@ -58,7 +58,7 @@ struct UserListView: View {
                         }
                     }
                     .frame(maxHeight: 200)
-                    .background(Color.white)
+                    .background(Color(hex: "#fffdf7"))
                     .cornerRadius(8)
                     .shadow(radius: 3)
                     .padding(.horizontal)
