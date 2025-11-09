@@ -59,7 +59,8 @@ struct SmartSuggestionAltDemoView: View {
                             difficulty: .medium,
                             servingSize: 2,
                             media: [],
-                            chefsNotes: "No notes"
+                            chefsNotes: "No notes",
+                            likes: 0
                         )
 
                         let s = try await vm.smartSuggestion(recipe: recipe, userMessage: msg)

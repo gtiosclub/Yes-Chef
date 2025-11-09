@@ -10,38 +10,63 @@ import FirebaseFirestore
 import Firebase
 import FirebaseAuth
 
-class DummyNode  {
-    
+// Eesh New Edit: Commented out DummyNode class (replaced by FirebaseRemixTreeNode)
+/*
+class DummyNode: Identifiable, Codable, Hashable {
     let currNodeID: String
     var parentNodeID: String
     let rootNodeOfTreeID: String
-    
     var childrenIDs: [String]
-    
     var descriptionOfRecipeChanges: String
-    
-    init(currNodeID: String,
-         parentNodeID: String,
-         rootNodeOfTreeID: String,
-         childrenIDs: [String],
-         descriptionOfRecipeChanges: String = "") {
-        
+
+    init(
+        currNodeID: String,
+        parentNodeID: String,
+        rootNodeOfTreeID: String,
+        childrenIDs: [String],
+        descriptionOfRecipeChanges: String = ""
+    ) {
         self.currNodeID = currNodeID
         self.parentNodeID = parentNodeID
         self.rootNodeOfTreeID = rootNodeOfTreeID
         self.childrenIDs = childrenIDs
         self.descriptionOfRecipeChanges = descriptionOfRecipeChanges
     }
-    
+
+    static func == (lhs: DummyNode, rhs: DummyNode) -> Bool {
+        lhs.currNodeID == rhs.currNodeID
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(currNodeID)
+    }
 }
+*/
+// End of Eesh New Edit
 
-
+// Eesh New Edit: Updated documentation to reflect use of FirebaseRemixTreeNode
+/**
+ * RemixData manages the remix tree data from Firebase's "realRemixTreeNodes" collection.
+ *
+ * This is the production-ready data manager that handles:
+ * - Real-time listening to Firebase updates
+ * - Fetching remix tree nodes from Firestore
+ * - Managing the remix tree structure in the app
+ *
+ * Uses FirebaseRemixTreeNode (a wrapper around RemixTreeNode) which is optimized
+ * for Firebase with ID-based relationships instead of object references.
+ */
+// End of Eesh New Edit
 @MainActor
 class RemixData: ObservableObject {
-    @Published var nodes : [DummyNode] = []
+    static let shared = RemixData()
 
-    init() {
-       
+    // Eesh New Edit: Changed to use FirebaseRemixTreeNode wrapper
+    @Published var nodes : [FirebaseRemixTreeNode] = []  // Firebase-compatible remix tree nodes
+    // End of Eesh New Edit
+
+    private init() {
+
     }
     
     func recalibrateEntries(){
@@ -66,10 +91,12 @@ class RemixData: ObservableObject {
    
 
     //done
-    func fetchRemixNodes(completion: @escaping ([DummyNode]) -> Void) {
-            db.collection("eeshRemixTreeNodes")
+    // Eesh New Edit: Changed to use FirebaseRemixTreeNode
+    func fetchRemixNodes(completion: @escaping ([FirebaseRemixTreeNode]) -> Void) {
+            db.collection("REMIXTREENODES")
                 .getDocuments { snapshot, error in
-                    var nodes: [DummyNode] = []
+                    var nodes: [FirebaseRemixTreeNode] = []
+    // End of Eesh New Edit
                     
                     if let error = error {
                         print("Error fetching remix nodes:", error.localizedDescription)
@@ -85,21 +112,25 @@ class RemixData: ObservableObject {
                     for doc in documents {
                         let data = doc.data()
                         
+                        // Eesh New Edit: Changed to use FirebaseRemixTreeNode
                         if let rootPostID = data["rootPostID"] as? String,
+                           let postName = data["postName"] as? String,
                            let parentID = data["parentID"] as? String,
                            let childrenIDs = data["childrenIDs"] as? [String],
                            let description = data["description"] as? String {
-                            
-                            let node = DummyNode(
+
+                            let node = FirebaseRemixTreeNode(
                                 currNodeID: doc.documentID,
+                                postName: postName,
                                 parentNodeID: parentID,
                                 rootNodeOfTreeID: rootPostID,
                                 childrenIDs: childrenIDs,
                                 descriptionOfRecipeChanges: description
                             )
-                            
+
                             nodes.append(node)
                         }
+                        // End of Eesh New Edit
                     }
                     
                     completion(nodes)
@@ -109,6 +140,7 @@ class RemixData: ObservableObject {
     
     
     static func seedDummyNodes() {
+        return;
         let db = Firestore.firestore()
             
         let descriptions = [
@@ -125,8 +157,8 @@ class RemixData: ObservableObject {
         ]
         
         let numberOfTrees = 1
-        let maxDepth = 2
-        let maxChildrenPerNode = 3
+        let maxDepth = 4
+        let maxChildrenPerNode = 8
         
         var allNodes: [String: [String: Any]] = [:]
         
@@ -163,7 +195,7 @@ class RemixData: ObservableObject {
                     generateChildren(for: childID, rootID: rootID, depth: depth + 1)
                 }
                 
-                // update parent’s childrenIDs
+                // update parent's childrenIDs
                 if var parentNode = allNodes[parentID] {
                     parentNode["childrenIDs"] = childIDs
                     allNodes[parentID] = parentNode
@@ -174,8 +206,9 @@ class RemixData: ObservableObject {
         }
         
         // Now write to Firestore
+        // Eesh New Edit: Changed collection to "REMIXTREENODES"
         for (nodeID, data) in allNodes {
-            db.collection("eeshRemixTreeNodes").document(nodeID).setData(data) { error in
+            db.collection("REMIXTREENODES").document(nodeID).setData(data) { error in
                 if let error = error {
                     print("Error writing node \(nodeID): \(error.localizedDescription)")
                 } else {
@@ -183,21 +216,24 @@ class RemixData: ObservableObject {
                 }
             }
         }
+        // End of Eesh New Edit
     }
 
     //done
+    // Eesh New Edit: Changed collection to "realRemixTreeNodes"
     static func clearDummyNodes() {
+        return;
         let db = Firestore.firestore()
-        db.collection("eeshRemixTreeNodes").getDocuments { (snapshot, error) in
+        db.collection("realRemixTreeNodes").getDocuments { (snapshot, error) in
             if let error = error {
                 print("Error fetching documents: \(error.localizedDescription)")
                 return
             }
-            
+
             guard let documents = snapshot?.documents else { return }
-            
+
             for doc in documents {
-                db.collection("eeshRemixTreeNodes").document(doc.documentID).delete { err in
+                db.collection("realRemixTreeNodes").document(doc.documentID).delete { err in
                     if let err = err {
                         print("Error deleting document \(doc.documentID): \(err.localizedDescription)")
                     } else {
@@ -207,27 +243,31 @@ class RemixData: ObservableObject {
             }
         }
     }
+    // End of Eesh New Edit
     
     private var listener: ListenerRegistration?
 
+    // Eesh New Edit: Changed to use FirebaseRemixTreeNode
     func startListening() {
         listener?.remove() // stop old one if active
-        listener = db.collection("eeshRemixTreeNodes").addSnapshotListener { snapshot, error in
+        listener = db.collection("REMIXTREENODES").addSnapshotListener { snapshot, error in
             guard let snapshot = snapshot else {
                 print("Error listening for updates: \(error?.localizedDescription ?? "unknown")")
                 return
             }
-            
-            var nodes: [DummyNode] = []
+
+            var nodes: [FirebaseRemixTreeNode] = []
             for doc in snapshot.documents {
                 let data = doc.data()
                 if let rootPostID = data["rootPostID"] as? String,
+                   let postName = data["postName"] as? String,
                    let parentID = data["parentID"] as? String,
                    let childrenIDs = data["childrenIDs"] as? [String],
                    let description = data["description"] as? String {
-                    
-                    let node = DummyNode(
+
+                    let node = FirebaseRemixTreeNode(
                         currNodeID: doc.documentID,
+                        postName: postName,
                         parentNodeID: parentID,
                         rootNodeOfTreeID: rootPostID,
                         childrenIDs: childrenIDs,
@@ -236,6 +276,7 @@ class RemixData: ObservableObject {
                     nodes.append(node)
                 }
             }
+    // End of Eesh New Edit
             
             DispatchQueue.main.async {
                 self.nodes = nodes

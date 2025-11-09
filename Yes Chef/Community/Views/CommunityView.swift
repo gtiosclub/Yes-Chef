@@ -35,9 +35,6 @@ struct CommunityView : View {
     }
     
     var body: some View {
-        
-        
-        
         NavigationStack {
             VStack {
                 HStack {
@@ -251,4 +248,5 @@ struct RecipeCard: View {
 }
 #Preview {
     CommunityView()
+        .environment(AuthenticationVM())
 }

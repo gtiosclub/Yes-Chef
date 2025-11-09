@@ -8,9 +8,6 @@
 import SwiftUI
 import PhotosUI
 
-import SwiftUI
-import PhotosUI
-
 enum MediaType {
     case photo
     case video
@@ -26,6 +23,8 @@ struct MediaItem: Identifiable {
 struct AddMedia: View {
     @State private var selectedPhotoItems: [PhotosPickerItem] = []
     @Binding var mediaItems: [MediaItem]
+    var onImageTap: ((Int) -> Void)?
+    var padding: EdgeInsets = EdgeInsets(top: 16, leading: 12, bottom: 16, trailing: 12)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -37,11 +36,15 @@ struct AddMedia: View {
                 ) {
                     ZStack {
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.gray)
+                            .fill(Color(hex: "#F9F5F2"))
                             .frame(width: 120, height: 120)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color(hex: "#453A36"), lineWidth: 1)
+                            )
                         Image(systemName: "plus")
-                            .foregroundColor(.white)
-                            .font(.system(size: 30, weight: .bold))
+                            .foregroundColor(Color(hex: "#453A36"))
+                            .font(.system(size: 25))
                     }
                 }
                 .onChange(of: selectedPhotoItems) { newItems in
@@ -52,7 +55,9 @@ struct AddMedia: View {
                 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
-                        ForEach(mediaItems) { item in
+                        ForEach(mediaItems.indices, id: \.self) { index in
+                            let item = mediaItems[index]
+                            
                             ZStack(alignment: .topTrailing) {
                                 if let image = item.image {
                                     image
@@ -61,6 +66,9 @@ struct AddMedia: View {
                                         .frame(width: 120, height: 120)
                                         .cornerRadius(10)
                                         .clipped()
+                                        .onTapGesture {
+                                            onImageTap?(index)
+                                        }
                                 } else {
                                     RoundedRectangle(cornerRadius: 10)
                                         .fill(Color.gray.opacity(0.3))
@@ -70,6 +78,9 @@ struct AddMedia: View {
                                                 .foregroundColor(.white)
                                                 .font(.system(size: 30))
                                         )
+                                        .onTapGesture {
+                                            onImageTap?(index)
+                                        }
                                 }
                             }
                         }
@@ -89,7 +100,6 @@ struct AddMedia: View {
         for (index, item) in items.enumerated() {
             let fileName = "media_\(index)_\(UUID().uuidString)"
             
-            // Try loading as image first
             if let imageData = try? await item.loadTransferable(type: Data.self),
                let uiImage = UIImage(data: imageData) {
                 let image = Image(uiImage: uiImage)
@@ -104,7 +114,6 @@ struct AddMedia: View {
                     print("Failed to save photo: \(error.localizedDescription)")
                 }
             } else if let videoData = try? await item.loadTransferable(type: Data.self) {
-                // Fall back to video if image loading failed
                 let videoURL = tempDir.appendingPathComponent(fileName).appendingPathExtension("mov")
                 
                 do {

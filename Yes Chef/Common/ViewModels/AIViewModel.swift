@@ -369,7 +369,8 @@ Return ONLY valid JSON with this exact shape and key names (no markdown, no extr
 Rules:
 - Use arrays for both "removing" and "adding" (use [] if none).
 - Prefer substitutions over deletions when feasible.
-- When removing/adding with ingredients, replicate the structure of the ingredient object passed in, giving good estimates for the quantity necessary to fit the current serving size of the recipe.
+- When adding with ingredients, replicate the structure of the ingredient object passed in, giving good estimates for the quantity necessary to fit the current serving size of the recipe.
+- When removing with ingredients, make it an array of Strings instead, only including the name of the ingredient to be removed.
 - Keep cuisine and texture intact, propose common grocery items.
 - If the request conflicts with the dish, make conservative edits and explain in "message".
 - If an ingredient is removed or replaced, update any step that mentions it.
@@ -425,3 +426,4 @@ private func smartUserContent(recipe: Recipe, userMessage: String) -> String {
     let data = try! JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys])
     return String(data: data, encoding: .utf8)!
 }
+
