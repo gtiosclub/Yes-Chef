@@ -85,6 +85,7 @@ struct AddRecipeMain: View {
                 }
                 .padding(.vertical, 10)
             }
+            .navigationBarHidden(true)
             .background(Color(hex: "#fffffc"))
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .task {
@@ -105,27 +106,8 @@ struct AddRecipeMain: View {
         HStack{
             Button {
                 guard !isProcessing else { return }
-                isProcessing = true
-
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    showCancelMessage = true
-                }
-                // Auto-dismiss popup after 1 second
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                    withAnimation(.easeOut(duration: 0.3)) {
-                        showCancelMessage = false
-                    }
-                }
-                // Navigate back to home tab
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-                    withAnimation(.easeOut(duration: 0.3)) {
-                        selectedTab = .home
-                    }
-                }
-                // Re-enable buttons after navigation completes
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                    isProcessing = false
-                }
+                self.recipeVM.reset()
+                dismiss()
             } label: {
                 Image(systemName: "xmark")
                     .resizable()
@@ -219,7 +201,7 @@ struct AddRecipeMain: View {
                         await MainActor.run {
                             self.navigationRecipe = recipe
                             withAnimation(.easeInOut(duration: 0.3)) {
-                                self.selectedTab = .home
+                                dismiss()
                             }
                         }
                     }

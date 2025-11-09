@@ -34,17 +34,7 @@ struct PillView: View {
         } else if isAdding {
             return Color.green.opacity(0.3)
         } else {
-            return Color.gray.opacity(0.2)
-        }
-    }
-    
-    private var foregroundColor: Color {
-        if isRemoving {
-            return Color.red
-        } else if isAdding {
-            return Color.green
-        } else {
-            return Color.gray
+            return Color(hex: "#FBECCB")
         }
     }
     
@@ -52,13 +42,13 @@ struct PillView: View {
         Button(action: onClick) {
             Text(value.displayName)
                 .font(.system(size: 14, weight: .semibold))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
+                .padding(.horizontal, 15)
+                .padding(.vertical, 6)
                 .background(
                     Capsule()
                         .fill(backgroundColor)
                 )
-                .foregroundColor(foregroundColor)
+                .foregroundColor(Color(hex: "#404741"))
         }
         .buttonStyle(.plain)
     }
