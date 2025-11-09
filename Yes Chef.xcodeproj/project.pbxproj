@@ -480,11 +480,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Yes Chef/Preview Content\"";
-<<<<<<< HEAD
 				DEVELOPMENT_TEAM = 8PK46AXW2Y;
-=======
-				DEVELOPMENT_TEAM = 5VM646AGC4;
->>>>>>> bc6e786ba81b70f25eb632479f932704b7ce46ce
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -497,11 +493,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-<<<<<<< HEAD
 				PRODUCT_BUNDLE_IDENTIFIER = "nityapotti.Yes-Chef-";
-=======
-				PRODUCT_BUNDLE_IDENTIFIER = "nityapotti01.Yes-Chef";
->>>>>>> bc6e786ba81b70f25eb632479f932704b7ce46ce
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -517,11 +509,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Yes Chef/Preview Content\"";
-<<<<<<< HEAD
 				DEVELOPMENT_TEAM = 8PK46AXW2Y;
-=======
-				DEVELOPMENT_TEAM = 5VM646AGC4;
->>>>>>> bc6e786ba81b70f25eb632479f932704b7ce46ce
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -534,11 +522,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-<<<<<<< HEAD
 				PRODUCT_BUNDLE_IDENTIFIER = "nityapotti.Yes-Chef-";
-=======
-				PRODUCT_BUNDLE_IDENTIFIER = "nityapotti01.Yes-Chef";
->>>>>>> bc6e786ba81b70f25eb632479f932704b7ce46ce
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;

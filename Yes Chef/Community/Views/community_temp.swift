@@ -193,6 +193,7 @@ struct SettingsView: View {
                 }
             }
             .navigationBarHidden(true)
+            .preferredColorScheme(.light)
         }
     }
     
