@@ -30,10 +30,13 @@ struct AddRecipeMain: View {
             _recipeVM = State(initialValue: CreateRecipeVM(fromRecipe: recipe))
             self.comeFromRemix = true
             self.remixParentID = recipe.id
+            print("🎬 REMIX MODE: Parent ID set to \(recipe.id)")
+            print("   Recipe name: \(recipe.name)")
         } else {
             _recipeVM = State(initialValue: CreateRecipeVM())
         }
         _submitToWeeklyChallenge = State(initialValue: submitToWeeklyChallenge)
+        print("Come from remix? \(comeFromRemix)")
     }
 
     @Environment(AuthenticationVM.self) var authVM

@@ -278,6 +278,14 @@ struct PostView: View {
         
         .navigationBarBackButtonHidden(true)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(isPresented: $goToAddRecipe) {
+            AddRecipeMain(remixRecipe: recipe)
+                .environment(authVM)
+        }
+        .navigationDestination(isPresented: $goToRemixTree) {
+            RemixTreeView(nodeID: recipe.recipeId)
+                .environment(authVM)
+        }
         // Eesh New Edit: Added Remix Tree button alongside existing Remix button
         .overlay(alignment: .bottomTrailing) {
             NavigationLink("", isActive: $goToAddRecipe) {
@@ -610,25 +618,6 @@ struct BulletPoint: View {
         }
     }
 }
-
-// Eesh New Edit: Dummy Remix Tree View for Post
-struct DummyRemixTreeViewForPost: View {
-    let postID: String
-
-    var body: some View {
-        VStack {
-            Spacer()
-            Text("Dummy Remix Tree View for Post with ID: \(postID)")
-                .font(.title2)
-                .multilineTextAlignment(.center)
-                .padding()
-            Spacer()
-        }
-        .background(Color(.systemBackground))
-        .navigationTitle("Remix Tree")
-    }
-}
-// End of Eesh New Edit
 
 
 
