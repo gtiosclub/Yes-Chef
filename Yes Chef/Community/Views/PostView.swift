@@ -276,14 +276,16 @@ struct PostView: View {
         
         .navigationBarBackButtonHidden(true)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(isPresented: $goToAddRecipe) {
+            AddRecipeMain(remixRecipe: recipe)
+                .environment(authVM)
+        }
+        .navigationDestination(isPresented: $goToRemixTree) {
+            RemixTreeView(nodeID: recipe.recipeId)
+                .environment(authVM)
+        }
         // Eesh New Edit: Added Remix Tree button alongside existing Remix button
         .overlay(alignment: .bottomTrailing) {
-
-            NavigationLink("", isActive: $goToAddRecipe) {
-                AddRecipeMain(remixRecipe: recipe)
-                    .environment(authVM)
-            }
-            .hidden()
             ZStack {
 //                HStack {
 //                    Text(String(recipe.likes))
@@ -320,28 +322,6 @@ struct PostView: View {
                 //                   AddRecipeMain(remixRecipe: recipe)
                 //}
             }
-
-            NavigationLink("", isActive: $goToRemixTree) {
-                RemixTreeView(nodeID: recipe.recipeId)
-                    .environment(authVM)
-
-//            Button {
-//                goToAddRecipe = true
-//            } label: {
-//                HStack(spacing: 8) {
-//                    Image(systemName: "sparkles").font(.headline)
-//                    Text("Remix").fontWeight(.semibold)
-//                }
-//                .padding(.horizontal, 16)
-//                .padding(.vertical, 12)
-//                .background(Capsule().fill(Color.black))
-//                .foregroundColor(.white)
-//                .shadow(radius: 4, y: 2)
-//                .padding(.trailing, 16)
-//                .padding(.bottom, 16)
-
-            }
-            .hidden()
 
             VStack(spacing: 12) {
                 // Remix Tree Button
@@ -444,25 +424,6 @@ struct BulletPoint: View {
         }
     }
 }
-
-// Eesh New Edit: Dummy Remix Tree View for Post
-struct DummyRemixTreeViewForPost: View {
-    let postID: String
-
-    var body: some View {
-        VStack {
-            Spacer()
-            Text("Dummy Remix Tree View for Post with ID: \(postID)")
-                .font(.title2)
-                .multilineTextAlignment(.center)
-                .padding()
-            Spacer()
-        }
-        .background(Color(.systemBackground))
-        .navigationTitle("Remix Tree")
-    }
-}
-// End of Eesh New Edit
 
 
 

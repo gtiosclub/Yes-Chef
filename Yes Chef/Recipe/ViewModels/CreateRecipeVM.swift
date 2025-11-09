@@ -362,6 +362,7 @@ import SwiftUI
         let db = Firestore.firestore()
 
         print("🔍 Attempting to add recipe \(recipeID) as child of parent \(parentID)")
+        print("   Recipe name: \(postName)")
 
         // Fetch parent node to get root ID and verify it exists
         var rootPostID = parentID
@@ -394,20 +395,29 @@ import SwiftUI
             "childrenIDs": [],
             "description": description,
             "parentID": parentID,
+            "postName": postName,
             "rootPostID": rootPostID,
         ]
 
         do {
             try await db.collection("REMIXTREENODES").document(recipeID).setData(nodeInfo)
             print("✅ Added recipe \(recipeID) as child node to REMIXTREENODES (parent: \(parentID))")
+            print("   Node info: \(nodeInfo)")
 
             // Update parent's childrenIDs array
             try await db.collection("REMIXTREENODES").document(parentID).updateData([
                 "childrenIDs": FieldValue.arrayUnion([recipeID])
             ])
             print("✅ Updated parent node \(parentID) with new child \(recipeID)")
+            
+            // Verify the update
+            let verifyParent = try await db.collection("REMIXTREENODES").document(parentID).getDocument()
+            if let parentData = verifyParent.data() {
+                print("✅ Verification - Parent's childrenIDs: \(parentData["childrenIDs"] ?? "empty")")
+            }
         } catch {
             print("❌ Error adding child node: \(error.localizedDescription)")
+            print("   Full error: \(error)")
         }
     }
     

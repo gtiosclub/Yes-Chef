@@ -195,19 +195,29 @@ class AuthenticationVM {
         
         do {
             let document = try await userRef.getDocument()
-            let data = document.data()
-            self.currentUser?.profilePhoto = data?["profilePhoto"] as? String ?? ""
-            self.currentUser?.username = data?["username"] as? String ?? "username"
-            self.currentUser?.bio = data?["bio"] as? String ?? "bio"
-            self.currentUser?.email = data?["email"] as? String ?? "email"
-            self.currentUser?.followers = data?["followers"] as? [String] ?? []
-            self.currentUser?.following = data?["following"] as? [String] ?? []
-            self.currentUser?.likedRecipes = data?["likedRecipes"] as? [String] ?? []
-            self.currentUser?.savedRecipes = data?["savedRecipes"] as? [String] ?? []
-            self.currentUser?.badges = data?["badges"] as? [String] ?? []
-            self.currentUser?.suggestionProfile = data?["suggestionProfile"] as? [String: Double] ?? [:]
+            guard let data = document.data() else {
+                print("Error: No data found for user \(userId)")
+                return
+            }
+            
+            // Safely check currentUser still exists after async call
+            guard self.currentUser != nil else {
+                print("Error: currentUser became nil during async operation")
+                return
+            }
+            
+            self.currentUser?.profilePhoto = data["profilePhoto"] as? String ?? ""
+            self.currentUser?.username = data["username"] as? String ?? "username"
+            self.currentUser?.bio = data["bio"] as? String ?? "bio"
+            self.currentUser?.email = data["email"] as? String ?? "email"
+            self.currentUser?.followers = data["followers"] as? [String] ?? []
+            self.currentUser?.following = data["following"] as? [String] ?? []
+            self.currentUser?.likedRecipes = data["likedRecipes"] as? [String] ?? []
+            self.currentUser?.savedRecipes = data["savedRecipes"] as? [String] ?? []
+            self.currentUser?.badges = data["badges"] as? [String] ?? []
+            self.currentUser?.suggestionProfile = data["suggestionProfile"] as? [String: Double] ?? [:]
         } catch {
-            print("Can't find user")
+            print("Can't find user: \(error.localizedDescription)")
         }
     }
 }
