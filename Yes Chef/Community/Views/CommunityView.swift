@@ -10,7 +10,6 @@ struct CommunityView : View {
     @State private var searchText = ""
     @State private var viewModel = SearchViewModel()
     @State private var postVM = PostViewModel()
-    
     let allItems = ["Pizza", "Pasta", "Salad", "Soup", "Sandwich", "Cake", "Curry"]
 
     var filteredItems: [String] {
@@ -23,7 +22,6 @@ struct CommunityView : View {
     }
     
     var body: some View {
-        NavigationStack {
             VStack {
                 Text("Hi Chef!")
                     .font(.largeTitle)
@@ -72,9 +70,15 @@ struct CommunityView : View {
                     } else {
                         ScrollView {
                             VStack(alignment: .leading, spacing: 25) {
-                                RecipeSection(title: "Trending", items: Array(postVM.recipes[0..<5]))
-                                RecipeSection(title: "Top Dinner Picks",items: Array(postVM.recipes[5..<10]))
-                                RecipeSection(title: "Top ... Picks",items: Array(postVM.recipes[10..<15]))
+                                if postVM.recipes.count >= 5 {
+                                    RecipeSection(title: "Trending", items: Array(postVM.recipes[0..<5]))
+                                }
+                                if postVM.recipes.count >= 10 {
+                                    RecipeSection(title: "Top Dinner Picks",items: Array(postVM.recipes[5..<10]))
+                                }
+                                if postVM.recipes.count >= 15 {
+                                    RecipeSection(title: "Top ... Picks",items: Array(postVM.recipes[10..<15]))
+                                }
                             }
                             .padding(.bottom, 20)
                         }
@@ -92,8 +96,8 @@ struct CommunityView : View {
                     print("Failed to fetch recipes: \(error)")
                 }
             }
-        }
     }
+    
 }
 struct RecipeSection: View {
     let title: String

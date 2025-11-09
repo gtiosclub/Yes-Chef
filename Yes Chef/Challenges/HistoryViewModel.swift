@@ -13,24 +13,40 @@ class HistoryViewModel: ObservableObject {
     var history: [HistoryBlock] = []
     private var db = Firestore.firestore()
 
-    
+
     func fetchHistory() {
-        db.collection("leaderboardHistory").getDocuments { snapshot, error in
+        db.collection("CHALLENGEHISTORY")
+            .order(by: "archivedAt", descending: true)
+            .getDocuments { snapshot, error in
                 if let error = error {
-                    print("Error: \(error)")
+                    print("Error fetching challenge history: \(error)")
                     return
                 }
-            DispatchQueue.main.async {
-                
-                
-                self.history = snapshot?.documents.compactMap { doc in
-                    let data = doc.data()
-                    let title = data["Title"] as? String ?? "Unknown"
-                    let challengeName = data["Challenge"] as? String ?? "Unknown"
-                    
-                    return HistoryBlock(date: title, challengeName: challengeName)
-                } ?? []
+
+                DispatchQueue.main.async {
+                    self.history = snapshot?.documents.compactMap { doc in
+                        let data = doc.data()
+                        let prompt = data["prompt"] as? String ?? "Unknown Challenge"
+                        let submissions = data["submissions"] as? [String] ?? []
+
+                        // Format date
+                        var dateString = "Unknown Date"
+                        if let timestamp = data["archivedAt"] as? Timestamp {
+                            let date = timestamp.dateValue()
+                            let formatter = DateFormatter()
+                            formatter.dateStyle = .medium
+                            dateString = formatter.string(from: date)
+                        }
+
+                        return HistoryBlock(
+                            id: doc.documentID,
+                            date: dateString,
+                            challengeName: prompt,
+                            submissions: submissions,
+                            archivedAt: (data["archivedAt"] as? Timestamp)?.dateValue()
+                        )
+                    } ?? []
+                }
             }
-        }
     }
 }

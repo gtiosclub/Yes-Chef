@@ -11,7 +11,7 @@ import FirebaseCore
 class AppDelegate: NSObject, UIApplicationDelegate {
   func application(_ application: UIApplication,
                    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-    FirebaseApp.configure()
+      //FirebaseApp.configure()
       if let app = FirebaseApp.app() {
           print("Firebase configured with name: \(app.name)")
       } else {
@@ -23,15 +23,21 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
 @main
 struct Yes_ChefApp: App {
-  @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    
+    @State private var authVM: AuthenticationVM
 
-
-  var body: some Scene {
-    WindowGroup {
-      NavigationView {
-        ContentView()
-      }
+    init() {
+        FirebaseApp.configure()
+        _authVM = State(initialValue: AuthenticationVM())
     }
+    var body: some Scene {
+      WindowGroup {
+        NavigationStack {
+            ContentView()
+              .environment(authVM)
+        }
+     }
   }
 }
 

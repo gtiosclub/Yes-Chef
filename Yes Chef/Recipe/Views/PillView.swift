@@ -25,6 +25,28 @@ enum AcceptedTypes {
 struct PillView: View {
     let value: AcceptedTypes
     let onClick: () -> Void
+    var isRemoving: Bool = false
+    var isAdding: Bool = false
+    
+    private var backgroundColor: Color {
+        if isRemoving {
+            return Color.red.opacity(0.3)
+        } else if isAdding {
+            return Color.green.opacity(0.3)
+        } else {
+            return Color.gray.opacity(0.2)
+        }
+    }
+    
+    private var foregroundColor: Color {
+        if isRemoving {
+            return Color.red
+        } else if isAdding {
+            return Color.green
+        } else {
+            return Color.gray
+        }
+    }
     
     var body: some View {
         Button(action: onClick) {
@@ -34,9 +56,9 @@ struct PillView: View {
                 .padding(.vertical, 8)
                 .background(
                     Capsule()
-                        .fill(Color.gray.opacity(0.2))
+                        .fill(backgroundColor)
                 )
-                .foregroundColor(.gray)
+                .foregroundColor(foregroundColor)
         }
         .buttonStyle(.plain)
     }

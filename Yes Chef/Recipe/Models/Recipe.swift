@@ -34,8 +34,9 @@ enum Difficulty: String, CaseIterable, Identifiable {
     var chefsNotes: String
     var likes: Int
     
-    var comments: [String] = []
     
+    var comments: [String] = []
+    var score: Double = 0.0
 
     init(userId: String, recipeId: String, name: String, ingredients: [Ingredient], allergens: [String], tags: [String], steps: [String], description: String, prepTime: Int, difficulty: Difficulty, servingSize: Int, media: [String], chefsNotes: String, likes: Int) {
         self.userId = userId
@@ -137,5 +138,16 @@ enum Difficulty: String, CaseIterable, Identifiable {
             print("Error fetching recipe \(id): \(error.localizedDescription)")
             return nil
         }
+    }
+}
+
+// MARK: - Hashable Conformance
+extension Recipe: Hashable {
+    static func == (lhs: Recipe, rhs: Recipe) -> Bool {
+        lhs.recipeId == rhs.recipeId
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(recipeId)
     }
 }
