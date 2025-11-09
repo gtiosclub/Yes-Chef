@@ -189,6 +189,7 @@ struct SearchView : View {
                selectedTags: $selectedTags)
                
         }
+        .preferredColorScheme(.light)
     }
 }
 struct RecipeItem: View {

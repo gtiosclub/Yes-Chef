@@ -6,6 +6,12 @@
 //
 import SwiftUI
 
+extension UIApplication {
+    func dismissKeyboard() {
+        sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+}
+
 struct CommunityView : View {
     @State private var searchText = ""
     @State private var viewModel = SearchViewModel()
@@ -177,6 +183,9 @@ struct CommunityView : View {
                 Spacer()
             }
             .background(Color(hex: "#fffdf7"))
+            .onTapGesture {
+                UIApplication.shared.dismissKeyboard()
+            }
             .task {
                 await viewModel.getAllUsers()
                 await viewModel.getAllUsernames()
@@ -195,6 +204,7 @@ struct CommunityView : View {
                    selectedTags: $selectedTags)
                    
             }
+            .preferredColorScheme(.light)
         }
     }
 
