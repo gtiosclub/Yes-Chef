@@ -295,7 +295,7 @@ struct PostView: View {
                 .sheet(isPresented: $showComments) {
                     CommentsSheet(recipeID: recipe.recipeId)
                 }
-                
+                //remix tree
                 Button {
                     goToRemixTree = true
                 } label: {
@@ -324,6 +324,14 @@ struct PostView: View {
                 //like
                 likeButton(liked: liked, recipe: recipe, authVM: authVM, postVM: postVM, UVM: UVM)
             }
+        }
+        .navigationDestination(isPresented: $goToAddRecipe) {
+            AddRecipeMain(remixRecipe: recipe)
+                .environment(authVM)
+        }
+        .navigationDestination(isPresented: $goToRemixTree) {
+            RemixTreeView(nodeID: recipe.recipeId)
+                .environment(authVM)
         }
     }
 }
