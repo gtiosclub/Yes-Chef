@@ -11,6 +11,7 @@ struct AIChefBaseView: View {
     @State private var userMessage: String = ""
     @FocusState private var isTextFieldFocused: Bool
     @State var recipeVM: CreateRecipeVM
+    var onViewChanges: (() -> Void)? = nil
     
     let suggestions = [
         "Make it easier to cook with less steps",
@@ -27,7 +28,7 @@ struct AIChefBaseView: View {
                 ScrollView {
                     VStack(spacing: 10) {
                         ForEach(recipeVM.messages) { message in
-                            ChatBubble(message: message)
+                            ChatBubble(message: message, onViewChanges: onViewChanges)
                         }
                     }
                     

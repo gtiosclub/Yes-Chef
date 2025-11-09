@@ -179,7 +179,10 @@ struct HistoryTab: View {
                 }
             }
         )
-    }
+
+        .background(Color(hex: "#fffdf7"))
+    } // Close body
+
 
     private func fetchWeeklyPrompt() async {
         let db = Firestore.firestore()

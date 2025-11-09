@@ -15,8 +15,10 @@ struct SettingsView: View {
     var authVM: AuthenticationVM
     @State private var showingEmailChange = false
     @State private var showingPasswordChange = false
+    @State private var showAlert = false
     
     var body: some View {
+        NavigationStack {
             ZStack(alignment: .topLeading) {
                 Color(.systemBackground)
                     .ignoresSafeArea()
@@ -146,9 +148,20 @@ struct SettingsView: View {
                             // Log Out
                             Button {
                                 // TODO: log out
+                                showAlert = true
                             } label: {
                                 settingsRow(icon: "arrow.right", title: "Log Out")
                             }
+                            
+                            .alert("Confirmation", isPresented: $showAlert) {
+                                        Button("Yes") {
+                                            authVM.signOut()
+                                        }
+                                        Button("No", role: .cancel) {
+                                        }
+                                    } message: {
+                                        Text("Are you sure you want to logout?")
+                                    }
                             .foregroundColor(.black)
                             
                             // Delete Account
@@ -180,6 +193,7 @@ struct SettingsView: View {
                 }
             }
             .navigationBarHidden(true)
+        }
     }
     
     // MARK: - Helper
@@ -206,6 +220,7 @@ struct ChangeEmailView: View {
     @State private var newEmail = ""
     
     var body: some View {
+        NavigationStack {
             VStack(spacing: 16) {
                 
                 // Top buttons
@@ -285,6 +300,7 @@ struct ChangeEmailView: View {
                 Spacer()
             }
             .frame(maxWidth: .infinity)
+        }
     }
 }
 
@@ -297,6 +313,7 @@ struct ChangePasswordView: View {
     var authVM: AuthenticationVM
     
     var body: some View {
+        NavigationStack {
             VStack(spacing: 16) {
                 
                 // Top buttons
@@ -398,45 +415,109 @@ struct ChangePasswordView: View {
                 Spacer()
             }
             .frame(maxWidth: .infinity)
+        }
     }
 }
 
-
-
-
-
-
-
-
-
 struct FeedView: View {
     @State private var viewModel = PostViewModel()
-    @State private var selectedTab: Tab = .forYou
-    @Binding var navigationRecipe: Recipe?
+    @State private var selectedTab: Int = 0
     @Environment(AuthenticationVM.self) var authVM
-    @State private var suggested: [Recipe] = []
-    @State private var UVM = UserViewModel()
-    enum Tab {
-        case forYou, following
-    }
-
+    
     let columns = [
         GridItem(.flexible()),
         GridItem(.flexible())
     ]
-
+    
     // Different possible heights for visual variation
     let imageHeights: [CGFloat] = [160, 190, 220]
-
-    var body: some View {
-            VStack(alignment: .leading, spacing: 0) {
-
-                headerSection
-                tabBarSection
-                contentSection
-
+    
+    var filteredRecipes: [Recipe] {
+        if selectedTab == 0 {
+            // For You - show all recipes
+            return viewModel.recipes
+        } else {
+            // Following - show only recipes from users the current user follows
+            guard let currentUser = authVM.currentUser,
+                  !currentUser.following.isEmpty else {
+                return []
             }
-            .background(Color.white)
+            return viewModel.recipes.filter { recipe in
+                currentUser.following.contains(recipe.userId)
+            }
+        }
+    }
+    
+    var body: some View {
+        NavigationView {
+            VStack(alignment: .leading, spacing: 0) {
+                // Title with icon
+                HStack {
+                    Text("Welcome \(authVM.currentUser?.username ?? "User")")
+                        .font(.custom("Georgia", size: 32))
+                        .fontWeight(.bold)
+                        .foregroundColor(Color(hex: "#404741"))
+                    
+                    Spacer()
+                    NavigationLink(destination: UserListView()) {
+                        Image(systemName: "paperplane")
+                            .font(.system(size: 24))
+                            .foregroundColor(Color(hex: "#404741"))
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+                .padding(.bottom, 20)
+                
+                // Custom tab bar
+                tabSelection
+                
+                // ScrollView for posts
+                ScrollView {
+                    if filteredRecipes.isEmpty {
+                        Text(selectedTab == 0 ? "No recipes available." : "No recipes from people you follow.")
+                            .foregroundColor(.gray)
+                            .padding(.top, 50)
+                    } else {
+                        LazyVGrid(columns: columns, spacing: 16) {
+                            ForEach(filteredRecipes, id: \.id) { recipe in
+                                NavigationLink(destination: PostView(recipe: recipe).environment(authVM)) {
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        let height = deterministicHeight(for: recipe.id.uuidHash)
+                                        
+                                        if let firstImage = recipe.media.first,
+                                           let url = URL(string: firstImage) {
+                                            AsyncImage(url: url) { image in
+                                                image
+                                                    .resizable()
+                                                    .scaledToFill()
+                                            } placeholder: {
+                                                Color.gray.opacity(0.3)
+                                            }
+                                            .frame(width: 154, height: height)
+                                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                                            .clipped()
+                                        } else {
+                                            Color.gray.opacity(0.3)
+                                                .frame(width: 154, height: height)
+                                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                        }
+                                        
+                                        Text(recipe.name)
+                                            .font(.custom("Inter-Regular", size: 12))
+                                            .foregroundColor(Color(hex: "#404741"))
+                                            .frame(width: 154, alignment: .leading)
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 20)
+                    }
+                }
+                .background(Color(hex: "#fffdf7"))
+            }
+            .background(Color(hex: "#fffdf7"))
             .task {
                 do {
                     try await viewModel.fetchPosts()
@@ -444,207 +525,105 @@ struct FeedView: View {
                     print("Failed to fetch recipes: \(error)")
                 }
             }
-            .navigationDestination(item: $navigationRecipe) { recipe in
-                PostView(recipe: recipe)
-                    .environment(authVM)
-            }
+        }
         .onAppear {
             Task {
-                await authVM.updateCurrentUser()
+                // Only update if currentUser exists and has a valid userId
+                if let userId = authVM.currentUser?.userId, !userId.isEmpty {
+                    await authVM.updateCurrentUser()
+                }
             }
         }
     }
-
-    // MARK: - Header Section
-    private var headerSection: some View {
-        HStack {
-            Text("Welcome \(authVM.currentUser?.username ?? "User")")
-                .font(.custom("Georgia", size: 32))
-                .fontWeight(.bold)
-                .foregroundColor(Color(hex: "#404741"))
-
-            Spacer()
-            NavigationLink(destination: UserListView()) {
-                Image(systemName: "paperplane")
-                    .font(.system(size: 24))
-                    .foregroundColor(Color(hex: "#404741"))
-            }
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 20)
-        .padding(.bottom, 20)
-    }
-
-    // MARK: - Tab Bar Section
-    private var tabBarSection: some View {
-        ZStack(alignment: .bottom) {
-            // Background for unselected tabs
-            Color(hex: "#F5F5F5")
-                .frame(height: 50)
-
+    
+    private var tabSelection: some View {
+        ZStack(alignment: .bottomLeading) {
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white)
+                .frame(height: 56)
+            
             HStack(spacing: 0) {
-                // For You Tab
-                Button {
-                    selectedTab = .forYou
-                } label: {
-                    Text("For You")
-                        .font(.custom("WorkSans-Regular", size: 16))
-                        .foregroundColor(Color(hex: "#404741"))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 50)
+                Button(action: { selectedTab = 0 }) {
+                    VStack(spacing: 8) {
+                        Text("For You")
+                            .font(.body)
+                        
+                            //.fontWeight(selectedTab == 0 ? .semibold : .regular)
+                        .foregroundColor(selectedTab == 0 ? Color(hex: "#404741") : Color(hex: "#7C887DF2"))                    }
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
+                }
+                .padding(.bottom, 10)
+                .frame(maxWidth: .infinity)
+                .zIndex(selectedTab == 0 ? 1 : 0)
+                .background(
+                    RoundedCorner(radius: 25, corners: selectedTab == 0 ? [.topLeft, .topRight] : [.bottomRight, .topRight, .topLeft])
+                        .fill(selectedTab == 0 ? Color(hex: "#fffffc") : Color(hex: "#F9F5F2"))
+                        .frame(width: (UIScreen.main.bounds.width) / 2, height: 50)
                         .background(
-                            GeometryReader { geo in
-                                Path { path in
-                                    let w = geo.size.width
-                                    let h = geo.size.height
-                                    let cornerRadius: CGFloat = 8
-
-                                    if selectedTab == .forYou {
-                                        // Start bottom left
-                                        path.move(to: CGPoint(x: 0, y: h))
-                                        // Left side up
-                                        path.addLine(to: CGPoint(x: 0, y: cornerRadius))
-                                        // Top left curve
-                                        path.addQuadCurve(
-                                            to: CGPoint(x: cornerRadius, y: 0),
-                                            control: CGPoint(x: 0, y: 0)
-                                        )
-                                        // Top side
-                                        path.addLine(to: CGPoint(x: w - cornerRadius, y: 0))
-                                        // Top right curve
-                                        path.addQuadCurve(
-                                            to: CGPoint(x: w, y: cornerRadius),
-                                            control: CGPoint(x: w, y: 0)
-                                        )
-                                        // Right side down
-                                        path.addLine(to: CGPoint(x: w, y: h))
-                                        // Bottom
-                                        path.addLine(to: CGPoint(x: 0, y: h))
-                                    }
-                                }
-                                .fill(Color.white)
-                            }
+                            RoundedCorner(radius: 25, corners: selectedTab == 0 ? [.topLeft, .topRight] : [.bottomRight, .topRight, .topLeft])
+                                .fill(Color(.systemGray4))
+                                .frame(width: (UIScreen.main.bounds.width) / 2 + 1, height: 50)
+                                .padding(selectedTab == 0 ? .bottom : .top, 3)
+                                .overlay(
+                                    Rectangle()
+                                        .fill(Color(hex: "#fffffc"))
+                                        .padding(selectedTab == 0 ? .top : .bottom, 35)
+                                )
                         )
+                )
+                
+                Button(action: { selectedTab = 1 }) {
+                    VStack(spacing: 8) {
+                        Text("Following")
+                            .font(.body)
+                            //.fontWeight(selectedTab == 1 ? .semibold : .regular)
+                        .foregroundColor(selectedTab == 1 ? Color(hex: "#404741") : Color(hex: "#7C887DF2"))                    }
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
-                .zIndex(selectedTab == .forYou ? 1 : 0)
-
-                // Following Tab
-                Button {
-                    selectedTab = .following
-                } label: {
-                    Text("Following")
-                        .font(.custom("WorkSans-Regular", size: 16))
-                        .foregroundColor(Color(hex: "#404741"))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 50)
+                .frame(maxWidth: .infinity)
+                .zIndex(selectedTab == 1 ? 2 : 0)
+                .background(
+                    RoundedCorner(radius: 25, corners: selectedTab == 1 ? [.topLeft, .topRight] : [.bottomRight, .bottomLeft, .topRight, .topLeft])
+                        .fill(selectedTab == 1 ? Color(hex: "#fffffc") : Color(hex: "#F9F5F2"))
+                        .frame(width: (UIScreen.main.bounds.width) / 2, height: 50)
                         .background(
-                            GeometryReader { geo in
-                                Path { path in
-                                    let w = geo.size.width
-                                    let h = geo.size.height
-                                    let cornerRadius: CGFloat = 8
-
-                                    if selectedTab == .following {
-                                        // Start bottom left
-                                        path.move(to: CGPoint(x: 0, y: h))
-                                        // Left side up
-                                        path.addLine(to: CGPoint(x: 0, y: cornerRadius))
-                                        // Top left curve
-                                        path.addQuadCurve(
-                                            to: CGPoint(x: cornerRadius, y: 0),
-                                            control: CGPoint(x: 0, y: 0)
-                                        )
-                                        // Top side
-                                        path.addLine(to: CGPoint(x: w - cornerRadius, y: 0))
-                                        // Top right curve
-                                        path.addQuadCurve(
-                                            to: CGPoint(x: w, y: cornerRadius),
-                                            control: CGPoint(x: w, y: 0)
-                                        )
-                                        // Right side down
-                                        path.addLine(to: CGPoint(x: w, y: h))
-                                        // Bottom
-                                        path.addLine(to: CGPoint(x: 0, y: h))
-                                    }
-                                }
-                                .fill(Color.white)
-                            }
+                            RoundedCorner(radius: 25, corners: selectedTab == 1 ? [.topLeft, .topRight] : [.bottomRight, .bottomLeft, .topRight, .topLeft])
+                                .fill(Color(.systemGray4))
+                                .frame(width: (UIScreen.main.bounds.width) / 2 + 1, height: 50)
+                                .padding(selectedTab == 1 ? .bottom : .top, 3)
+                                .overlay(
+                                    Rectangle()
+                                        .fill(Color(hex: "#fffffc"))
+                                        .padding(selectedTab == 1 ? .top : .bottom, 35)
+                                )
                         )
-                }
-                .buttonStyle(.plain)
-                .zIndex(selectedTab == .following ? 1 : 0)
+                )
             }
+            .padding(.top, 8)
+            .padding(.bottom, 10)
+            .padding(.horizontal, 0)
         }
-        .frame(height: 50)
-    }
-
-    // MARK: - Content Section
-    private var contentSection: some View {
-        ScrollView {
-            if viewModel.recipes.isEmpty {
-                Text("No recipes available.")
-                    .foregroundColor(.gray)
-                    .padding(.top, 50)
-            } else {
-                LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(viewModel.recipes, id: \.id) { recipe in
-                        NavigationLink(destination: PostView(recipe: recipe).environment(authVM)) {
-                            VStack(alignment: .leading, spacing: 6) {
-                                let height = deterministicHeight(for: recipe.id.uuidHash)
-
-                                if let firstImage = recipe.media.first,
-                                   let url = URL(string: firstImage) {
-                                    AsyncImage(url: url) { image in
-                                        image
-                                            .resizable()
-                                            .scaledToFill()
-                                    } placeholder: {
-                                        Color.gray.opacity(0.3)
-                                    }
-                                    .frame(width: 154, height: height)
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                                    .clipped()
-                                } else {
-                                    Color.gray.opacity(0.3)
-                                        .frame(width: 154, height: height)
-                                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                                }
-
-                                Text(recipe.name)
-                                    .font(.custom("Inter-Regular", size: 12))
-                                    .foregroundColor(Color(hex: "#404741"))
-                                    .frame(width: 154, alignment: .leading)
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 20)
-            }
-        }
-        .background(Color.white)
     }
     
     // MARK: - Helper
-    private func suggestedSort(user: User, recipes: [Recipe]) {
-            for recipe in recipes {
-                
-                if user.likedRecipes.contains(recipe.id) {
-                    continue
-                }
-                
-                if suggested.contains(where: {$0.id == recipe.id}) {
-                    continue
-                }
-                
-                recipe.score = UVM.calculateScore(recipe: recipe, user: user.suggestionProfile)
-                suggested.append(recipe)
-            }
-            suggested = suggested.sorted { $0.score > $1.score }
-    }
     private func deterministicHeight(for hash: Int) -> CGFloat {
         imageHeights[abs(hash) % imageHeights.count]
+    }
+    
+    struct RoundedCorner: Shape {
+        var radius: CGFloat
+        var corners: UIRectCorner
+
+        func path(in rect: CGRect) -> Path {
+            let path = UIBezierPath(
+                roundedRect: rect,
+                byRoundingCorners: corners,
+                cornerRadii: CGSize(width: radius, height: radius)
+            )
+            return Path(path.cgPath)
+        }
     }
 }
 
@@ -653,6 +632,8 @@ extension String {
         unicodeScalars.map { Int($0.value) }.reduce(0, +)
     }
 }
+
 #Preview {
-    SettingsView(authVM: AuthenticationVM())
+    FeedView()
+        .environment(AuthenticationVM())
 }

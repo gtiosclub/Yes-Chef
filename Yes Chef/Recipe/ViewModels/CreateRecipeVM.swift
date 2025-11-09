@@ -304,21 +304,21 @@ import SwiftUI
         let trimmed = userMessage.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
-        messages.append(.init(sender: .user, text: trimmed))
+        messages.append(.init(sender: .user, text: trimmed, title: nil))
         isThinking = true
         defer { isThinking = false }
 
         do {
             let suggestion = try await ai.smartSuggestion(recipe: toRecipeForAI(), userMessage: trimmed)
 
-            // Handle toolcall here
             toolcall = suggestion.toolcall
 
-            messages.append(.init(sender: .aiChef, text: suggestion.message))
+            let title = suggestion.toolcall.isEmpty ? nil : suggestion.title
+            messages.append(.init(sender: .aiChef, text: suggestion.message, title: title))
             print(messages)
 
         } catch {
-            messages.append(.init(sender: .aiChef, text: "Sorry, I couldn't process that. Please try again."))
+            messages.append(.init(sender: .aiChef, text: "Sorry, I couldn't process that. Please try again.", title: nil))
             print("smartSuggestion error:", error)
         }
     }
@@ -362,6 +362,7 @@ import SwiftUI
         let db = Firestore.firestore()
 
         print("🔍 Attempting to add recipe \(recipeID) as child of parent \(parentID)")
+        print("   Recipe name: \(postName)")
 
         // Fetch parent node to get root ID and verify it exists
         var rootPostID = parentID
@@ -394,20 +395,29 @@ import SwiftUI
             "childrenIDs": [],
             "description": description,
             "parentID": parentID,
+            "postName": postName,
             "rootPostID": rootPostID,
         ]
 
         do {
             try await db.collection("REMIXTREENODES").document(recipeID).setData(nodeInfo)
             print("✅ Added recipe \(recipeID) as child node to REMIXTREENODES (parent: \(parentID))")
+            print("   Node info: \(nodeInfo)")
 
             // Update parent's childrenIDs array
             try await db.collection("REMIXTREENODES").document(parentID).updateData([
                 "childrenIDs": FieldValue.arrayUnion([recipeID])
             ])
             print("✅ Updated parent node \(parentID) with new child \(recipeID)")
+            
+            // Verify the update
+            let verifyParent = try await db.collection("REMIXTREENODES").document(parentID).getDocument()
+            if let parentData = verifyParent.data() {
+                print("✅ Verification - Parent's childrenIDs: \(parentData["childrenIDs"] ?? "empty")")
+            }
         } catch {
             print("❌ Error adding child node: \(error.localizedDescription)")
+            print("   Full error: \(error)")
         }
     }
     

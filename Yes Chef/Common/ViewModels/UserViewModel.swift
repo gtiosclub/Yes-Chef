@@ -7,6 +7,7 @@
 
 import Foundation
 import Observation
+import FirebaseAuth
 import FirebaseFirestore
 import UIKit
 
@@ -20,19 +21,26 @@ import UIKit
     ]
     func getUserInfo(userID: String) async -> [String: Any]?{
         let db = Firestore.firestore()        
-        let info = db.collection("users")
+        let docRef = db.collection("users")
             .document(userID)
             
         do {
-            let doc = try await info.getDocument()
-            if doc.exists{
+            let doc = try await docRef.getDocument()
+            if doc.exists {
                 return doc.data()
             }
-        }
-        catch {
+        } catch {
             print("Error getting document: \(error)")
         }
         return nil
+    }
+    
+    func getCurrentUserInfo() async -> [String: Any]? {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            print("No logged-in user")
+            return nil
+        }
+        return await getUserInfo(userID: uid)
     }
 
     func like(recipeID: String, userID: String) async throws {
