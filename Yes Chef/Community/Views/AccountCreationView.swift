@@ -115,7 +115,7 @@ struct NewRegister : View {
     @State private var passwordErrorMessage: String?
     @State private var confirmPasswordErrorMessage: String?
     @State private var error: Bool = false
-    @State private var authVM = AuthenticationVM()
+    @Environment(AuthenticationVM.self) private var authVM
     var body : some View {
             TextField("Enter your name", text: $usernameText)
                 .padding()
@@ -299,8 +299,21 @@ extension String {
         return false
     }
 }
+// MARK: - Custom Shapes
+fileprivate struct RoundedCorner: Shape {
+    var radius: CGFloat
+    var corners: UIRectCorner
+
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(
+            roundedRect: rect,
+            byRoundingCorners: corners,
+            cornerRadii: CGSize(width: radius, height: radius)
+        )
+        return Path(path.cgPath)
+    }
+}
+
 #Preview {
     AccountCreationView()
 }
-
-

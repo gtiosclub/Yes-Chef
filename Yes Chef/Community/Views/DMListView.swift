@@ -14,7 +14,6 @@ struct DMListView: View {
     @Environment(AuthenticationVM.self) var authVM
     
     var body: some View {
-        NavigationView {
             ZStack {
                 // Background
                 Color(.systemGroupedBackground)
@@ -32,7 +31,6 @@ struct DMListView: View {
                 }
             }
             .navigationBarHidden(true)
-        }
         .task {
             if let userID = authVM.currentUser?.userId {
                 messageVM.setCurrentUser(userID)
@@ -195,13 +193,13 @@ struct ChatRowView: View {
 }
 
 // MARK: - Extensions
-extension View {
+fileprivate extension View {
     func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
         clipShape(RoundedCorner(radius: radius, corners: corners))
     }
 }
 
-struct RoundedCorner: Shape {
+fileprivate struct RoundedCorner: Shape {
     var radius: CGFloat = .infinity
     var corners: UIRectCorner = .allCorners
 
@@ -222,4 +220,3 @@ struct DMListView_Previews: PreviewProvider {
             .environment(AuthenticationVM())
     }
 }
-

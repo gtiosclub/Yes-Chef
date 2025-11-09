@@ -25,7 +25,8 @@ struct PostView: View {
     
     @State private var liked: Bool = false
     @State private var following: Bool = false
-    
+    @State private var saved: Bool = false
+
     @State private var goToAddRecipe = false
     @State private var showComments = false
     // Eesh New Edit: Add state for navigating to remix tree view
@@ -49,8 +50,22 @@ struct PostView: View {
                     //Bookmark Button
                     //Divider().padding(.horizontal, 5)
                     Spacer()
-                    Image(systemName: "bookmark")
-                        .font(Font.title2)
+                    Button {
+                        Task {
+                            if !saved {
+                                await authVM.saveRecipe(recipeId: recipe.id)
+                                authVM.currentUser?.savedRecipes.append(recipe.id)
+                                saved = true
+                            } else {
+                                await authVM.unsaveRecipe(recipeId: recipe.id)
+                                authVM.currentUser?.savedRecipes.removeAll { $0 == recipe.id }
+                                saved = false
+                            }
+                        }
+                    } label: {
+                        Image(systemName: saved ? "bookmark.fill" : "bookmark")
+                            .font(Font.title2)
+                    }
                     //... Button
                     Image(systemName: "ellipsis")
                         .font(Font.title2)
@@ -254,6 +269,7 @@ struct PostView: View {
         .onAppear {
             liked = (authVM.currentUser?.likedRecipes ?? []).contains(recipe.id)
             following = (authVM.currentUser?.following ?? []).contains(recipe.userId)
+            saved = (authVM.currentUser?.savedRecipes ?? []).contains(recipe.id)
             Task {
                 let user = authVM.currentUser ?? User(userId: "", username: "", email: "", bio: "")
                 await UVM.updateSuggestionProfile(userID: user.userId, suggestionProfile: &user.suggestionProfile, recipe: recipe, interaction: "view")
@@ -264,7 +280,57 @@ struct PostView: View {
         .navigationBarTitleDisplayMode(.inline)
         // Eesh New Edit: Added Remix Tree button alongside existing Remix button
         .overlay(alignment: .bottomTrailing) {
-            HStack {
+            NavigationLink("", isActive: $goToAddRecipe) {
+                AddRecipeMain(remixRecipe: recipe)
+                    .environment(authVM)
+            }
+            .hidden()
+            ZStack {
+//                HStack {
+//                    Text(String(recipe.likes))
+//                    Button {
+//                        if (!liked) {
+//                            Task {
+//                                try await postVM.likePost(recipeId: recipe.id)
+//                                try await UVM.like(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
+//                            }
+//                            recipe.likes += 1
+//                            authVM.currentUser?.likedRecipes.append(recipe.id)
+//                            liked = true
+//                        } else {
+//                            Task {
+//                                try await postVM.unlikePost(recipeId: recipe.id)
+//                                try await UVM.unlike(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
+//                            }
+//                            recipe.likes -= 1
+//                            authVM.currentUser?.likedRecipes.removeAll { $0 == recipe.id }
+//                            liked = false
+//                        }
+//                    } label : {
+//                        if (!liked) {
+//                            Image(systemName: "heart").foregroundColor(.black)
+//                        } else {
+//                            Image(systemName: "heart.fill").foregroundColor(.red)
+//                        }
+//                        
+//                    }.frame(width: 20, height: 20)
+//
+//                    
+//                }
+                //.fullScreenCover(isPresented: $goToAddRecipe) {
+                //                   AddRecipeMain(remixRecipe: recipe)
+                //}
+            }
+
+            NavigationLink("", isActive: $goToRemixTree) {
+                RemixTreeView(nodeID: recipe.recipeId)
+                    .environment(authVM)
+
+            }
+            .hidden()
+
+            VStack(spacing: 12) {
+                // Remix Tree Button
                 Button {
                     showComments = true
                 } label: {

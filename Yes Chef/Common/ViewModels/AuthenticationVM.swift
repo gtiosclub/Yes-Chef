@@ -9,16 +9,38 @@
 import FirebaseFirestore
 import Observation
 
-@Observable class AuthenticationVM {
-    
+@Observable
+class AuthenticationVM {
     var errorMessage: String?
     var isLoading = false
     var isLoggedIn = false
     var currentUser: User?
     var auth: Auth
-    
+    var savedRecipes: [Recipe] = []
+    private var handler: AuthStateDidChangeListenerHandle?
     init() {
         self.auth = Auth.auth()
+        self.handler = Auth.auth().addStateDidChangeListener { [weak self] _, user in
+            DispatchQueue.main.async {
+                            guard let self = self else { return }
+
+                            if let user = user {
+                                self.currentUser = User(userId: user.uid, username: user.displayName ?? "", email: user.email ?? "")
+                            } else {
+                                self.currentUser = nil
+                            }
+                        }
+        }
+    }
+    
+    deinit {
+        if let handler = handler {
+            Auth.auth().removeStateDidChangeListener(handler)
+        }
+    }
+    
+    public var isSignedIn: Bool {
+        return Auth.auth().currentUser != nil
     }
     
     func login(email: String, password: String) async {
@@ -41,6 +63,63 @@ import Observation
         }
     }
     
+    //saving recipes logic like save, unsave, fetch saved
+    func saveRecipe(recipeId: String) async {
+        guard let userId = currentUser?.userId else {
+            return
+        }
+        let db = Firestore.firestore()
+        let userReferenceInFirebase = db.collection("users").document(userId)
+        do {
+            try await userReferenceInFirebase.setData(["savedRecipes": FieldValue.arrayUnion([recipeId])
+                                                      ])
+        } catch {
+            print("could not save to firebase \(error)")
+        }
+    }
+    func unsaveRecipe(recipeId: String) async {
+        guard let userId = currentUser?.userId else {
+            return
+        }
+        let db = Firestore.firestore()
+        let userReferenceInFirebase = db.collection("users").document(userId)
+        do {
+            try await userReferenceInFirebase.setData(
+                ["savedRecipes": FieldValue.arrayRemove([recipeId])],
+                merge: true
+            )
+        } catch {
+            print("coudl not save to firebase \(error.localizedDescription)")
+        }
+    }
+    func fetchSavedRecipes() async {
+        guard let userId = currentUser?.userId else {return}
+        let db = Firestore.firestore()
+        do {
+            let userDocument = try await db.collection("users").document(userId).getDocument()
+            guard let data = userDocument.data(), let savedIds = data["savedRecipes"] as? [String], !savedIds.isEmpty else {
+                    await MainActor.run {self.savedRecipes = []}
+                    return
+                }
+                var fetched: [Recipe] = []
+                for recipeId in savedIds {
+                    if let recipe = await Recipe.fetchById(recipeId) {
+                        fetched.append(recipe)
+                    }
+                }
+                
+            
+            await MainActor.run {
+                self.savedRecipes = fetched
+            }
+        } catch {
+            print("couldn't get the saved recipes :( \(error.localizedDescription)")
+        }
+    }
+    
+    
+    
+    
     func register(email: String, password: String, username: String) {
         auth.createUser(withEmail: email, password: password) {result, error in
             if let error = error {
@@ -50,7 +129,15 @@ import Observation
             }
             
             guard let user = result?.user else {return}
-            
+            let changeRequest = user.createProfileChangeRequest()
+            changeRequest.displayName = username
+            changeRequest.commitChanges { error in
+                if let error = error {
+                    print("Failed to set displayName: \(error.localizedDescription)")
+                } else {
+                    print("FirebaseAuth displayName set successfully")
+                }
+            }
             let newUser = User(userId: user.uid, username: username, email: email, password: password)
             
             let userData: [String: Any] = [
@@ -98,8 +185,13 @@ import Observation
     }
     
     func updateCurrentUser() async {
+        guard let userId = self.currentUser?.userId, !userId.isEmpty else {
+                print("Error: currentUser or userId is nil/empty")
+                return
+        }
+
         let db = Firestore.firestore()
-        let userRef = db.collection("users").document(self.currentUser?.userId ?? "")
+        let userRef = db.collection("users").document(userId)
         
         do {
             let document = try await userRef.getDocument()

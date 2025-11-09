@@ -36,7 +36,11 @@
 		5B2B62132E63388D007A249D /* Yes Chef.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Yes Chef.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B2B62232E63388E007A249D /* Yes ChefTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Yes ChefTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B2B622D2E63388E007A249D /* Yes ChefUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Yes ChefUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5B2DE1822EBF9D4E00AD956B /* Yes Chef.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = "Yes Chef.xcodeproj"; sourceTree = "<group>"; };
+		5B3058B22EBD520300C788EF /* Yes Chef.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = "Yes Chef.xcodeproj"; sourceTree = "<group>"; };
+		5B78E17D2EBFA67200B13020 /* Yes Chef.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = "Yes Chef.xcodeproj"; sourceTree = "<group>"; };
 		5B884C362EB169F0004063E0 /* Yes Chef.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = "Yes Chef.xcodeproj"; sourceTree = "<group>"; };
+		5BFAE3532EC0F0CF009B7BFB /* Yes Chef.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = "Yes Chef.xcodeproj"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -107,7 +111,27 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		5B2DE1842EBF9D4E00AD956B /* Products */ = {
+			isa = PBXGroup;
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5B3058B42EBD520300C788EF /* Products */ = {
+			isa = PBXGroup;
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5B78E17F2EBFA67200B13020 /* Products */ = {
+			isa = PBXGroup;
+			name = Products;
+			sourceTree = "<group>";
+		};
 		5B884C382EB169F0004063E0 /* Products */ = {
+			isa = PBXGroup;
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5BFAE3552EC0F0CF009B7BFB /* Products */ = {
 			isa = PBXGroup;
 			name = Products;
 			sourceTree = "<group>";
@@ -226,6 +250,22 @@
 			productRefGroup = 5B2B62142E63388D007A249D /* Products */;
 			projectDirPath = "";
 			projectReferences = (
+				{
+					ProductGroup = 5B2DE1842EBF9D4E00AD956B /* Products */;
+					ProjectRef = 5B2DE1822EBF9D4E00AD956B /* Yes Chef.xcodeproj */;
+				},
+				{
+					ProductGroup = 5B3058B42EBD520300C788EF /* Products */;
+					ProjectRef = 5B3058B22EBD520300C788EF /* Yes Chef.xcodeproj */;
+				},
+				{
+					ProductGroup = 5B78E17F2EBFA67200B13020 /* Products */;
+					ProjectRef = 5B78E17D2EBFA67200B13020 /* Yes Chef.xcodeproj */;
+				},
+				{
+					ProductGroup = 5BFAE3552EC0F0CF009B7BFB /* Products */;
+					ProjectRef = 5BFAE3532EC0F0CF009B7BFB /* Yes Chef.xcodeproj */;
+				},
 				{
 					ProductGroup = 5B884C382EB169F0004063E0 /* Products */;
 					ProjectRef = 5B884C362EB169F0004063E0 /* Yes Chef.xcodeproj */;
@@ -430,7 +470,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Yes Chef/Preview Content\"";
-				DEVELOPMENT_TEAM = 8PK46AXW2Y;
+				DEVELOPMENT_TEAM = V86YQ472JY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -443,7 +483,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "nityapotti.Yes-Chef";
+				PRODUCT_BUNDLE_IDENTIFIER = "nikolaCao.Yes-Chef";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -459,7 +499,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Yes Chef/Preview Content\"";
-				DEVELOPMENT_TEAM = 8PK46AXW2Y;
+				DEVELOPMENT_TEAM = V86YQ472JY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -472,7 +512,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "nityapotti.Yes-Chef";
+				PRODUCT_BUNDLE_IDENTIFIER = "nikolaCao.Yes-Chef";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
