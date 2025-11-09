@@ -56,6 +56,7 @@ class PostViewModel {
                 likes: likes
             )
         }
+        self.recipes.sort { $0.likes > $1.likes }
     }
     func fetchUserPosts(userID: String) async throws {
         let snapshot = try await db.collection("RECIPES").whereField("userId", isEqualTo: userID).getDocuments()
