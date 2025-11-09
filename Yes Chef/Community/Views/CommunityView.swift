@@ -138,7 +138,11 @@ struct CommunityView : View {
                             VStack(alignment: .leading, spacing: 25) {
                                 RecipeSection(title: "This Week's Challenges!", items: Array(postVM.recipes[0..<5]),wide: true)
                            }
-                            RecipeSection(title: "Trending",items: Array(postVM.recipes[1...2]), wide: false)
+                            if !postVM.recipes.isEmpty {
+                                let trending = Array(postVM.recipes.prefix(10))
+                                RecipeSection(title: "Trending", items: trending, wide: false)
+                            }
+
                             }
         
                                 
