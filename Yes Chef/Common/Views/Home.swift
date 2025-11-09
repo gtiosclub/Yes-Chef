@@ -9,11 +9,10 @@ import SwiftUI
 
 struct Home: View {
     @State private var selectedView: TabSelection = .home
-    @State private var navigationRecipe: Recipe? = nil
     @Environment(AuthenticationVM.self) var authVM
     var body: some View {
         TabView(selection: $selectedView) {
-            FeedView(navigationRecipe: $navigationRecipe).tabItem {
+            FeedView().tabItem {
                 Image(systemName: "house")
             }
             .tag(TabSelection.home)
@@ -22,7 +21,7 @@ struct Home: View {
                 Image(systemName: "magnifyingglass")
             }
             .tag(TabSelection.search)
-            AddRecipeMain(selectedTab: $selectedView, navigationRecipe: $navigationRecipe).tabItem {
+            AddRecipeMain().tabItem {
                 Image(systemName: "plus.circle")
             }
             .tag(TabSelection.post)

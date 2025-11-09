@@ -426,4 +426,3 @@ private func smartUserContent(recipe: Recipe, userMessage: String) -> String {
     let data = try! JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys])
     return String(data: data, encoding: .utf8)!
 }
-

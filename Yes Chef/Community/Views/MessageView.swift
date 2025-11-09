@@ -18,6 +18,7 @@ struct ChatView2: View {
     @Environment(AuthenticationVM.self) var authVM
     
     var body: some View {
+        NavigationView {
             VStack(spacing: 0) {
                 // Messages List
                 messagesList
@@ -35,6 +36,7 @@ struct ChatView2: View {
                     }
                 }
             }
+        }
         .task {
             if let userID = authVM.currentUser?.userId {
                 messageVM.setCurrentUser(userID)

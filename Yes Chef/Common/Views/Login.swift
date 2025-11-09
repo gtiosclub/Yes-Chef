@@ -14,6 +14,7 @@ struct Login: View {
     @State private var password = ""
     
     var body: some View {
+        NavigationStack {
             VStack {
                 TextField("Email", text: $email)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
@@ -42,6 +43,7 @@ struct Login: View {
                 }
             }
             .padding()
+        }
     }
 }
 

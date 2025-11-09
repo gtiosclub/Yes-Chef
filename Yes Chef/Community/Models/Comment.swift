@@ -5,10 +5,8 @@
 //  Created by Ananya on 10/2/25.
 //
 
-import FirebaseFirestore
 import SwiftUI
-struct Comment: Identifiable, Codable {
-    @DocumentID var id: String?
+class Comment {
     var poster: String
     var recipeID: String
     var text: String

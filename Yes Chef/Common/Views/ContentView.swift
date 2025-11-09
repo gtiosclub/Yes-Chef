@@ -8,11 +8,10 @@
 import SwiftUI
 
 struct ContentView: View {
-    //@State var authVM = AuthenticationVM()
-    @Environment(AuthenticationVM.self) var authVM
+    @State var authVM = AuthenticationVM()
     
     var body: some View {
-        if let user = authVM.currentUser {
+        if authVM.isLoggedIn {
             Home()
                 .environment(authVM)
         } else {

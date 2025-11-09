@@ -43,8 +43,8 @@ class LeaderboardData: ObservableObject {
     
     func fetchUserRecipes() {
         listener?.remove()
-
-        listener = db.collection("CURRENT_CHALLENGE_SUBMISSIONS")
+        
+        listener = db.collection("current_challenge_submissions")
             .addSnapshotListener { snapshot, error in
                 guard let documents = snapshot?.documents, error == nil else {
                     print("Error listening to leaderboard updates:", error?.localizedDescription ?? "unknown error")
@@ -76,76 +76,62 @@ class LeaderboardData: ObservableObject {
                         }
                         
                         var entries: [LeaderboardEntry] = []
-
-                        // Create a task group to fetch all user data concurrently
-                        Task {
-                            await withTaskGroup(of: LeaderboardEntry?.self) { group in
-                                for doc in recipeDocs {
-                                    let data = doc.data()
-                                    let idString = doc.documentID
-
-                                    group.addTask {
-                                        guard let userId = data["userId"] as? String,
-                                              let recipeName = data["name"] as? String,
-                                              let likes = data["likes"] as? Int else {
-                                            print("⚠️ Skipping recipe \(idString): Missing userId, name, or likes field.")
-                                            return nil
-                                        }
-
-                                        // Fetch username from users collection
-                                        var username = userId // Fallback to userId
-                                        var profileImageURL: String? = nil
-
-                                        do {
-                                            let userDoc = try await self.db.collection("users").document(userId).getDocument()
-                                            if let userData = userDoc.data() {
-                                                username = userData["username"] as? String ?? userId
-                                                profileImageURL = userData["profileImageURL"] as? String
-                                            }
-                                        } catch {
-                                            print("⚠️ Error fetching user \(userId): \(error.localizedDescription)")
-                                        }
-
-                                        let user = UserTest(
-                                            id: userId,
-                                            username: username,
-                                            profileImageURL: profileImageURL
-                                        )
-
-                                        return LeaderboardEntry(
-                                            id: idString,
-                                            rank: 0,
-                                            user: user,
-                                            recipeName: recipeName,
-                                            likes: likes
-                                        )
-                                    }
-                                }
-
-                                for await entry in group {
-                                    if let entry = entry {
-                                        entries.append(entry)
-                                    }
-                                }
-                            }
-
-                            // Sort by likes descending, then assign ranks
-                            entries.sort { $0.likes > $1.likes }
-
-                            for i in entries.indices {
-                                // Assign rank after sorting
-                                entries[i] = LeaderboardEntry(
-                                    id: entries[i].id,
-                                    rank: i + 1,
-                                    user: entries[i].user,
-                                    recipeName: entries[i].recipeName,
-                                    likes: entries[i].likes
+                        
+                        for (_, doc) in recipeDocs.enumerated() {
+                            let data = doc.data()
+                            let idString = doc.documentID
+                            
+                            // 💡 FIX 4: Corrected Mapping Issues
+                            // Removed timestamp from the 'if let' check for now since it's commented out in the struct.
+                            // Assuming 'userID' is the username for simplicity (denormalization)
+                            if let username = data["userId"] as? String, // Assuming username is denormalized
+                               let recipeName = data["name"] as? String, // Used 'name' per your snippet, not 'recipeName'
+                               let likes = data["likes"] as? Int {
+                                
+                                // Optional timestamp mapping (only if available)
+                                //let timestamp = data["datePosted"] as? Timestamp
+                                
+                                let user = UserTest(
+                                    // Use 'userID' for the user's ID
+                                    id: data["userId"] as? String ?? "",
+                                    username: username,
+                                    profileImageURL: data["profileImageURL"] as? String
                                 )
+                                
+                                
+                                let entry = LeaderboardEntry(
+                                    id: idString,
+                                    rank: 0,
+                                    user: user,
+                                    recipeName: recipeName,
+                                    //datePosted: timestamp?.dateValue(), // Now safely optional
+                                    likes: likes
+                                )
+                                
+                                entries.append(entry)
+                            } else {
+                                // Add a debug message for skipped documents
+                                print("⚠️ Skipping recipe \(idString): Missing username, name, or likes field.")
                             }
-
-                            await MainActor.run {
-                                self.currentLeaderboard.entries = entries
-                            }
+                        }
+                        
+                        // Sort by likes descending, then assign ranks
+                        entries.sort { $0.likes > $1.likes }
+                        
+                        for i in entries.indices {
+                            // Assign rank after sorting
+                            entries[i] = LeaderboardEntry(
+                                id: entries[i].id,
+                                rank: i + 1,
+                                user: entries[i].user,
+                                recipeName: entries[i].recipeName,
+                                //datePosted: entries[i].datePosted,
+                                likes: entries[i].likes
+                            )
+                        }
+                        
+                        Task { @MainActor in
+                            self.currentLeaderboard.entries = entries
                         }
                     } // END of getDocuments (INNER) CLOSURE
                 

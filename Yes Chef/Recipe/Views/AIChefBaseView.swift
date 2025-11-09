@@ -11,7 +11,6 @@ struct AIChefBaseView: View {
     @State private var userMessage: String = ""
     @FocusState private var isTextFieldFocused: Bool
     @State var recipeVM: CreateRecipeVM
-    var onViewChanges: (() -> Void)? = nil
     
     let suggestions = [
         "Make it easier to cook with less steps",
@@ -28,7 +27,7 @@ struct AIChefBaseView: View {
                 ScrollView {
                     VStack(spacing: 10) {
                         ForEach(recipeVM.messages) { message in
-                            ChatBubble(message: message, onViewChanges: onViewChanges)
+                            ChatBubble(message: message)
                         }
                     }
                     
@@ -62,31 +61,28 @@ struct AIChefBaseView: View {
                     }
                 }
             }
-            
+            // MARK: Input area with floating suggestions
             VStack(spacing: 8) {
                 
-                if recipeVM.toolcall == nil {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 10) {
-                            ForEach(suggestions, id: \.self) { suggestion in
-                                Text(suggestion)
-                                    .font(.subheadline)
-                                    .padding(.horizontal, 14)
-                                    .padding(.vertical, 8)
-                                    .background(Color(hex: "#E3EFD8"))
-                                    .foregroundColor(.primary)
-                                    .clipShape(Capsule())
-                            }
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(suggestions, id: \.self) { suggestion in
+                            Text(suggestion)
+                                .font(.subheadline)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 8)
+                                .background(Color(hex: "#E3EFD8"))
+                                .foregroundColor(.primary)
+                                .clipShape(Capsule())
                         }
-                        .padding(.horizontal)
                     }
-                    .padding(.bottom, 5)
+                    .padding(.horizontal)
                 }
                 
                 HStack(spacing: 8) {
                     TextField("Chat with AI Chef…", text: $userMessage)
                         .padding(10)
-                        .background(Color(hex: "#F9F5F2"))
+                        .background(Color(hex: "#F5F2F0"))
                         .clipShape(RoundedRectangle(cornerRadius: 20))
                         .textInputAutocapitalization(.sentences)
                         .disableAutocorrection(false)
@@ -111,9 +107,10 @@ struct AIChefBaseView: View {
                             .font(.system(size: 38))
                             .foregroundColor(userMessage.isEmpty ? Color(hex: "#FFCB88") : Color(hex: "#FFA947"))
                     }
-                    .disabled(userMessage.isEmpty || recipeVM.isThinking)
+                    .disabled(userMessage.isEmpty)
                 }
                 .padding(.horizontal)
+                .padding(.bottom, 8)
             }
             .padding(.bottom, 6)
             

@@ -37,6 +37,7 @@ struct EditProfileView: View {
     }
     
     var body: some View {
+        NavigationView {
             ZStack {
                 Color(.systemGroupedBackground)
                     .ignoresSafeArea()
@@ -81,6 +82,7 @@ struct EditProfileView: View {
             } message: {
                 Text(alertMessage)
             }
+        }
         .onChange(of: selectedPhoto) { _, newValue in
             Task {
                 if let newValue = newValue {

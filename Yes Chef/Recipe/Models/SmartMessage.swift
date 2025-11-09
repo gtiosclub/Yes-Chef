@@ -16,5 +16,4 @@ struct SmartMessage: Identifiable {
     let id = UUID()
     let sender: Sender
     let text: String
-    let title: String?
 }

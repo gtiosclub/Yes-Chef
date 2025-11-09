@@ -11,7 +11,6 @@ struct ProfileView: View {
     @State private var username: String = ""
     @State private var profilePhoto: String = ""
     @State private var showingEditProfile = false
-    
 
     @State var user: User
     // Simple boolean to toggle between own profile vs other's profile for UI demo
@@ -25,7 +24,6 @@ struct ProfileView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                
                 // Header
                 //headerView
                 
@@ -43,22 +41,14 @@ struct ProfileView: View {
                     tabSelection
                 }
                 
-                if selectedTab == 0 {
-                    if postVM.selfRecipes.isEmpty {
-                        Text("No posts yet")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    } else {
-                        contentGrid(recipes: postVM.selfRecipes)
-                    }
+                
+                if postVM.selfRecipes.isEmpty {
+                    Text("No posts yet")
+                        .font(.caption)
+                        .foregroundColor(.gray)
                 } else {
-                    if authVM.savedRecipes.isEmpty {
-                        Text("No saved recipes yet!")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    } else {
-                        contentGrid(recipes: authVM.savedRecipes)
-                    }
+                    // Content Grid
+                    contentGrid
                 }
             }
             .task {
@@ -72,14 +62,6 @@ struct ProfileView: View {
                 } catch {
                     print("Failed to fetch recipes: \(error)")
                 }
-            }
-            .onChange(of: selectedTab) { newTab in
-                if newTab == 1 {
-                    Task {
-                        await authVM.fetchSavedRecipes()
-                    }
-                }
-                
             }
 
         }
@@ -277,6 +259,8 @@ struct ProfileView: View {
                             .foregroundColor(.black)
                         
                     }
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
                 }
                 .padding(.bottom , 10)
                 .frame(maxWidth: .infinity)
@@ -308,6 +292,8 @@ struct ProfileView: View {
                             .foregroundColor(.black)
                         
                     }
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
                 }
                 .frame(maxWidth: .infinity)
                 .zIndex(selectedTab == 1 ? 2 : 0)
@@ -343,8 +329,8 @@ struct ProfileView: View {
     let foods2 = ["Spaghetti Carbonara", "Sushi Rolls", "Tacos al Pastor", "Fried Chicken","Margherita Pizza", "Ramen"]
     
     // MARK: - Content Grid
-    private func contentGrid(recipes: [Recipe]) -> some View {
-        let leftColumnItems = recipes.enumerated().compactMap { (idx, recipe) -> (Recipe, Bool)? in
+    private var contentGrid: some View {
+        let leftColumnItems = postVM.selfRecipes.enumerated().compactMap { (idx, recipe) -> (Recipe, Bool)? in
             if idx % 2 == 0 {
                 // decide which ones are tall in the left column
                 let tall = true  // left column tends to show big hero images in your mock
@@ -354,7 +340,7 @@ struct ProfileView: View {
             }
         }
         
-        let rightColumnItems = recipes.enumerated().compactMap { (idx, recipe) -> (Recipe, Bool)? in
+        let rightColumnItems = postVM.selfRecipes.enumerated().compactMap { (idx, recipe) -> (Recipe, Bool)? in
             if idx % 2 == 1 {
                 // right column tends to be shorter stacked cards in your mock
                 let tall = false
@@ -424,8 +410,9 @@ struct ProfileView: View {
         }
     }
 
-// MARK: - Custom Shapes
-fileprivate struct RoundedCorner: Shape {
+//
+/*
+struct RoundedCorner: Shape {
     var radius: CGFloat
     var corners: UIRectCorner
 
@@ -438,7 +425,7 @@ fileprivate struct RoundedCorner: Shape {
         return Path(path.cgPath)
     }
 }
-
+*/
 // MARK: - Preview
 
 struct ProfileView_Previews: PreviewProvider {

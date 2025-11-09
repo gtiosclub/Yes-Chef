@@ -12,22 +12,8 @@ struct SearchableDropdown<Option: SearchableOption>: View {
     let placeholder: String
     let allowCustom: Bool
     let colorMain = "#F9F5F2"
-    var previewRemoving: [String] = []
-    var previewAdding: [String] = []
     
     @State private var searchQuery = ""
-    
-    private func isRemoving(_ value: SearchableValue<Option>) -> Bool {
-        previewRemoving.contains { removing in
-            value.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) == removing.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        }
-    }
-    
-    private func isAdding(_ value: String) -> Bool {
-        previewAdding.contains { adding in
-            value.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) == adding.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        }
-    }
     
     private var filteredOptions: [Option] {
         guard !searchQuery.isEmpty else { return [] }
@@ -128,50 +114,8 @@ struct SearchableDropdown<Option: SearchableOption>: View {
                 FlowLayout() {
                     ForEach(selectedValues, id: \.id) { value in
                         if let acceptedType = toAcceptedType(value) {
-                            PillView(
-                                value: acceptedType,
-                                onClick: { removeSelection(value) },
-                                isRemoving: isRemoving(value)
-                            )
-                        }
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.top, 4)
-            }
-            
-            // Show preview additions
-            if !previewAdding.isEmpty {
-                FlowLayout() {
-                    ForEach(previewAdding, id: \.self) { addingValue in
-                        // Check if it's already in selectedValues
-                        let alreadySelected = selectedValues.contains { value in
-                            value.displayName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) == addingValue.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-                        }
-                        
-                        if !alreadySelected {
-                            // Try to create an AcceptedTypes from the string
-                            let acceptedType: AcceptedTypes? = {
-                                // Try to match with predefined options
-                                if let matchingOption = options.first(where: {
-                                    $0.displayName.lowercased() == addingValue.lowercased()
-                                }) {
-                                    if let allergen = matchingOption as? Allergen {
-                                        return .allergens(allergen)
-                                    } else if let tag = matchingOption as? Tag {
-                                        return .tags(tag)
-                                    }
-                                }
-                                // Otherwise use custom string
-                                return .customString(addingValue)
-                            }()
-                            
-                            if let acceptedType = acceptedType {
-                                PillView(
-                                    value: acceptedType,
-                                    onClick: { },
-                                    isAdding: true
-                                )
+                            PillView(value: acceptedType) {
+                                removeSelection(value)
                             }
                         }
                     }
