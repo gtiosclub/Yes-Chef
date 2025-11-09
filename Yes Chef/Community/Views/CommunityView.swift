@@ -138,8 +138,7 @@ struct CommunityView : View {
                             VStack(alignment: .leading, spacing: 25) {
                                 RecipeSection(title: "This Week's Challenges!", items: Array(postVM.recipes[0..<5]),wide: true)
                            }
-                                RecipeSection(title: "Trending",items: Array(postVM.recipes[5..<10]), wide: false)
-                                RecipeSection(title: "Taco Tuesday",items: Array(postVM.recipes[10..<15]), wide: false)
+                            RecipeSection(title: "Trending",items: Array(postVM.recipes[1...2]), wide: false)
                             }
         
                                 
