@@ -1,10 +1,3 @@
-//
-//  HistoryTab.swift
-//  Yes Chef
-//
-//  Created by Nidhi Krishna on 9/20/25.
-//
-
 import SwiftUI
 import UIKit
 import FirebaseFirestore
@@ -18,8 +11,6 @@ struct HistoryTab: View {
     @State private var selectedYear: String = ""
     @State private var isExpanded: Bool = false
     @State private var showResetConfirmation: Bool = false
-
-
     @State private var searchText = ""
     @State private var searchDate: String? = nil
     
@@ -29,140 +20,129 @@ struct HistoryTab: View {
 
     var selectedItems: [HistoryBlock] {
         viewModel.history.filter { historyItem in
-            let matchedSearch = (searchText.isEmpty || historyItem.challengeName.localizedCaseInsensitiveContains(searchText)) || (searchText.isEmpty || historyItem.date.localizedCaseInsensitiveContains(searchText))
+            let matchedSearch = (searchText.isEmpty || historyItem.challengeName.localizedCaseInsensitiveContains(searchText)) ||
+            (searchText.isEmpty || historyItem.date.localizedCaseInsensitiveContains(searchText))
             let matchedYear = searchDate == nil || historyItem.date.prefix(4).description == searchDate
             return matchedSearch && matchedYear
         }
     }
 
-
-
     var body: some View {
-            VStack(spacing: 10) {
-                HStack {
-                    Text("History")
-                        .font(.largeTitle)
-
-                    Spacer()
-
-                    // Test Reset Button
-                    Button(action: {
-                        showResetConfirmation = true
-                    }) {
-                        HStack {
-                            Image(systemName: "arrow.clockwise.circle.fill")
-                            Text("Test Reset")
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
-                    }
+        VStack(spacing: 20) {
+            // MARK: - Header
+            HStack {
+                Text("History")
+                    .font(.largeTitle.bold())
+                Spacer()
+                Button(action: { showResetConfirmation = true }) {
+                    Image(systemName: "arrow.clockwise.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(.orange)
                 }
-                .padding(.horizontal)
-            
-            
+            }
+            .padding(.horizontal)
+
+            // MARK: - Current Challenge
             VStack(spacing: 8) {
-                Text("This week:")
-                    .foregroundStyle(Color(.systemGray))
+                Text("October 19th, 2025 - October 25th, 2025")
                     .font(.subheadline)
+                    .foregroundColor(.gray)
                 Text(thisWeekPrompt)
                     .font(.body)
                     .multilineTextAlignment(.center)
-                    .lineLimit(nil)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal)
+                    .padding(.horizontal, 12)
             }
-                .frame(maxWidth: 328)
+            .padding()
+            .background(Color(UIColor.systemGray6))
+            .cornerRadius(16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.orange.opacity(0.5), lineWidth: 1)
+            )
+            .padding(.horizontal)
+
+            // MARK: - Search + Year Filter
+            VStack(spacing: 16) {
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.gray)
+                    TextField("Search Key Words", text: $searchText)
+                        .font(.body)
+                        .autocapitalization(.none)
+                }
                 .padding()
-                .background(Color(.systemGray4))
-                .cornerRadius(10)
+                .background(Color.white)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.orange.opacity(0.5), lineWidth: 1)
+                )
+                .padding(.horizontal)
 
-
-                //Custom Search
-                VStack(spacing: 0) {
+                Menu {
+                    Button("All Years") { searchDate = nil }
+                    ForEach(allYears, id: \.self) { year in
+                        Button(year) { searchDate = year }
+                    }
+                } label: {
                     HStack {
-                        TextField("Search Prompt", text: $searchText)
-                            .font(.title3)
-                            .padding(.vertical, 12)
-                        
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(.black)
-                        
+                        Text(searchDate ?? "Select Year")
+                            .foregroundColor(searchDate == nil ? .gray : .primary)
+                        Spacer()
+                        Image(systemName: "chevron.down")
+                            .foregroundColor(.gray)
                     }
-                    .padding(.horizontal)
-                    .frame(maxWidth: 328, maxHeight: 57)
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(12)
                     .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.black, lineWidth: 2)
-                        )
-                    //Dropdown date search
-                    Menu {
-                        Button("All Years") { searchDate = nil }
-                        ForEach(allYears, id: \.self) { year in
-                            Button(year) { searchDate = year }
-                        }
-                    } label: {
-                        HStack {
-                            Text(searchDate ?? "Search year")
-                                .foregroundColor(searchDate == nil ? .gray : .primary)
-                            Spacer()
-                            Image(systemName: "chevron.down")
-                                .foregroundColor(.gray)
-                        }
-                        .padding(.horizontal)
-                        .frame(maxWidth: 328, maxHeight: 57)
-                        .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.black, lineWidth: 2)
-                            )
-                        .padding(.vertical)
-                    }
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.orange.opacity(0.5), lineWidth: 1)
+                    )
+                    .padding(.horizontal)
+                }
+            }
 
-                ScrollView {
+            // MARK: - History List
+            ScrollView {
+                VStack(spacing: 12) {
                     if viewModel.history.isEmpty {
                         Text("No history yet")
                             .foregroundColor(.gray)
                             .padding()
                     } else {
-                        VStack (spacing: 10){
-                            ForEach(selectedItems) { week in
-                                NavigationLink {
-                                    PastChallengeLeaderboardView(historyBlock: week)
-                                } label: {
-                                    VStack () {
-                                        Text(week.date)
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                            .font(.subheadline)
-
-                                        Text(week.challengeName)
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                            .foregroundColor(.black)
-                                            .font(.title3)
-
-                                        Text("\(week.submissions.count) submissions")
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                            .foregroundColor(.gray)
-                                            .font(.caption)
-                                    }
-                                    .padding(.horizontal,10)
-                                    .padding(.vertical, 8)
-                                    .frame(maxWidth: 328)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(Color(.systemGray4))
-
-                                    )
-
+                        ForEach(selectedItems) { week in
+                            NavigationLink {
+                                PastChallengeLeaderboardView(historyBlock: week)
+                            } label: {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text(week.date)
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
+                                    Text(week.challengeName)
+                                        .font(.body.bold())
+                                        .foregroundColor(.black)
+                                    Text("\(week.submissions.count) submissions")
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
                                 }
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color.white)
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.orange.opacity(0.5), lineWidth: 1)
+                                )
+                                .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 2)
+                                .padding(.horizontal)
                             }
                         }
                     }
                 }
+                .padding(.bottom, 30)
             }
-            .frame(width: 328, height: 400)
-        } // Close main VStack
+        }
         .task {
             await fetchWeeklyPrompt()
             viewModel.fetchHistory()
@@ -172,7 +152,6 @@ struct HistoryTab: View {
             Button("Reset", role: .destructive) {
                 Task {
                     await challengeManager.performWeeklyReset()
-                    // Refresh data
                     await fetchWeeklyPrompt()
                     viewModel.fetchHistory()
                 }
@@ -200,31 +179,23 @@ struct HistoryTab: View {
                 }
             }
         )
-    } // Close body
+    }
 
-    // Fetch the current weekly challenge prompt
     private func fetchWeeklyPrompt() async {
         let db = Firestore.firestore()
         do {
             let document = try await db.collection("weeklyChallenge").document("current").getDocument()
             if document.exists, let data = document.data(), let prompt = data["prompt"] as? String {
-                await MainActor.run {
-                    self.thisWeekPrompt = prompt
-                }
+                await MainActor.run { self.thisWeekPrompt = prompt }
             } else {
-                // Document doesn't exist, show default message
-                await MainActor.run {
-                    self.thisWeekPrompt = "No weekly challenge active"
-                }
+                await MainActor.run { self.thisWeekPrompt = "No weekly challenge active" }
             }
         } catch {
             print("Error fetching weekly prompt: \(error.localizedDescription)")
-            await MainActor.run {
-                self.thisWeekPrompt = "Could not load challenge prompt"
-            }
+            await MainActor.run { self.thisWeekPrompt = "Could not load challenge prompt" }
         }
     }
-} // Close struct
+}
 
 #Preview {
     HistoryTab()
