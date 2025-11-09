@@ -124,6 +124,7 @@ struct NewRegister : View {
                 .padding(.top, 20)
                 .padding(.horizontal, 40)
                 .padding(.bottom, 20)
+                .autocapitalization(.none)
             if let nameErrorMessage = nameErrorMessage {
                 Text(nameErrorMessage)
                     .font(.caption)
@@ -136,6 +137,7 @@ struct NewRegister : View {
                 .cornerRadius(10)
                 .padding(.horizontal, 40)
                 .padding(.bottom, 20)
+                .autocapitalization(.none)
             if let emailErrorMessage = emailErrorMessage {
                 Text(emailErrorMessage)
                     .font(.caption)
