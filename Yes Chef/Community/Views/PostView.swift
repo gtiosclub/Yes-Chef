@@ -325,21 +325,6 @@ struct PostView: View {
                 RemixTreeView(nodeID: recipe.recipeId)
                     .environment(authVM)
 
-//            Button {
-//                goToAddRecipe = true
-//            } label: {
-//                HStack(spacing: 8) {
-//                    Image(systemName: "sparkles").font(.headline)
-//                    Text("Remix").fontWeight(.semibold)
-//                }
-//                .padding(.horizontal, 16)
-//                .padding(.vertical, 12)
-//                .background(Capsule().fill(Color.black))
-//                .foregroundColor(.white)
-//                .shadow(radius: 4, y: 2)
-//                .padding(.trailing, 16)
-//                .padding(.bottom, 16)
-
             }
             .hidden()
 

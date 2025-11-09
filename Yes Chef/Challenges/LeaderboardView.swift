@@ -9,6 +9,7 @@ struct LeaderboardView: View {
     @State private var showHistory: Bool = false
     @State private var selectedTab = 0
     @State private var searchText: String = ""
+    @Environment(AuthenticationVM.self) var authVM: AuthenticationVM
 
 
     var body: some View {
@@ -150,7 +151,11 @@ struct LeaderboardView: View {
                 .padding(.horizontal)
 
                 // Add Submission Button
-                NavigationLink(destination: AddRecipeMain(submitToWeeklyChallenge: true)) {
+                NavigationLink(
+                    destination: AddRecipeMain(submitToWeeklyChallenge: true)
+                        .environment(authVM)
+                    
+                ) {
                     HStack {
                         Image(systemName: "plus.circle.fill")
                             .font(.title3)
