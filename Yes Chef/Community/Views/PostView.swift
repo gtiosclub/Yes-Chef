@@ -281,6 +281,7 @@ struct PostView: View {
 
             NavigationLink("", isActive: $goToAddRecipe) {
                 AddRecipeMain(remixRecipe: recipe)
+                    .environment(authVM)
             }
             .hidden()
             ZStack {
