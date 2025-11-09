@@ -275,84 +275,41 @@ struct PostView: View {
                 await UVM.updateSuggestionProfile(userID: user.userId, suggestionProfile: &user.suggestionProfile, recipe: recipe, interaction: "view")
             }
         }
-        
         .navigationBarBackButtonHidden(true)
         .navigationBarTitleDisplayMode(.inline)
         // Eesh New Edit: Added Remix Tree button alongside existing Remix button
         .overlay(alignment: .bottomTrailing) {
-            NavigationLink("", isActive: $goToAddRecipe) {
-                AddRecipeMain(remixRecipe: recipe)
-                    .environment(authVM)
-            }
-            .hidden()
-            ZStack {
-//                HStack {
-//                    Text(String(recipe.likes))
-//                    Button {
-//                        if (!liked) {
-//                            Task {
-//                                try await postVM.likePost(recipeId: recipe.id)
-//                                try await UVM.like(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
-//                            }
-//                            recipe.likes += 1
-//                            authVM.currentUser?.likedRecipes.append(recipe.id)
-//                            liked = true
-//                        } else {
-//                            Task {
-//                                try await postVM.unlikePost(recipeId: recipe.id)
-//                                try await UVM.unlike(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
-//                            }
-//                            recipe.likes -= 1
-//                            authVM.currentUser?.likedRecipes.removeAll { $0 == recipe.id }
-//                            liked = false
-//                        }
-//                    } label : {
-//                        if (!liked) {
-//                            Image(systemName: "heart").foregroundColor(.black)
-//                        } else {
-//                            Image(systemName: "heart.fill").foregroundColor(.red)
-//                        }
-//                        
-//                    }.frame(width: 20, height: 20)
-//
-//                    
-//                }
-                //.fullScreenCover(isPresented: $goToAddRecipe) {
-                //                   AddRecipeMain(remixRecipe: recipe)
-                //}
-            }
-
-            NavigationLink("", isActive: $goToRemixTree) {
-                RemixTreeView(nodeID: recipe.recipeId)
-                    .environment(authVM)
-
-            }
-            .hidden()
-
-            VStack(spacing: 12) {
-                // Remix Tree Button
+            HStack(spacing: 12) {
+                // Comment Button
                 Button {
                     showComments = true
                 } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "message").font(.headline)
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 12)
                     .background(Capsule().fill(Color.black))
                     .foregroundColor(.white)
-                    .shadow(radius: 3, y: 2)
-                    .padding(.trailing, 200)
+                    .shadow(radius: 4, y: 2)
                     .padding(.bottom, 16)
                 }
                 .sheet(isPresented: $showComments) {
                     CommentsSheet(recipeID: recipe.recipeId)
                 }
-                NavigationLink("", isActive: $goToAddRecipe) {
-                    AddRecipeMain(remixRecipe: recipe)
-                }
-                .hidden()
                 
+                Button {
+                    goToRemixTree = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "tree").font(.headline)
+                        Text("Remix Tree").fontWeight(.semibold)
+                    }
+                    .background(Capsule().fill(Color.blue))
+                    .foregroundColor(.white)
+                    .shadow(radius: 4, y: 2)
+                }
+                .accessibilityLabel("View remix tree")
+                    
+                // Original Remix Button
                 Button {
                     goToAddRecipe = true
                 } label: {
@@ -360,114 +317,12 @@ struct PostView: View {
                         Image(systemName: "sparkles").font(.headline)
                         Text("Remix").fontWeight(.semibold)
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
                     .background(Capsule().fill(Color.black))
                     .foregroundColor(.white)
                     .shadow(radius: 4, y: 2)
-                    .padding(.trailing, 16)
-                    .padding(.bottom, 16)
                 }
-                .accessibilityLabel("Remix recipe")
-                NavigationLink("", isActive: $goToAddRecipe) {
-                    AddRecipeMain(remixRecipe: recipe)
-                }
-                .hidden()
-                ZStack {
-                    //                HStack {
-                    //                    Text(String(recipe.likes))
-                    //                    Button {
-                    //                        if (!liked) {
-                    //                            Task {
-                    //                                try await postVM.likePost(recipeId: recipe.id)
-                    //                                try await UVM.like(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
-                    //                            }
-                    //                            recipe.likes += 1
-                    //                            authVM.currentUser?.likedRecipes.append(recipe.id)
-                    //                            liked = true
-                    //                        } else {
-                    //                            Task {
-                    //                                try await postVM.unlikePost(recipeId: recipe.id)
-                    //                                try await UVM.unlike(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
-                    //                            }
-                    //                            recipe.likes -= 1
-                    //                            authVM.currentUser?.likedRecipes.removeAll { $0 == recipe.id }
-                    //                            liked = false
-                    //                        }
-                    //                    } label : {
-                    //                        if (!liked) {
-                    //                            Image(systemName: "heart").foregroundColor(.black)
-                    //                        } else {
-                    //                            Image(systemName: "heart.fill").foregroundColor(.red)
-                    //                        }
-                    //
-                    //                    }.frame(width: 20, height: 20)
-                    //
-                    //
-                    //                }
-                    //.fullScreenCover(isPresented: $goToAddRecipe) {
-                    //                   AddRecipeMain(remixRecipe: recipe)
-                    //}
-                }
-                
-                NavigationLink("", isActive: $goToRemixTree) {
-                    RemixTreeView(nodeID: recipe.recipeId)
-                    
-                    //            Button {
-                    //                goToAddRecipe = true
-                    //            } label: {
-                    //                HStack(spacing: 8) {
-                    //                    Image(systemName: "sparkles").font(.headline)
-                    //                    Text("Remix").fontWeight(.semibold)
-                    //                }
-                    //                .padding(.horizontal, 16)
-                    //                .padding(.vertical, 12)
-                    //                .background(Capsule().fill(Color.black))
-                    //                .foregroundColor(.white)
-                    //                .shadow(radius: 4, y: 2)
-                    //                .padding(.trailing, 16)
-                    //                .padding(.bottom, 16)
-                    
-                }
-                .hidden()
-                
-                VStack(spacing: 12) {
-                    // Remix Tree Button
-                    Button {
-                        goToRemixTree = true
-                    } label: {
-                        HStack(spacing: 8) {
-                            Image(systemName: "tree").font(.headline)
-                            Text("Remix Tree").fontWeight(.semibold)
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-                        .background(Capsule().fill(Color.blue))
-                        .foregroundColor(.white)
-                        .shadow(radius: 4, y: 2)
-                    }
-                    .accessibilityLabel("View remix tree")
-                    
-                    // Original Remix Button
-                    Button {
-                        goToAddRecipe = true
-                    } label: {
-                        HStack(spacing: 8) {
-                            Image(systemName: "sparkles").font(.headline)
-                            Text("Remix").fontWeight(.semibold)
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-                        .background(Capsule().fill(Color.black))
-                        .foregroundColor(.white)
-                        .shadow(radius: 4, y: 2)
-                    }
-                    
-                    //like
-                    likeButton(liked: liked, recipe: recipe, authVM: authVM, postVM: postVM, UVM: UVM)
-                }
-                .padding(.trailing, 16)
-                .padding(.bottom, 16)
+                //like
+                likeButton(liked: liked, recipe: recipe, authVM: authVM, postVM: postVM, UVM: UVM)
             }
         }
     }
