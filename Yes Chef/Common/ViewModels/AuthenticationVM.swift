@@ -16,6 +16,7 @@ class AuthenticationVM {
     var isLoggedIn = false
     var currentUser: User?
     var auth: Auth
+    var savedRecipes: [Recipe] = []
     private var handler: AuthStateDidChangeListenerHandle?
     init() {
         self.auth = Auth.auth()
@@ -55,6 +56,8 @@ class AuthenticationVM {
             }
         }
     }
+    
+    //saving recipes logic like save, unsave, fetch saved
     func saveRecipe(recipeId: String) async {
         guard let userId = currentUser?.userId else {
             return
@@ -83,6 +86,34 @@ class AuthenticationVM {
             print("coudl not save to firebase \(error.localizedDescription)")
         }
     }
+    func fetchSavedRecipes() async {
+        guard let userId = currentUser?.userId else {return}
+        let db = Firestore.firestore()
+        do {
+            let userDocument = try await db.collection("users").document(userId).getDocument()
+            guard let data = userDocument.data(), let savedIds = data["savedRecipes"] as? [String], !savedIds.isEmpty else {
+                    await MainActor.run {self.savedRecipes = []}
+                    return
+                }
+                var fetched: [Recipe] = []
+                for recipeId in savedIds {
+                    if let recipe = await Recipe.fetchById(recipeId) {
+                        fetched.append(recipe)
+                    }
+                }
+                
+            
+            await MainActor.run {
+                self.savedRecipes = fetched
+            }
+        } catch {
+            print("couldn't get the saved recipes :( \(error.localizedDescription)")
+        }
+    }
+    
+    
+    
+    
     func register(email: String, password: String, username: String) {
         auth.createUser(withEmail: email, password: password) {result, error in
             if let error = error {
