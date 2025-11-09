@@ -83,18 +83,7 @@ struct ProfileView: View {
             }
 
         }
-        .navigationBarHidden(false)
-        /*.toolbar {
-            if isOwnProfile {
-                Button {
-                    
-                } label : {
-                    Image(systemName: "gearshape.fill")
-                        .font(.title2)
-                        .foregroundColor(.gray)
-                }
-            }
-        }*/
+        .navigationBarTitleDisplayMode(.inline)
     }
     
     // MARK: - Header
