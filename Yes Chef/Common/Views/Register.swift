@@ -9,8 +9,7 @@ import Foundation
 import SwiftUI
 
 struct Register: View {
-//    @Environment(AuthenticationVM.self) private var authVM
-    @State private var authVM = AuthenticationVM()
+    @Environment(AuthenticationVM.self) private var authVM
     @State private var email = ""
     @State private var username = ""
     @State private var password = ""

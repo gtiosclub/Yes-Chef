@@ -33,6 +33,12 @@ class AuthenticationVM {
         }
     }
     
+    deinit {
+        if let handler = handler {
+            Auth.auth().removeStateDidChangeListener(handler)
+        }
+    }
+    
     public var isSignedIn: Bool {
         return Auth.auth().currentUser != nil
     }
