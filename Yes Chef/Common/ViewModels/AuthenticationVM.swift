@@ -200,22 +200,25 @@ class AuthenticationVM {
                 return
             }
             
-            // Safely check currentUser still exists after async call
-            guard self.currentUser != nil else {
-                print("Error: currentUser became nil during async operation")
-                return
+            // Update on main thread with a strong reference to the user
+            await MainActor.run {
+                // Get a strong reference to avoid race conditions
+                guard let user = self.currentUser else {
+                    print("Error: currentUser became nil during async operation")
+                    return
+                }
+                
+                user.profilePhoto = data["profilePhoto"] as? String ?? ""
+                user.username = data["username"] as? String ?? "username"
+                user.bio = data["bio"] as? String ?? "bio"
+                user.email = data["email"] as? String ?? "email"
+                user.followers = data["followers"] as? [String] ?? []
+                user.following = data["following"] as? [String] ?? []
+                user.likedRecipes = data["likedRecipes"] as? [String] ?? []
+                user.savedRecipes = data["savedRecipes"] as? [String] ?? []
+                user.badges = data["badges"] as? [String] ?? []
+                user.suggestionProfile = data["suggestionProfile"] as? [String: Double] ?? [:]
             }
-            
-            self.currentUser?.profilePhoto = data["profilePhoto"] as? String ?? ""
-            self.currentUser?.username = data["username"] as? String ?? "username"
-            self.currentUser?.bio = data["bio"] as? String ?? "bio"
-            self.currentUser?.email = data["email"] as? String ?? "email"
-            self.currentUser?.followers = data["followers"] as? [String] ?? []
-            self.currentUser?.following = data["following"] as? [String] ?? []
-            self.currentUser?.likedRecipes = data["likedRecipes"] as? [String] ?? []
-            self.currentUser?.savedRecipes = data["savedRecipes"] as? [String] ?? []
-            self.currentUser?.badges = data["badges"] as? [String] ?? []
-            self.currentUser?.suggestionProfile = data["suggestionProfile"] as? [String: Double] ?? [:]
         } catch {
             print("Can't find user: \(error.localizedDescription)")
         }
