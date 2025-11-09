@@ -25,7 +25,7 @@ import SwiftUI
     var mediaItems: [MediaItem] = []
     var chefsNotes = ""
     
-    var messages: [SmartMessage] = []
+    var messages: [SmartMessage] = [SmartMessage(sender: .aiChef, text: "Hi there! What's on your mind?", title: "title")]
     var isThinking: Bool = false
     
     var toolcall: [ToolCallEntry]? = nil
@@ -304,21 +304,21 @@ import SwiftUI
         let trimmed = userMessage.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
-        messages.append(.init(sender: .user, text: trimmed))
+        messages.append(.init(sender: .user, text: trimmed, title: nil))
         isThinking = true
         defer { isThinking = false }
 
         do {
             let suggestion = try await ai.smartSuggestion(recipe: toRecipeForAI(), userMessage: trimmed)
 
-            // Handle toolcall here
             toolcall = suggestion.toolcall
 
-            messages.append(.init(sender: .aiChef, text: suggestion.message))
+            let title = suggestion.toolcall.isEmpty ? nil : suggestion.title
+            messages.append(.init(sender: .aiChef, text: suggestion.message, title: title))
             print(messages)
 
         } catch {
-            messages.append(.init(sender: .aiChef, text: "Sorry, I couldn't process that. Please try again."))
+            messages.append(.init(sender: .aiChef, text: "Sorry, I couldn't process that. Please try again.", title: nil))
             print("smartSuggestion error:", error)
         }
     }
