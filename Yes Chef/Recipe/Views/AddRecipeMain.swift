@@ -15,6 +15,8 @@ struct AddRecipeMain: View {
     @State private var showSuccessMessage: Bool = false
     @State private var showCancelMessage: Bool = false
     @State private var isProcessing: Bool = false
+    @State private var showValidationAlert = false
+    @State private var validationErrorMessage = ""
     @Binding var selectedTab: TabSelection
     @Binding var navigationRecipe: Recipe?
 
@@ -48,7 +50,11 @@ struct AddRecipeMain: View {
                 if selectedInternalTab == 0 {
                     CreateRecipe(recipeVM: recipeVM)
                 } else {
-                    AIChefBaseView(recipeVM: recipeVM)
+                    AIChefBaseView(recipeVM: recipeVM) {
+                        withAnimation {
+                            selectedInternalTab = 0
+                        }
+                    }
                 }
 
                 // Weekly Challenge Toggle Section
@@ -89,6 +95,12 @@ struct AddRecipeMain: View {
             }
             .overlay(successOverlay)
             .overlay(cancelOverlay)
+            .overlay(approveDenyOverlay)
+            .alert("Validation Error", isPresented: $showValidationAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(validationErrorMessage)
+            }
     }
 
     // MARK: - Header View
@@ -135,6 +147,15 @@ struct AddRecipeMain: View {
 
             Button {
                 guard !isProcessing else { return }
+                
+                let validation = recipeVM.validate()
+                
+                if !validation.isValid {
+                    validationErrorMessage = validation.errorMessage ?? "Please fill in all required fields"
+                    showValidationAlert = true
+                    return
+                }
+                
                 isProcessing = true
 
                 Task {
@@ -175,32 +196,29 @@ struct AddRecipeMain: View {
                         )
                     }
 
-                    // Fetch the created recipe
                     if let recipe = await Recipe.fetchById(recipeID) {
-                        // Show success message
                         await MainActor.run {
                             self.showSuccessMessage = true
                         }
 
-                        // Wait briefly for popup visibility
                         try? await Task.sleep(nanoseconds: 800_000_000) // 0.8 seconds
 
-                        // Auto-dismiss success popup
                         await MainActor.run {
                             withAnimation(.easeOut(duration: 0.3)) {
                                 self.showSuccessMessage = false
                             }
                         }
 
-                        // Reset the form fields and tab selection
                         await MainActor.run {
-                            self.recipeVM.reset()
+                            // Reset form fields only if not coming from remix
+                            if !comeFromRemix {
+                                self.recipeVM.reset()
+                            }
                             self.selectedInternalTab = 0
                             self.submitToWeeklyChallenge = false
                             self.isProcessing = false
                         }
 
-                        // Navigate to PostView via home tab navigation
                         await MainActor.run {
                             self.navigationRecipe = recipe
                             withAnimation(.easeInOut(duration: 0.3)) {
@@ -267,6 +285,51 @@ struct AddRecipeMain: View {
                 }
                 .transition(.move(edge: .bottom).combined(with: .opacity))
                 .animation(.spring(), value: showCancelMessage)
+            }
+        }
+    }
+    
+    // MARK: - Approve/Deny Overlay
+    private var approveDenyOverlay: some View {
+        Group {
+            if recipeVM.toolcall != nil {
+                VStack {
+                    Spacer()
+                    HStack(spacing: 16) {
+                        Button(action: {
+                            recipeVM.approve()
+                        }) {
+                            Text("Approve")
+                                .foregroundColor(.white)
+                                .padding(.vertical, 15)
+                                .padding(.horizontal, 60)
+                                .background(Color(hex: "#FFA947"))
+                                .clipShape(Capsule())
+                        }
+                        
+                        Button(action: {
+                            recipeVM.deny()
+                        }) {
+                            Text("Deny")
+                                .foregroundColor(Color(hex: "#404741"))
+                                .padding(.vertical, 15)
+                                .padding(.horizontal, 60)
+                                .background(Color(hex: "#FFEABC"))
+                                .clipShape(Capsule())
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .init(horizontal: .center, vertical: .center))
+                    .padding(.top)
+                    .background(
+                        VStack(spacing: 0) {
+                            Rectangle()
+                                .fill(Color(.systemGray4))
+                                .frame(height: 1)
+                            Color(hex: "#fffffc")
+                        }
+                        .ignoresSafeArea(edges: .bottom)
+                    )
+                }
             }
         }
     }

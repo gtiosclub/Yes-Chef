@@ -5,6 +5,7 @@
 //  Created by Jihoon Kim on 9/25/25.
 //
 import SwiftUI
+import FirebaseAuth
 
 
 let screen = UIScreen.main.bounds
@@ -21,16 +22,17 @@ struct PostView: View {
     @State private var username: String = ""
     @State private var profilePhoto: String = ""
     @State private var FVM = FollowViewModel()
-
+    
     @State private var liked: Bool = false
     @State private var following: Bool = false
     @State private var saved: Bool = false
 
     @State private var goToAddRecipe = false
+    @State private var showComments = false
     // Eesh New Edit: Add state for navigating to remix tree view
     @State private var goToRemixTree = false
     // End of Eesh New Edit
-
+    
     var body: some View {
         ScrollView{
             VStack(spacing: 6 ){
@@ -286,6 +288,11 @@ struct PostView: View {
         }
         // Eesh New Edit: Added Remix Tree button alongside existing Remix button
         .overlay(alignment: .bottomTrailing) {
+            NavigationLink("", isActive: $goToAddRecipe) {
+                AddRecipeMain(remixRecipe: recipe)
+                    .environment(authVM)
+            }
+            .hidden()
             ZStack {
 //                HStack {
 //                    Text(String(recipe.likes))
@@ -323,24 +330,37 @@ struct PostView: View {
                 //}
             }
 
+            NavigationLink("", isActive: $goToRemixTree) {
+                RemixTreeView(nodeID: recipe.recipeId)
+                    .environment(authVM)
+
+            }
+            .hidden()
+
             VStack(spacing: 12) {
                 // Remix Tree Button
                 Button {
-                    goToRemixTree = true
+                    showComments = true
                 } label: {
                     HStack(spacing: 8) {
-                        Image(systemName: "tree").font(.headline)
-                        Text("Remix Tree").fontWeight(.semibold)
+                        Image(systemName: "message").font(.headline)
                     }
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, 12)
                     .padding(.vertical, 12)
-                    .background(Capsule().fill(Color.blue))
+                    .background(Capsule().fill(Color.black))
                     .foregroundColor(.white)
-                    .shadow(radius: 4, y: 2)
+                    .shadow(radius: 3, y: 2)
+                    .padding(.trailing, 200)
+                    .padding(.bottom, 16)
                 }
-                .accessibilityLabel("View remix tree")
-
-                // Original Remix Button
+                .sheet(isPresented: $showComments) {
+                    CommentsSheet(recipeID: recipe.recipeId)
+                }
+                NavigationLink("", isActive: $goToAddRecipe) {
+                    AddRecipeMain(remixRecipe: recipe)
+                }
+                .hidden()
+                
                 Button {
                     goToAddRecipe = true
                 } label: {
@@ -353,56 +373,230 @@ struct PostView: View {
                     .background(Capsule().fill(Color.black))
                     .foregroundColor(.white)
                     .shadow(radius: 4, y: 2)
+                    .padding(.trailing, 16)
+                    .padding(.bottom, 16)
+                }
+                .accessibilityLabel("Remix recipe")
+                NavigationLink("", isActive: $goToAddRecipe) {
+                    AddRecipeMain(remixRecipe: recipe)
+                }
+                .hidden()
+                ZStack {
+                    //                HStack {
+                    //                    Text(String(recipe.likes))
+                    //                    Button {
+                    //                        if (!liked) {
+                    //                            Task {
+                    //                                try await postVM.likePost(recipeId: recipe.id)
+                    //                                try await UVM.like(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
+                    //                            }
+                    //                            recipe.likes += 1
+                    //                            authVM.currentUser?.likedRecipes.append(recipe.id)
+                    //                            liked = true
+                    //                        } else {
+                    //                            Task {
+                    //                                try await postVM.unlikePost(recipeId: recipe.id)
+                    //                                try await UVM.unlike(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
+                    //                            }
+                    //                            recipe.likes -= 1
+                    //                            authVM.currentUser?.likedRecipes.removeAll { $0 == recipe.id }
+                    //                            liked = false
+                    //                        }
+                    //                    } label : {
+                    //                        if (!liked) {
+                    //                            Image(systemName: "heart").foregroundColor(.black)
+                    //                        } else {
+                    //                            Image(systemName: "heart.fill").foregroundColor(.red)
+                    //                        }
+                    //
+                    //                    }.frame(width: 20, height: 20)
+                    //
+                    //
+                    //                }
+                    //.fullScreenCover(isPresented: $goToAddRecipe) {
+                    //                   AddRecipeMain(remixRecipe: recipe)
+                    //}
                 }
                 
-                HStack {
-                    Text(String(recipe.likes))
-                    Button {
-                        if (!liked) {
-                            Task {
-                                try await postVM.likePost(recipeId: recipe.id)
-                                try await UVM.like(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
-                            }
-                            recipe.likes += 1
-                            authVM.currentUser?.likedRecipes.append(recipe.id)
-                            liked = true
-                            Task {
-                                let user = authVM.currentUser ?? User(userId: "", username: "", email: "", bio: "")
-                                await UVM.updateSuggestionProfile(userID: user.userId, suggestionProfile: &user.suggestionProfile, recipe: recipe, interaction: "like")
-                            }
-                        } else {
-                            Task {
-                                try await postVM.unlikePost(recipeId: recipe.id)
-                                try await UVM.unlike(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
-                            }
-                            recipe.likes -= 1
-                            authVM.currentUser?.likedRecipes.removeAll { $0 == recipe.id }
-                            liked = false
-                        }
-                    } label : {
-                        if (!liked) {
-                            Image(systemName: "heart").foregroundColor(.black)
-                        } else {
-                            Image(systemName: "heart.fill").foregroundColor(.red)
-                        }
-                        
-                    }.frame(width: 20, height: 20)
-
+                NavigationLink("", isActive: $goToRemixTree) {
+                    RemixTreeView(nodeID: recipe.recipeId)
+                    
+                    //            Button {
+                    //                goToAddRecipe = true
+                    //            } label: {
+                    //                HStack(spacing: 8) {
+                    //                    Image(systemName: "sparkles").font(.headline)
+                    //                    Text("Remix").fontWeight(.semibold)
+                    //                }
+                    //                .padding(.horizontal, 16)
+                    //                .padding(.vertical, 12)
+                    //                .background(Capsule().fill(Color.black))
+                    //                .foregroundColor(.white)
+                    //                .shadow(radius: 4, y: 2)
+                    //                .padding(.trailing, 16)
+                    //                .padding(.bottom, 16)
                     
                 }
-
-                .accessibilityLabel("Remix recipe")
+                .hidden()
+                
+                VStack(spacing: 12) {
+                    // Remix Tree Button
+                    Button {
+                        goToRemixTree = true
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "tree").font(.headline)
+                            Text("Remix Tree").fontWeight(.semibold)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(Capsule().fill(Color.blue))
+                        .foregroundColor(.white)
+                        .shadow(radius: 4, y: 2)
+                    }
+                    .accessibilityLabel("View remix tree")
+                    
+                    // Original Remix Button
+                    Button {
+                        goToAddRecipe = true
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "sparkles").font(.headline)
+                            Text("Remix").fontWeight(.semibold)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(Capsule().fill(Color.black))
+                        .foregroundColor(.white)
+                        .shadow(radius: 4, y: 2)
+                    }
+                    
+                    //like
+                    likeButton(liked: liked, recipe: recipe, authVM: authVM, postVM: postVM, UVM: UVM)
+                }
+                .padding(.trailing, 16)
+                .padding(.bottom, 16)
             }
-            .padding(.trailing, 16)
-            .padding(.bottom, 16)
         }
-        // End of Eesh New Edit
-
-//        .fullScreenCover(isPresented: $goToAddRecipe) {
-//            AddRecipeMain(remixRecipe: recipe)
-//        }
     }
 }
+struct likeButton: View {
+    @State var liked: Bool
+    var recipe: Recipe
+    @State var authVM: AuthenticationVM
+    @State var postVM: PostViewModel
+    @State var UVM: UserViewModel
+    var body: some View {
+        HStack {
+            //likes and like button
+            Text(String(recipe.likes))
+            Button {
+                if (!liked) {
+                    Task {
+                        try await postVM.likePost(recipeId: recipe.id)
+                        try await UVM.like(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
+                    }
+                    recipe.likes += 1
+                    authVM.currentUser?.likedRecipes.append(recipe.id)
+                    liked = true
+                    Task {
+                        let user = authVM.currentUser ?? User(userId: "", username: "", email: "", bio: "")
+                        await UVM.updateSuggestionProfile(userID: user.userId, suggestionProfile: &user.suggestionProfile, recipe: recipe, interaction: "like")
+                    }
+                } else {
+                    Task {
+                        try await postVM.unlikePost(recipeId: recipe.id)
+                        try await UVM.unlike(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
+                    }
+                    recipe.likes -= 1
+                    authVM.currentUser?.likedRecipes.removeAll { $0 == recipe.id }
+                    liked = false
+                }
+            } label : {
+                if (!liked) {
+                    Image(systemName: "heart").foregroundColor(.black)
+                } else {
+                    Image(systemName: "heart.fill").foregroundColor(.red)
+                }
+                
+            }.frame(width: 20, height: 20)
+        }
+        .accessibilityLabel("Like button")
+    }
+}
+struct CommentsSheet: View {
+    @StateObject private var viewModel = CommentsViewModel()
+    @State private var UVM = UserViewModel()
+    @State private var currentUsername: String = ""
+    let recipeID: String
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Capsule()
+                .fill(Color.gray.opacity(0.4))
+                .frame(width: 40, height: 6)
+                .padding(.top, 8)
+
+            Text("Comments")
+                .font(.headline)
+                .padding(.vertical, 8)
+
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 16) {
+                    ForEach(viewModel.comments) { comment in
+                        HStack(alignment: .top, spacing: 12) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(comment.poster)
+                                    .font(.subheadline)
+                                    .bold()
+                                
+                                Text(comment.text)
+                                    .font(.body)
+                                
+                                if let timestamp = comment.timestamp {
+                                    Text(timestamp, style: .relative)
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                }
+                            }
+                            
+                            Spacer()
+                            Image(systemName: "heart")
+                        }
+                        .padding(.horizontal)
+                    }
+                }
+                .padding(.vertical)
+            }
+
+
+            Divider()
+
+            HStack {
+                TextField("Add comment...", text: $viewModel.newCommentText)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                Button("Post") {
+                    viewModel.postComment(for: recipeID, poster: currentUsername)
+                    viewModel.fetchComments(for: recipeID)
+                }
+                .foregroundColor(.blue)
+            }
+            .padding()
+        }
+        .onAppear {
+            Task {
+                Task {
+                    if let userData = await UVM.getCurrentUserInfo() {
+                        currentUsername = userData["username"] as? String ?? "Unknown"
+                    }
+                    viewModel.fetchComments(for: recipeID)
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+}
+
 
 struct BulletPoint: View {
     var text: String

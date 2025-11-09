@@ -216,7 +216,7 @@ struct CreateRecipe: View {
                             options: Allergen.allCases,
                             selectedValues: $recipeVM.selectedAllergens,
                             placeholder: "Add allergens...",
-                            allowCustom: true,
+                            allowCustom: false,
                             previewRemoving: allergensPreview.removing,
                             previewAdding: allergensPreview.adding
                         )

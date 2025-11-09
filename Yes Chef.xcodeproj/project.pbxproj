@@ -40,6 +40,7 @@
 		5B3058B22EBD520300C788EF /* Yes Chef.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = "Yes Chef.xcodeproj"; sourceTree = "<group>"; };
 		5B78E17D2EBFA67200B13020 /* Yes Chef.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = "Yes Chef.xcodeproj"; sourceTree = "<group>"; };
 		5B884C362EB169F0004063E0 /* Yes Chef.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = "Yes Chef.xcodeproj"; sourceTree = "<group>"; };
+		5BFAE3532EC0F0CF009B7BFB /* Yes Chef.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = "Yes Chef.xcodeproj"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -126,6 +127,11 @@
 			sourceTree = "<group>";
 		};
 		5B884C382EB169F0004063E0 /* Products */ = {
+			isa = PBXGroup;
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5BFAE3552EC0F0CF009B7BFB /* Products */ = {
 			isa = PBXGroup;
 			name = Products;
 			sourceTree = "<group>";
@@ -255,6 +261,10 @@
 				{
 					ProductGroup = 5B78E17F2EBFA67200B13020 /* Products */;
 					ProjectRef = 5B78E17D2EBFA67200B13020 /* Yes Chef.xcodeproj */;
+				},
+				{
+					ProductGroup = 5BFAE3552EC0F0CF009B7BFB /* Products */;
+					ProjectRef = 5BFAE3532EC0F0CF009B7BFB /* Yes Chef.xcodeproj */;
 				},
 				{
 					ProductGroup = 5B884C382EB169F0004063E0 /* Products */;

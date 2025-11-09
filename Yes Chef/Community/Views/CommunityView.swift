@@ -10,6 +10,19 @@ struct CommunityView : View {
     @State private var searchText = ""
     @State private var viewModel = SearchViewModel()
     @State private var postVM = PostViewModel()
+    @State private var showFilters = false
+    @State private var showSearch = false
+    @State private var searchon = true
+    
+    
+    @State private var selectedCuisine: Set<String> = []
+    @State private var selectedDietary: Set<String> = []
+    @State private var selectedDifficulty: Set<String> = []
+    @State private var selectedTime: Set<String> = []
+    @State private var selectedTags: Set<String> = []
+    
+
+    
     let allItems = ["Pizza", "Pasta", "Salad", "Soup", "Sandwich", "Cake", "Curry"]
 
     var filteredItems: [String] {
@@ -22,31 +35,83 @@ struct CommunityView : View {
     }
     
     var body: some View {
+        NavigationStack {
             VStack {
-                Text("Hi Chef!")
-                    .font(.largeTitle)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding([.top, .leading], 20)
-                    .padding(.bottom, 5)
-                ZStack {
-                    TextField("Search...", text: $searchText)
-                        .padding(10)
-                        .padding(.trailing, 30) // extra space for the icon
-                        .background(Color(.systemGray6))
-                        .cornerRadius(10)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.black, lineWidth: 1)
-                        )
-                        .padding(.horizontal)
+                HStack {
+                    Image(systemName: "person.circle")
+                        .font(.system(size: 32))
+                        .foregroundColor(.gray)
+                        .padding(.leading, 15)
                     
-                    HStack {
-                        Spacer()
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(.gray)
-                            .padding(.trailing, 30) // match the extra padding in TextField
+                    Text("Hi Chef!")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                    
+                    Spacer()
+                }
+                HStack {
+                    Button ()  {
+                        showFilters = true
+                    } label: {
+                        if(selectedCuisine.isEmpty && selectedDietary.isEmpty && selectedDifficulty.isEmpty && selectedTime.isEmpty && selectedTags.isEmpty) {
+                            
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color(.systemGray6))
+                                .stroke(Color.orange, lineWidth: 1).overlay(
+                                    Image(systemName: "slider.horizontal.2.square").font(.system(size: 30))
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 10)
+                                
+                                    .foregroundColor(.orange)
+                                    
+                                )
+                        } else {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(.orange)
+                                .stroke(Color.orange, lineWidth: 1).overlay(
+                                    Image(systemName: "slider.horizontal.2.square").font(.system(size: 30))
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 10)
+                                    .foregroundColor(.white)
+                                    
+                                )
+                        }
+                    }
+                    .frame(width: 44, height: 43)
+                    .padding(.leading, 15)
+                    
+                    ZStack {
+                        TextField("Search...", text: $searchText)
+                            .onSubmit {
+                                showSearch = true
+                             }
+                            .padding(10)
+                            .padding(.trailing, 30) // extra space for the icon
+                            .background(Color(.systemGray6))
+                            .cornerRadius(10)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.orange, lineWidth: 1)
+                            )
+                            .padding(.horizontal)
+                        
+                        NavigationLink(destination: SearchView(text: searchText, selectedCuisine: $selectedCuisine,
+                            selectedDietary:
+                            $selectedDietary, selectedDifficulty: $selectedDifficulty, selectedTime: $selectedTime, selectedTags: $selectedTags), isActive: $showSearch) {
+                                EmptyView()
+                                }
+                       
+                        
+                        HStack {
+                            Spacer()
+                            Image(systemName: "magnifyingglass")
+                                .foregroundColor(.orange)
+                                .padding(.trailing, 30) // match the extra padding in TextField
+                        }
                     }
                 }
+                .padding(.bottom, 10)
+                
                 if !filteredItems.isEmpty {
                     List(filteredItems, id: \.self) { item in
                         if let selectedUser = viewModel.users.first(where: { $0.username == item }) {
@@ -55,7 +120,8 @@ struct CommunityView : View {
                             }
                         } else {
                             Text(item)
-                            .onTapGesture {searchText = item}
+                                .onTapGesture {searchText = item
+                                    searchon = true}
                         }
                     }
                     .listStyle(.plain)
@@ -70,20 +136,15 @@ struct CommunityView : View {
                     } else {
                         ScrollView {
                             VStack(alignment: .leading, spacing: 25) {
-                                if postVM.recipes.count >= 5 {
-                                    RecipeSection(title: "Trending", items: Array(postVM.recipes[0..<5]))
-                                }
-                                if postVM.recipes.count >= 10 {
-                                    RecipeSection(title: "Top Dinner Picks",items: Array(postVM.recipes[5..<10]))
-                                }
-                                if postVM.recipes.count >= 15 {
-                                    RecipeSection(title: "Top ... Picks",items: Array(postVM.recipes[10..<15]))
-                                }
+                                RecipeSection(title: "This Week's Challenges!", items: Array(postVM.recipes[0..<5]),wide: true)
+                           }
+                            RecipeSection(title: "Trending",items: Array(postVM.recipes[1...2]), wide: false)
                             }
+        
+                                
                             .padding(.bottom, 20)
                         }
                     }
-                    
                 }
                 Spacer()
             }
@@ -96,22 +157,43 @@ struct CommunityView : View {
                     print("Failed to fetch recipes: \(error)")
                 }
             }
+            .sheet(isPresented: $showFilters) {
+                FilterView(show: $showFilters,
+                   selectedCuisine: $selectedCuisine,
+                   selectedDietary: $selectedDietary,
+                   selectedDifficulty: $selectedDifficulty,
+                   selectedTime: $selectedTime,
+                   selectedTags: $selectedTags)
+                   
+            }
+        }
     }
-    
-}
+
+
 struct RecipeSection: View {
     let title: String
     let items: [Recipe]
+    let wide: Bool
     var body: some View {
         VStack(alignment: .leading) {
             Text(title)
-                .font(.title)
+                .font(.title2)
+                .fontWeight(.bold)
                 .padding(.horizontal, 20)
             ScrollView(.horizontal) {
                 HStack(spacing: 15) {
-                    ForEach(items) { recipe in
-                        RecipeCard(name: recipe.name)
+                    if (wide) {
+                        ForEach(items) { recipe in
+                            RecipeCard(recipe: recipe, wide: true)
+                        }
+                        
+                        //RecipeCard(recipe: items[0], wide: true)
+                    } else {
+                        ForEach(items) { recipe in
+                            RecipeCard(recipe: recipe, wide: false)
+                        }
                     }
+                    
                 }
                 .padding(.horizontal, 20)
             }
@@ -119,19 +201,50 @@ struct RecipeSection: View {
     }
 }
 
-struct RecipeCard: View {
-    let name: String
-    var body: some View {
-        VStack {
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemGray6))
-                .frame(width: 160, height: 160)
-                .overlay(Text(name))
 
+struct RecipeCard: View {
+    let recipe: Recipe
+    let wide: Bool
+    var body: some View {
+        if wide {
+            ZStack {
+                if let media = recipe.media.first, !media.isEmpty {
+                    AsyncImage(url: URL(string: media)) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        Color(.systemGray6)
+                            .overlay(Text(recipe.name))
+                    }
+                } else {
+                    Color(.systemGray6)
+                        .overlay(Text(recipe.name))
+                }
+            }
+            .frame(width: 350, height: 180)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        } else {
+            ZStack {
+                if let media = recipe.media.first, !media.isEmpty {
+                    AsyncImage(url: URL(string: media)) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        Color(.systemGray6)
+                            .overlay(Text(recipe.name))
+                    }
+                } else {
+                    Color(.systemGray6)
+                        .overlay(Text(recipe.name))
+                }
+            }
+            .frame(width: 160, height: 160)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
         }
     }
 }
-
 #Preview {
     CommunityView()
         .environment(AuthenticationVM())
