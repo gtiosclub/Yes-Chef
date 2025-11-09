@@ -13,7 +13,7 @@ struct Home: View {
     @Environment(AuthenticationVM.self) var authVM
     var body: some View {
         TabView(selection: $selectedView) {
-            FeedView(navigationRecipe: $navigationRecipe).tabItem {
+            FeedView().tabItem {
                 Image(systemName: "house")
             }
             .tag(TabSelection.home)
