@@ -160,7 +160,7 @@ struct IngredientCardView: View {
             
             Rectangle()
                 .frame(height: 1)
-                .foregroundColor(.black)
+                .foregroundColor(Color.gray.opacity(0.4))
                 .padding(.horizontal, -10)
     
        
@@ -175,12 +175,8 @@ struct IngredientCardView: View {
         }
         .padding(.vertical, 10)
         .padding(.horizontal, 10)
-        .background(backgroundColor)
+        .background((Color(hex: "#F9F5F2")))
         .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(borderColor, lineWidth: isRemoving || isAdding ? 2 : 1)
-        )
         .padding(.vertical, 4)
     }
 }
