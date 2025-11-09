@@ -14,41 +14,43 @@ struct LeaderboardView: View {
 
     var body: some View {
 
-            VStack(spacing: 0) {
-                // Fixed header with title and history button
-                HStack {
-                    Text("Weekly Challenge")
-                        .font(.largeTitle)
-                        .bold()
-                    Spacer()
-                    NavigationLink(destination: HistoryTab().environment(authVM)) {
-                        Image(systemName: "clock.fill")
-                            .font(.title2)
-                            .foregroundColor(.blue)
-                    }
+        VStack(spacing: 0) {
+            // Fixed header with title and history button
+            HStack {
+                Text("Weekly Challenge")
+                    .font(.largeTitle)
+                    .bold()
+                Spacer()
+                NavigationLink(destination: HistoryTab().environment(authVM)) {
+                    Image(systemName: "clock.fill")
+                        .font(.title2)
+                        .foregroundColor(.blue)
+                    
                 }
             }
             .padding(.horizontal)
             .padding(.top, 20)
             .padding(.bottom, 10)
-            .background(Color(UIColor.systemGray6))
-
+            //.background(Color(hex: "#fffdf7"))
+            
+            
             // MARK: - Tabs
             tabSelection
-
-
-                // Content based on selected tab
-                if selectedTab == 0 {
-                    challengeFeedView
-                } else {
-                    leaderboardView
-                }
-            } // Close outer VStack
-        .background(Color(hex: "#fffdf7"))
+            
+            
+            // Content based on selected tab
+            if selectedTab == 0 {
+                challengeFeedView
+            } else {
+                leaderboardView
+            }// Close outer VStack
+        }
         .task {
             data.fetchUserRecipes()
             await fetchWeeklyPrompt()
         }
+        
+        
     }
 
     // MARK: - Tab Selection
