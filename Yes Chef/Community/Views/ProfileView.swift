@@ -254,8 +254,9 @@ struct ProfileView: View {
         ZStack(alignment: .bottomLeading){
             
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(Color.white))
-                        .frame(height: 56)
+                .fill(Color(hex: "fffdf7"))
+                .frame(height: 56)
+                .background(Color(hex: "fffdf7"))
             
             
             HStack(spacing: 0) {
@@ -285,7 +286,7 @@ struct ProfileView: View {
                                     .overlay(
                                         //White Rectangle cuts off bottom half of border
                                         Rectangle()
-                                            .fill(Color.white)
+                                            .fill(Color(hex: "fffdf7"))
                                             .padding(selectedTab == 0 ? .top : .bottom, 35)
                                     )
                             )
@@ -315,7 +316,7 @@ struct ProfileView: View {
                                 .overlay(
                                     //White Rectangle cuts off bottom half of border
                                     Rectangle()
-                                        .fill(Color.white)
+                                        .fill(Color(hex: "fffdf7"))
                                         .padding(selectedTab == 1 ? .top : .bottom, 35)
                                 )
                         )

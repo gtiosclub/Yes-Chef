@@ -320,7 +320,7 @@ struct AddRecipeMain: View {
         ZStack(alignment: .bottomLeading){
             
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(hex: "#fffffc"))
+                .fill(Color(hex: "fffdf7"))
                 .frame(height: 56)
             
             HStack(spacing: 0) {
@@ -339,7 +339,7 @@ struct AddRecipeMain: View {
                 .zIndex(selectedInternalTab == 0 ? 1 : 0)
                 .background(
                     RoundedCorner(radius: 25, corners: selectedInternalTab == 0 ? [.topLeft, .topRight] : [.bottomRight,.topRight,.topLeft])
-                        .fill(selectedInternalTab == 0 ? Color(hex: "#fffffc") : Color(hex: "#F9F5F2"))
+                        .fill(selectedInternalTab == 0 ? Color(hex: "fffdf7") : Color(hex: "#F9F5F2"))
                         .frame(width: (UIScreen.main.bounds.width)/2, height: 50)
                         .background(
                             RoundedCorner(radius: 25, corners: selectedInternalTab == 0 ? [.topLeft, .topRight] : [.bottomRight,.topRight,.topLeft])
@@ -348,7 +348,7 @@ struct AddRecipeMain: View {
                                 .padding(selectedInternalTab == 0 ? .bottom : .top, 3)
                                 .overlay(
                                     Rectangle()
-                                        .fill(Color(hex: "#fffffc"))
+                                        .fill(Color(hex: "fffdf7"))
                                         .padding(selectedInternalTab == 0 ? .top : .bottom, 35)
                                 )
                         )
@@ -367,7 +367,7 @@ struct AddRecipeMain: View {
                 .zIndex(selectedInternalTab == 1 ? 2 : 0)
                 .background(
                     RoundedCorner(radius: 25, corners: selectedInternalTab == 1 ? [.topLeft, .topRight] : [.bottomRight,.bottomLeft,.topRight,.topLeft])
-                        .fill(selectedInternalTab == 1 ? Color(hex: "#fffffc") : Color(hex: "#F9F5F2"))
+                        .fill(selectedInternalTab == 1 ? Color(hex: "fffdf7") : Color(hex: "#F9F5F2"))
                         .frame(width: (UIScreen.main.bounds.width)/2, height: 50)
                         .background(
                             //Border over top of tab
@@ -377,7 +377,7 @@ struct AddRecipeMain: View {
                                 .padding(selectedInternalTab == 1 ? .bottom : .top, 3)
                                 .overlay(
                                     Rectangle()
-                                        .fill(Color(hex: "#fffffc"))
+                                        .fill(Color(hex: "fffdf7"))
                                         .padding(selectedInternalTab == 1 ? .top : .bottom, 35)
                                 )
                         )
