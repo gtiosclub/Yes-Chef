@@ -515,9 +515,9 @@ struct FeedView: View {
                         .padding(.top, 20)
                     }
                 }
-                .background(Color.white)
+                .background(Color(hex: "#fffdf7"))
             }
-            .background(Color.white)
+            .background(Color(hex: "#fffdf7"))
             .task {
                 do {
                     try await viewModel.fetchPosts()

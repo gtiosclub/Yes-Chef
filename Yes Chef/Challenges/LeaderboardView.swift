@@ -20,7 +20,7 @@ struct LeaderboardView: View {
                         .font(.largeTitle)
                         .bold()
                     Spacer()
-                    NavigationLink(destination: HistoryTab()) {
+                    NavigationLink(destination: HistoryTab().environment(authVM)) {
                         Image(systemName: "clock.fill")
                             .font(.title2)
                             .foregroundColor(.blue)
@@ -40,6 +40,7 @@ struct LeaderboardView: View {
                     leaderboardView
                 }
             } // Close outer VStack
+        .background(Color(hex: "#fffdf7"))
         .task {
             data.fetchUserRecipes()
             await fetchWeeklyPrompt()
@@ -201,8 +202,9 @@ struct LeaderboardView: View {
                 } else {
                     LazyVGrid(columns: columns, spacing: 15) {
                         ForEach(filteredEntries) { entry in
-                            NavigationLink(destination: RecipeDetailView(recipeId: entry.id)) {
+                            NavigationLink(destination: RecipeDetailView(recipeId: entry.id).environment(authVM)) {
                                 ChallengeRecipeCard(entry: entry)
+                                    .environment(authVM)
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
@@ -449,6 +451,7 @@ struct LeaderboardRow: View {
 
 struct ChallengeRecipeCard: View {
     let entry: LeaderboardData.LeaderboardEntry
+    @Environment(AuthenticationVM.self) var authVM
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -516,6 +519,7 @@ struct RecipeDetailView: View {
     let recipeId: String
     @State private var recipe: Recipe? = nil
     @State private var isLoading: Bool = true
+    @Environment(AuthenticationVM.self) var authVM
 
     var body: some View {
         Group {
@@ -528,6 +532,7 @@ struct RecipeDetailView: View {
                 }
             } else if let recipe = recipe {
                 PostView(recipe: recipe)
+                    .environment(authVM)
             } else {
                 VStack {
                     Image(systemName: "exclamationmark.triangle")

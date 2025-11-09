@@ -106,7 +106,7 @@ struct DMListView: View {
                 }
             }
         }
-        .background(Color.white)
+        .background(Color(hex: "#fffdf7"))
         .cornerRadius(20, corners: [.topLeft, .topRight])
     }
     
