@@ -25,7 +25,7 @@ import SwiftUI
     var mediaItems: [MediaItem] = []
     var chefsNotes = ""
     
-    var messages: [SmartMessage] = [SmartMessage(sender: .aiChef, text: "Hi there! What's on your mind?", title: "title")]
+    var messages: [SmartMessage] = []
     var isThinking: Bool = false
     
     var toolcall: [ToolCallEntry]? = nil
