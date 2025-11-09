@@ -21,6 +21,7 @@ struct CommunityView : View {
     @State private var selectedTime: Set<String> = []
     @State private var selectedTags: Set<String> = []
     
+    
 
     
     let allItems = ["Pizza", "Pasta", "Salad", "Soup", "Sandwich", "Cake", "Curry"]
@@ -178,6 +179,7 @@ struct RecipeSection: View {
     let title: String
     let items: [Recipe]
     let wide: Bool
+    @Environment(AuthenticationVM.self) var authVM
     var body: some View {
         VStack(alignment: .leading) {
             Text(title)
@@ -188,15 +190,19 @@ struct RecipeSection: View {
                 HStack(spacing: 15) {
                     if (wide) {
                         ForEach(items) { recipe in
-                            RecipeCard(recipe: recipe, wide: true)
+                            NavigationLink(destination: PostView(recipe: recipe).environment(authVM)) {
+                                RecipeCard(recipe: recipe, wide: wide)
+                            }
+                            .buttonStyle(.plain)
                         }
-                        
-                        //RecipeCard(recipe: items[0], wide: true)
                     } else {
                         ForEach(items) { recipe in
-                            RecipeCard(recipe: recipe, wide: false)
+                            NavigationLink(destination: PostView(recipe: recipe).environment(authVM)) {
+                                RecipeCard(recipe: recipe, wide: false)
+                            }
                         }
                     }
+
                     
                 }
                 .padding(.horizontal, 20)
