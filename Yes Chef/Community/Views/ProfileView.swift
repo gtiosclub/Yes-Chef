@@ -273,7 +273,7 @@ struct ProfileView: View {
                     VStack(spacing: 8) {
                         Text("My Posts")
                             .font(.body)
-                            .fontWeight(selectedTab == 0 ? .semibold : .regular)
+                            //.fontWeight(selectedTab == 0 ? .semibold : .regular)
                             .foregroundColor(.black)
                         
                     }
@@ -304,7 +304,7 @@ struct ProfileView: View {
                     VStack(spacing: 8) {
                         Text("Saved")
                             .font(.body)
-                            .fontWeight(selectedTab == 1 ? .semibold : .regular)
+                            //.fontWeight(selectedTab == 1 ? .semibold : .regular)
                             .foregroundColor(.black)
                         
                     }
