@@ -266,11 +266,23 @@ struct EditProfileView: View {
         isLoading = true
         
         Task {
+            let tempDir = FileManager.default.temporaryDirectory
+                .appendingPathComponent("recipe_media_\(UUID().uuidString)")
+            try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+            let imageURL = tempDir.appendingPathComponent("file").appendingPathExtension("jpg")
+            if let imageData = selectedUIImage!.jpegData(compressionQuality: 0.9) {
+                do {
+                    try imageData.write(to: imageURL)
+                } catch {
+                    print("Failed to write image data: \(error.localizedDescription)")
+                }
+            }
+            
             let success = await userViewModel.updateUserProfileWithImage(
                 userID: user.userId,
                 username: username,
                 bio: bio.isEmpty ? nil : bio,
-                image: selectedUIImage
+                image: MediaItem(image: profileImage, localPath: imageURL, mediaType: .photo)
             )
             
             await MainActor.run {

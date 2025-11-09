@@ -32,6 +32,7 @@ struct PostView: View {
     // Eesh New Edit: Add state for navigating to remix tree view
     @State private var goToRemixTree = false
     // End of Eesh New Edit
+    @State private var showAlert = false
     
     var body: some View {
         ScrollView{
@@ -42,7 +43,7 @@ struct PostView: View {
                     Button(action: {dismiss()}){
                         Image(systemName: "chevron.backward").font(Font.title2)
                     }
-                    
+                    .foregroundColor(.black)
                     //Divider().padding(.horizontal, 15).background(Color.clear)
                     //Title
                     Spacer()
@@ -66,17 +67,28 @@ struct PostView: View {
                         Image(systemName: saved ? "bookmark.fill" : "bookmark")
                             .font(Font.title2)
                     }
+                    .foregroundColor(.black)
                     //... Button
-                    Image(systemName: "ellipsis")
-                        .font(Font.title2)
-                        .frame(alignment: .trailing)
-                    Button {
-                        RemixTree.deleteNodeFirebase(nodeId: recipe.recipeId)
-                    } label: {
-                        Image(systemName: "trash")
-                            .font(Font.title2)
-                            .frame(alignment: .trailing)
-                            .foregroundStyle(.black)
+                    if recipe.userId == authVM.currentUser?.id {
+                        Button {
+                            showAlert = true
+                        }
+                        label: {
+                            Image(systemName: "ellipsis")
+                                .font(Font.title2)
+                                .frame(alignment: .trailing)
+                        }
+                        .alert("Options", isPresented: $showAlert) {
+                                    Button("Delete Post") {
+                                        Task {
+                                            await postVM.deletePost(postID: recipe.recipeId)
+                                            dismiss()
+                                        }
+                                    }
+                                    Button("Cancel", role: .cancel) {
+                                    }
+                        }
+                        .foregroundColor(.black)
                     }
                     
                 }

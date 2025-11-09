@@ -190,5 +190,17 @@ class PostViewModel {
         
         return nil
     }
-    
+    func deletePost(postID: String) async -> Void {
+        let db = Firestore.firestore()
+        
+        let info = db.collection("RECIPES").document(postID)
+        do {
+            let doc = try await info.getDocument()
+            if doc.exists{
+                try await db.collection("RECIPES").document(postID).delete()
+            }
+        } catch {
+            print("Error deleting recipe: \(error)")
+        }
+    }
 }
