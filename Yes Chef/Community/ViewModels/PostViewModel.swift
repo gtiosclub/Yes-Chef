@@ -25,10 +25,17 @@ class PostViewModel {
             //let recipeId = data["id"] as? String ?? UUID().uuidString
             //let mediaURL = data["profileImageURL"] as? String
             //let media = mediaURL != nil ? [mediaURL!] : []
-            
+
             let name = data["name"] as? String ?? "Untitled"
             let media = data["media"] as? [String] ?? []
-            let ingredients: [Ingredient] = data["ingredients"] as? [Ingredient] ?? []
+            let ingredients: [Ingredient] = []
+            do {
+                let data2 = try JSONSerialization.data(withJSONObject: data["ingredients"])
+                let ingredients = try JSONDecoder().decode([Ingredient].self, from: data2)
+            } catch {
+                print("blehhhh")
+            }
+            //let ingredients: [Ingredient] = data["ingredients"] as? [Ingredient] ?? []
             let allergens: [String] = data["allergens"] as? [String] ?? []
             let tags: [String] = data["tags"] as? [String] ?? []
             let steps: [String] = data["steps"] as? [String] ?? []
@@ -38,7 +45,7 @@ class PostViewModel {
             let difficulty = data["difficulty"] as? Difficulty ?? Difficulty.easy
             let chefsNotes = data["chefsNotes"] as? String ?? ""
             let likes = data["likes"] as? Int ?? 0
-            
+            print(ingredients)
             return Recipe(
                 userId: userId,
                 recipeId: recipeId,

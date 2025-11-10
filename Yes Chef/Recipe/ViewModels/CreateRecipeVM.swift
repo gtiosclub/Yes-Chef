@@ -294,9 +294,9 @@ import SwiftUI
 
         do {
             try await db.collection("REMIXTREENODES").document(recipeID).setData(nodeInfo)
-            print("✅ Added recipe \(recipeID) as root node to REMIXTREENODES")
+            print("Added recipe \(recipeID) as root node to REMIXTREENODES")
         } catch {
-            print("❌ Error adding root node: \(error.localizedDescription)")
+            print("Error adding root node: \(error.localizedDescription)")
         }
     }
     

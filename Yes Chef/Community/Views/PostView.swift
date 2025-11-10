@@ -46,8 +46,6 @@ struct PostView: View {
                     .foregroundColor(.black)
                     //Divider().padding(.horizontal, 15).background(Color.clear)
                     //Title
-                    Spacer()
-                    Text(recipe.name).font(Font.title)
                     //Bookmark Button
                     //Divider().padding(.horizontal, 5)
                     Spacer()
@@ -93,11 +91,15 @@ struct PostView: View {
                     
                 }
                 .padding(.bottom, screen.width/50)
-                
+                HStack {
+                    SectionHeader(title:recipe.name).padding(.leading)
+                    Spacer()
+                }.padding(.bottom, 20)
                 HStack{
                     
                     //Poster Profile Pic
-                    let photoURL = URL(string: profilePhoto)
+                    let user = authVM.currentUser ?? User(userId: "", username: "", email: "", bio: "")
+                    let photoURL = URL(string: user.profilePhoto)
                     AsyncImage(url: photoURL) { phase in
                         if let image = phase.image{
                             image
@@ -114,7 +116,7 @@ struct PostView: View {
                     }
                     
                     //Poster Username
-                    Text(username)
+                    BodyText(text: username)
                     
                     Spacer()
                     
@@ -142,16 +144,16 @@ struct PostView: View {
                             if (!following) {
                                 ZStack{
                                     RoundedRectangle(cornerRadius: 20)
-                                        .fill(Color(.systemGray3))
+                                        .fill(Color(hex: "#FFEABC"))
                                         .frame(width: 80, height: 30)
-                                    Text("Follow").foregroundColor(Color.black)
+                                    BodyText(text: "Follow")
                                 }
                             } else {
                                 ZStack{
                                     RoundedRectangle(cornerRadius: 20)
-                                        .fill(Color(.systemGray3))
+                                        .fill(Color(hex: "#FFEABC"))
                                         .frame(width: 80, height: 30)
-                                    Text("Following").foregroundColor(Color.black)
+                                    BodyText(text: "Following")
                                 }
                             }
                         }
@@ -210,7 +212,7 @@ struct PostView: View {
                 }
                 
                 //Recipe Description
-                Text(recipe.description).font(Font.body)
+                BodyText(text: recipe.description)
                 
                 HStack(){
                     let space = screen.width/75
@@ -221,14 +223,14 @@ struct PostView: View {
                     
                     //Time+Icon
                     Image(systemName: "clock")
-                    Text("\(recipe.prepTime) minutes")
+                    BodyText(text: "\(recipe.prepTime) minutes")
                         .padding(.trailing, space)
                     
                     //Serving Size
                     Image(systemName: "person.fill")
                     
                     //TODO recipe has no serving size variable so this will have to be adapted
-                    Text("Serves \(recipe.servingSize)").lineLimit(1)
+                    BodyText(text: "Serves \(recipe.servingSize)").lineLimit(1)
                     Spacer()
                     
                     
@@ -236,12 +238,11 @@ struct PostView: View {
                 
                 //Ingredients
                 VStack( alignment: .leading, spacing: 2){
-                    Text("Ingredients").font(Font.title).padding(.vertical, screen.height/100)
-                    //                    ForEach (recipe.ingredients, id: \.self){ each in
-                    //                        BulletPoint(text: each, type: 1, num: 0).frame(maxHeight: 25)
-                    //                    }
-                    
-                    Text("Instructions")
+                    SectionHeader(title: "Ingredients").padding(.vertical, screen.height/100)
+                    ForEach (recipe.ingredients, id: \.id) { ingredient in
+                        BodyText(text: "\(ingredient.quantity) \(ingredient.name)")
+                    }
+                    SectionHeader(title: "Instructions")
                         .font(Font.title)
                         .padding(.vertical, screen.height/100)
                     //Instruction Steps
@@ -476,10 +477,10 @@ struct BulletPoint: View {
                 Text("•").font(Font.largeTitle)
             } else if (type == 2){
                 if num <= 9{
-                    Text("0\(num)").font(Font.title2).padding(.trailing, screen.width/75)
+                    BodyText(text:"0\(num)").padding(.trailing, screen.width/75)
                 }
             }
-            Text(text).font(Font.body)
+            BodyText(text: text)
                 .padding(.bottom, screen.height/100)
             Spacer()
         }

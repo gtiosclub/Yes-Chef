@@ -279,6 +279,18 @@ struct CreateRecipe: View {
                 .padding(.bottom, -0.5)
         }
     }
+
+struct BodyText: View {
+    let text: String
+    
+    var body: some View {
+        Text(text)
+            .font(.custom("Work Sans", size: 16))
+            .foregroundStyle(Color(hex: "#453736"))
+    }
+}
     #Preview {
         CreateRecipe(recipeVM: CreateRecipeVM())
     }
+
+
