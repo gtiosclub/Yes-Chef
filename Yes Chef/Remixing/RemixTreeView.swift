@@ -289,8 +289,9 @@ struct CircularCarouselView: View {
 
     var body: some View {
         GeometryReader { geo in
-            let cardWidth = max(min(geo.size.width * 0.62, 220), 140)
-            let sideOffset = max(cardWidth * 0.7, 1)
+            let cardWidth: CGFloat = 136
+            let cardSpacing: CGFloat = 20
+            let sideOffset = cardWidth + cardSpacing
             let translationProgress = dragTranslation / sideOffset
             let dynamicIndex = wrappedIndex(Int(round(CGFloat(activeIndex) + translationProgress)))
 
@@ -537,16 +538,16 @@ struct RemixTreeView: View {
         GeometryReader { geo in
             ScrollView {
                 VStack(spacing: 24) {
-                    // Parent node section
+                    // Parent node section - always shown
                     // Eesh New Edit: Updated parent node navigation to use new state booleans
-                    if let parent = parentNode {
-                        VStack(spacing: 12) {
-                            Text("ORIGINAL")
-                                .font(.system(size: 10, weight: .semibold))
-                                .foregroundColor(.gray.opacity(0.6))
-                                .tracking(1)
-                                .padding(.top, 16)
+                    VStack(spacing: 12) {
+                        Text("ORIGINAL")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(.gray.opacity(0.6))
+                            .tracking(1)
+                            .padding(.top, 16)
 
+                        if let parent = parentNode {
                             NodeCard(
                                 node: parent,
                                 onTap: {
@@ -560,24 +561,35 @@ struct RemixTreeView: View {
                                 showImage: false
                             )
                             .frame(width: 136, height: 60)
-                            
-                            // Simple line connector
-                            Rectangle()
-                                .fill(Color.blue.opacity(0.3))
-                                .frame(width: 2, height: 24)
+                        } else {
+                            // Placeholder for no parent
+                            VStack(spacing: 8) {
+                                Image(systemName: "photo.on.rectangle.angled")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(.gray.opacity(0.3))
+                                Text("No Parent")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(.gray.opacity(0.5))
+                            }
+                            .frame(width: 136, height: 60)
                         }
+                        
+                        // Simple line connector
+                        Rectangle()
+                            .fill(Color.blue.opacity(0.3))
+                            .frame(width: 2, height: 24)
                     }
                     // End of Eesh New Edit
 
-                    // Current node
+                    // Current node - always shown
                     // Eesh New Edit: Updated current node navigation to use new state booleans
-                    if let node = currentNode {
-                        VStack(spacing: 12) {
-                            Text("CURRENT RECIPE")
-                                .font(.system(size: 10, weight: .semibold))
-                                .foregroundColor(.blue.opacity(0.7))
-                                .tracking(1)
+                    VStack(spacing: 12) {
+                        Text("CURRENT RECIPE")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(.blue.opacity(0.7))
+                            .tracking(1)
 
+                        if let node = currentNode {
                             NodeCard(
                                 node: node,
                                 isTapped: tappedNodeID == node.currNodeID,
@@ -592,50 +604,80 @@ struct RemixTreeView: View {
                                 }
                             )
                             .frame(width: 136)
-                            
-                            // Simple line connector to children
-                            if !firstLayerChildren.isEmpty {
-                                Rectangle()
-                                    .fill(Color.blue.opacity(0.3))
-                                    .frame(width: 2, height: 24)
+                        } else {
+                            // Placeholder for no current node
+                            VStack(spacing: 8) {
+                                Image(systemName: "photo.on.rectangle.angled")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.gray.opacity(0.3))
+                                Text("No Recipe")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.gray.opacity(0.5))
                             }
+                            .frame(width: 136, height: 180)
                         }
+                        
+                        // Simple line connector to children - always shown
+                        Rectangle()
+                            .fill(Color.blue.opacity(0.3))
+                            .frame(width: 2, height: 24)
                     }
                     // End of Eesh New Edit
 
-                    // First layer children
-                    if !firstLayerChildren.isEmpty {
-                        VStack(spacing: 12) {
-                            Text("CHILDREN")
-                                .font(.system(size: 10, weight: .semibold))
-                                .foregroundColor(.gray.opacity(0.6))
-                                .tracking(1)
-                            
+                    // First layer children - always shown
+                    VStack(spacing: 12) {
+                        Text("CHILDREN")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(.gray.opacity(0.6))
+                            .tracking(1)
+                        
+                        if !firstLayerChildren.isEmpty {
                             layerView(nodes: firstLayerChildren, layerIndex: 1)
-                            
-                            // Simple line connector to grandchildren
-                            if !secondLayerChildren.isEmpty {
-                                Rectangle()
-                                    .fill(Color.blue.opacity(0.3))
-                                    .frame(width: 2, height: 24)
+                        } else {
+                            // Placeholder for no children
+                            VStack(spacing: 8) {
+                                Image(systemName: "photo.stack")
+                                    .font(.system(size: 32))
+                                    .foregroundColor(.gray.opacity(0.3))
+                                Text("No Children")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.gray.opacity(0.5))
                             }
+                            .frame(height: 220)
                         }
+                        
+                        // Simple line connector to grandchildren - always shown
+                        Rectangle()
+                            .fill(Color.blue.opacity(0.3))
+                            .frame(width: 2, height: 24)
                     }
 
-                    // Second layer children (of centered first layer node)
-                    if !secondLayerChildren.isEmpty {
-                        VStack(spacing: 16) {
-                            Text("GRANDCHILDREN")
-                                .font(.system(size: 10, weight: .semibold))
-                                .foregroundColor(.gray.opacity(0.6))
-                                .tracking(1)
-                            
+                    // Second layer children (of centered first layer node) - always shown
+                    VStack(spacing: 16) {
+                        Text("GRANDCHILDREN")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(.gray.opacity(0.6))
+                            .tracking(1)
+                        
+                        if !secondLayerChildren.isEmpty {
                             layerView(nodes: secondLayerChildren, layerIndex: 2)
                                 .id(centeredFirstLayerNode?.currNodeID ?? "")
                                 .transition(.opacity)
+                        } else {
+                            // Placeholder for no grandchildren
+                            VStack(spacing: 8) {
+                                Image(systemName: "photo.stack")
+                                    .font(.system(size: 32))
+                                    .foregroundColor(.gray.opacity(0.3))
+                                Text("No Grandchildren")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.gray.opacity(0.5))
+                            }
+                            .frame(height: 220)
+                            .id(centeredFirstLayerNode?.currNodeID ?? "empty")
                         }
-                        .padding(.bottom, 20)
                     }
+                    .padding(.bottom, 20)
                 }
                 .frame(maxWidth: .infinity, minHeight: geo.size.height)
                 .animation(.easeInOut(duration: 0.3), value: centeredFirstLayerNode?.currNodeID)
@@ -692,7 +734,7 @@ struct RemixTreeView: View {
                 }
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 200)
+            .frame(height: 220)
             .padding(.horizontal, 20)
         }
     }
