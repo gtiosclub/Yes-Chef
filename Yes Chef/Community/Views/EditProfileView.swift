@@ -271,6 +271,7 @@ struct EditProfileView: View {
             try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
             let imageURL = tempDir.appendingPathComponent("file").appendingPathExtension("jpg")
             if selectedUIImage == nil {
+                await userViewModel.updateUserProfile(userID: user.userId, username: username, bio: bio.isEmpty ? nil : bio, profilePhoto: user.profilePhoto)
                 return
             }
             if let imageData = selectedUIImage!.jpegData(compressionQuality: 0.9) {

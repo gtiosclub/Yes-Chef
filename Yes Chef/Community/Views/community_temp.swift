@@ -11,8 +11,8 @@ struct SettingsView: View {
     @State private var notificationsEnabled = true
     @State private var selectedLanguage = "English"
     @State private var selectedTheme = "Light"
-    
-    var authVM: AuthenticationVM
+    @Environment(\.dismiss) private var dismiss
+    @Environment(AuthenticationVM.self) var authVM
     @State private var showingEmailChange = false
     @State private var showingPasswordChange = false
     @State private var showAlert = false
@@ -24,7 +24,14 @@ struct SettingsView: View {
                     .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    
+                    HStack {
+                        Button(action: {dismiss()}){
+                            Image(systemName: "chevron.backward").font(Font.title2)
+                        }
+                        .foregroundColor(.black)
+                        .padding(.leading, screen.width * 0.04)
+                        Spacer()
+                    }
                     // MARK: - Title
                     Text("Settings")
                         .font(.custom("Georgia", size: 32))
@@ -156,6 +163,7 @@ struct SettingsView: View {
                             .alert("Confirmation", isPresented: $showAlert) {
                                         Button("Yes") {
                                             authVM.signOut()
+                                            dismiss()
                                         }
                                         Button("No", role: .cancel) {
                                         }
