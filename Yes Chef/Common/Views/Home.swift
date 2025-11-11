@@ -13,7 +13,7 @@ struct Home: View {
     @Environment(AuthenticationVM.self) var authVM
     
     var body: some View {
-        ZStack(alignment: .bottom) {
+        VStack(spacing: 0) {
             // Main content area
             Group {
                 switch selectedView {
@@ -41,7 +41,6 @@ struct Home: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
-            // Custom bottom navigation bar
             CustomBottomNavBar(selectedView: $selectedView)
         }
         .ignoresSafeArea(edges: .bottom)
@@ -94,7 +93,6 @@ struct CustomBottomNavBar: View {
                     action: { selectedView = .leaderboard }
                 )
                 
-                // Profile
                 NavBarButton(
                     icon: "person.circle",
                     isSelected: selectedView == .profile,
