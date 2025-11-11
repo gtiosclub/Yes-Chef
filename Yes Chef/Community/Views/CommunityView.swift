@@ -89,7 +89,7 @@ struct CommunityView : View {
                                     Image(systemName: "slider.horizontal.2.square").font(.system(size: 30))
                                         .padding(.horizontal, 10)
                                         .padding(.vertical, 10)
-                                    .foregroundColor(.white)
+                                        .foregroundColor(Color(hex: "#fffdf7"))
                                     
                                 )
                         }
@@ -135,28 +135,52 @@ struct CommunityView : View {
                 .padding(.bottom, 10)
                 
                 if !filteredUsernames.isEmpty || !filteredRecipes.isEmpty {
-                    List {
-                        ForEach(filteredUsernames) { user in
-                            NavigationLink(destination: ProfileView(user: user).environment(authVM)) {
-                                Text(user.username)
-                            }
-                        }
+                    VStack(alignment: .leading, spacing: 0) {
+                        Divider()
+                            .padding(.vertical, 6)
 
-                        ForEach(filteredRecipes) { recipe in
-                            NavigationLink(destination: PostView(recipe: recipe).environment(authVM)) {
-                                HStack {
-                                    Text(recipe.name)
-                                    Spacer()
+                        ScrollView {
+                            VStack(spacing: 0) {
+                                ForEach(filteredUsernames) { user in
+                                    NavigationLink(destination: ProfileView(user: user).environment(authVM)) {
+                                        HStack {
+                                            Text(user.username)
+                                                .foregroundColor(.primary)
+                                                .padding(.vertical, 10)
+                                            Spacer()
+                                            Image(systemName: "arrow.up.right")
+                                                .foregroundColor(.green)
+                                        }
+                                        .padding(.horizontal, 16)
+                                    }
+                                    Divider()
+                                        .padding(.leading, 16)
+                                }
+
+                                ForEach(filteredRecipes) { recipe in
+                                    NavigationLink(destination: PostView(recipe: recipe).environment(authVM)) {
+                                        HStack {
+                                            Text(recipe.name)
+                                                .foregroundColor(.primary)
+                                                .padding(.vertical, 10)
+                                            Spacer()
+                                            Image(systemName: "arrow.up.right")
+                                                .foregroundColor(.gray)
+                                        }
+                                        .padding(.horizontal, 16)
+                                    }
+                                    Divider()
+                                        .padding(.leading, 16)
                                 }
                             }
                         }
+                        .frame(maxHeight: 200)
                     }
-                    .listStyle(.plain)
-                    .frame(maxHeight: 200)
-
-                    .listStyle(.plain)
-                    .frame(maxHeight: 200)
-                    Spacer()
+                    .background(Color.white)
+                    .cornerRadius(8)
+                    .shadow(color: .gray.opacity(0.2), radius: 3, x: 0, y: 1)
+                    .padding(.horizontal)
+                    .zIndex(1)
                 } else {
                     if postVM.recipes.isEmpty {
                         Text("Loading...")

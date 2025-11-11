@@ -13,6 +13,7 @@ struct FilterView: View {
     let difficulties = ["Easy", "Medium", "Difficult"]
     let times = ["1 hr", "2 hr", "3 hr"]
     let tags = ["Egg", "Pasta", "Dumpling", "Soup"]
+    let servingsize = ["1", "2", "3", "4"]
     
     var body: some View {
         VStack() {
