@@ -545,10 +545,7 @@ struct FeedView: View {
             HStack(spacing: 0) {
                 Button(action: { selectedTab = 0 }) {
                     VStack(spacing: 8) {
-                        Text("For You")
-                            .font(.body)
-                            .fontWeight(selectedTab == 0 ? .semibold : .regular)
-                            .foregroundColor(.black)
+                        BodyText(text: "For You")
                     }
                     .frame(maxWidth: .infinity)
                     .contentShape(Rectangle())
@@ -575,10 +572,7 @@ struct FeedView: View {
                 
                 Button(action: { selectedTab = 1 }) {
                     VStack(spacing: 8) {
-                        Text("Following")
-                            .font(.body)
-                            .fontWeight(selectedTab == 1 ? .semibold : .regular)
-                            .foregroundColor(.black)
+                        BodyText(text: "Following")
                     }
                     .frame(maxWidth: .infinity)
                     .contentShape(Rectangle())

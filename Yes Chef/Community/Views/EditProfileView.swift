@@ -270,6 +270,9 @@ struct EditProfileView: View {
                 .appendingPathComponent("recipe_media_\(UUID().uuidString)")
             try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
             let imageURL = tempDir.appendingPathComponent("file").appendingPathExtension("jpg")
+            if selectedUIImage == nil {
+                return
+            }
             if let imageData = selectedUIImage!.jpegData(compressionQuality: 0.9) {
                 do {
                     try imageData.write(to: imageURL)

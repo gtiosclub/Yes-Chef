@@ -211,26 +211,32 @@ struct PostView: View {
                     }
                 }
                 
-                //Recipe Description
-                BodyText(text: recipe.description)
+                HStack {
+                    //Recipe Description
+                    BodyText(text: recipe.description)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                    
                 
                 HStack(){
                     let space = screen.width/75
-                    //Difficulty Icon
-                    Image(systemName: "flame.fill")
-                    Text(LocalizedStringKey(recipe.difficulty.id.prefix(1).uppercased() + recipe.difficulty.id.dropFirst()))
-                        .padding(.trailing, space)
-                    
                     //Time+Icon
                     Image(systemName: "clock")
-                    BodyText(text: "\(recipe.prepTime) minutes")
+                        .foregroundStyle(Color(hex: "#7C887D"))
+                    BodyText2(text: "\(recipe.prepTime) minutes")
                         .padding(.trailing, space)
                     
                     //Serving Size
                     Image(systemName: "person.fill")
+                        .foregroundStyle(Color(hex: "#7C887D"))
+                    BodyText2(text: "Serves \(recipe.servingSize)").lineLimit(1)
+                        .padding(.trailing, space)
                     
-                    //TODO recipe has no serving size variable so this will have to be adapted
-                    BodyText(text: "Serves \(recipe.servingSize)").lineLimit(1)
+                    //Difficulty Icon
+                    Image(systemName: "flame.fill")
+                        .foregroundStyle(Color(hex: "#7C887D"))
+                    BodyText2(text:recipe.difficulty.id)
+                        .padding(.trailing, space)
                     Spacer()
                     
                     
@@ -239,7 +245,7 @@ struct PostView: View {
                 //Ingredients
                 VStack( alignment: .leading, spacing: 2){
                     SectionHeader(title: "Ingredients").padding(.vertical, screen.height/100)
-                    ForEach (recipe.ingredients, id: \.id) { ingredient in
+                    ForEach (recipe.ingredients) { ingredient in
                         BodyText(text: "\(ingredient.quantity) \(ingredient.name)")
                     }
                     SectionHeader(title: "Instructions")
@@ -247,7 +253,7 @@ struct PostView: View {
                         .padding(.vertical, screen.height/100)
                     //Instruction Steps
                     ForEach (Array(recipe.steps.enumerated()), id: \.offset){ index, each in
-                        BulletPoint(text: each, type: 2, num: index)
+                        BulletPoint(text: each, type: 2, num: index + 1)
                     }
                 }
                 
@@ -281,6 +287,7 @@ struct PostView: View {
         }
         .onAppear {
             liked = (authVM.currentUser?.likedRecipes ?? []).contains(recipe.id)
+            print("liked",liked)
             following = (authVM.currentUser?.following ?? []).contains(recipe.userId)
             saved = (authVM.currentUser?.savedRecipes ?? []).contains(recipe.id)
             Task {
@@ -299,52 +306,114 @@ struct PostView: View {
                 .environment(authVM)
         }
         // Eesh New Edit: Added Remix Tree button alongside existing Remix button
-        .overlay(alignment: .bottomTrailing) {
-            HStack(spacing: 12) {
-                // Comment Button
-                Button {
-                    showComments = true
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "message").font(.headline)
+        .overlay(alignment: .bottom) {
+            ZStack {
+                VStack {
+                    Rectangle()
+                        .frame(maxHeight: 160, alignment: .bottom)
+                        .foregroundStyle(Color(hex: "#edede8"))
+                        .ignoresSafeArea(edges: .bottom)
+                        .offset(y: 50)
+                }
+                .ignoresSafeArea()
+                HStack(spacing: 12) {
+                    HStack {
+                        //like
+                            //Text(String(recipe.likes))
+                            Button {
+                                if (!liked) {
+                                    Task {
+                                        try await postVM.likePost(recipeId: recipe.id)
+                                        try await UVM.like(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
+                                    }
+                                    recipe.likes += 1
+                                    authVM.currentUser?.likedRecipes.append(recipe.id)
+                                    liked = true
+                                    Task {
+                                        let user = authVM.currentUser ?? User(userId: "", username: "", email: "", bio: "")
+                                        await UVM.updateSuggestionProfile(userID: user.userId, suggestionProfile: &user.suggestionProfile, recipe: recipe, interaction: "like")
+                                    }
+                                } else {
+                                    Task {
+                                        try await postVM.unlikePost(recipeId: recipe.id)
+                                        try await UVM.unlike(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
+                                    }
+                                    recipe.likes -= 1
+                                    authVM.currentUser?.likedRecipes.removeAll { $0 == recipe.id }
+                                    liked = false
+                                }
+                            } label : {
+                                if (!liked) {
+                                    Image(systemName: "heart")
+                                        .foregroundColor(.black)
+                                        .font(.system(size: 24))
+                                } else {
+                                    Image(systemName: "heart.fill").foregroundColor(.red)
+                                        .font(.system(size: 24))
+                                }
+                                
+                            }
+                        .accessibilityLabel("Like button")
+                        .padding(.trailing, 10)
+                        
+                        // Comment Button
+                        Button {
+                            showComments = true
+                        } label: {
+                            Image(systemName: "message")
+                                .font(.system(size: 24))
+                        }
+                        .foregroundColor(.black)
+                        .sheet(isPresented: $showComments) {
+                            CommentsSheet(recipeID: recipe.recipeId)
+                        }
+                        .padding(.trailing, 10)
+                        
+                        Button {
+                            print("SHARING")
+                        } label : {
+                            Image(systemName: "arrowshape.turn.up.right")
+                                .font(.system(size: 24))
+                        }
+                        .foregroundColor(.black)
+                        .padding(.bottom, 5)
+                        
                     }
-                    .background(Capsule().fill(Color.black))
-                    .foregroundColor(.white)
-                    .shadow(radius: 4, y: 2)
-                    .padding(.bottom, 16)
-                }
-                .sheet(isPresented: $showComments) {
-                    CommentsSheet(recipeID: recipe.recipeId)
-                }
-                //remix tree
-                Button {
-                    goToRemixTree = true
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "tree").font(.headline)
-                        Text("Remix Tree").fontWeight(.semibold)
+                    .padding(.leading, 50)
+                    Spacer()
+                    Spacer()
+                    //remix tree
+                    Button {
+                        goToRemixTree = true
+                    } label: {
+                        ZStack {
+                            Capsule().fill(Color.black).frame(width: 102, height: 34)
+                            HStack(spacing: 8) {
+                                Image(systemName: "tree").font(.headline)
+                                Text("Tree").fontWeight(.semibold)
+                            }
+                            .foregroundColor(.white)
+                        }
                     }
-                    .background(Capsule().fill(Color.blue))
-                    .foregroundColor(.white)
-                    .shadow(radius: 4, y: 2)
-                }
-                .accessibilityLabel("View remix tree")
-                    
-                // Original Remix Button
-                Button {
-                    goToAddRecipe = true
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "sparkles").font(.headline)
-                        Text("Remix").fontWeight(.semibold)
+                    .accessibilityLabel("View remix tree")
+                    // Original Remix Button
+                    Button {
+                        goToAddRecipe = true
+                    } label: {
+                        ZStack {
+                            Capsule().fill(Color(hex: "#FFA947")).frame(width: 102, height: 34)
+                            HStack(spacing: 8) {
+                                Image(systemName: "sparkles").font(.headline)
+                                Text("Remix").fontWeight(.semibold)
+                            }
+                            .foregroundColor(.white)
+                        }
                     }
-                    .background(Capsule().fill(Color.black))
-                    .foregroundColor(.white)
-                    .shadow(radius: 4, y: 2)
+                    .padding(.trailing, 20)
+                    Spacer()
                 }
-                //like
-                likeButton(liked: liked, recipe: recipe, authVM: authVM, postVM: postVM, UVM: UVM)
             }
+            .offset(y: 50)
         }
     }
 }
@@ -477,7 +546,10 @@ struct BulletPoint: View {
                 Text("•").font(Font.largeTitle)
             } else if (type == 2){
                 if num <= 9{
-                    BodyText(text:"0\(num)").padding(.trailing, screen.width/75)
+                    SectionHeader2(title:"0\(num)").padding(.trailing, screen.width/75)
+                }
+                else {
+                    SectionHeader2(title:"\(num)").padding(.trailing, screen.width/75)
                 }
             }
             BodyText(text: text)

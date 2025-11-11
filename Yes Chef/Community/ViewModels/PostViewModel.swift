@@ -28,10 +28,10 @@ class PostViewModel {
 
             let name = data["name"] as? String ?? "Untitled"
             let media = data["media"] as? [String] ?? []
-            let ingredients: [Ingredient] = []
+            var ingredients: [Ingredient] = []
             do {
                 let data2 = try JSONSerialization.data(withJSONObject: data["ingredients"])
-                let ingredients = try JSONDecoder().decode([Ingredient].self, from: data2)
+                ingredients = try JSONDecoder().decode([Ingredient].self, from: data2)
             } catch {
                 print("blehhhh")
             }
@@ -42,10 +42,10 @@ class PostViewModel {
             let description = data["description"] as? String ?? ""
             let servingSize = data["servingSize"] as? Int ?? 1
             let prepTime = data["prepTime"] as? Int ?? 0
-            let difficulty = data["difficulty"] as? Difficulty ?? Difficulty.easy
+            let difficultystring = data["difficulty"] as? String ?? "easy"
+            let difficulty = Difficulty(rawValue: difficultystring) ?? .easy
             let chefsNotes = data["chefsNotes"] as? String ?? ""
             let likes = data["likes"] as? Int ?? 0
-            print(ingredients)
             return Recipe(
                 userId: userId,
                 recipeId: recipeId,
@@ -77,14 +77,21 @@ class PostViewModel {
             
             let name = data["name"] as? String ?? "Untitled"
             let media = data["media"] as? [String] ?? []
-            let ingredients: [Ingredient] = data["ingredients"] as? [Ingredient] ?? []
+            var ingredients: [Ingredient] = []
+            do {
+                let data2 = try JSONSerialization.data(withJSONObject: data["ingredients"])
+                ingredients = try JSONDecoder().decode([Ingredient].self, from: data2)
+            } catch {
+                print("blehhhh")
+            }
             let allergens: [String] = data["allergens"] as? [String] ?? []
             let tags: [String] = data["tags"] as? [String] ?? []
             let steps: [String] = data["steps"] as? [String] ?? []
             let description = data["description"] as? String ?? ""
             let servingSize = data["servingSize"] as? Int ?? 1
             let prepTime = data["prepTime"] as? Int ?? 0
-            let difficulty = data["difficulty"] as? Difficulty ?? Difficulty.easy
+            let difficultystring = data["difficulty"] as? String ?? "easy"
+            let difficulty = Difficulty(rawValue: difficultystring) ?? .easy
             let chefsNotes = data["chefsNotes"] as? String ?? ""
             let likes = data["likes"] as? Int ?? 0
             
