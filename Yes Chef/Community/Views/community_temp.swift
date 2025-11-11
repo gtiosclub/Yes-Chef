@@ -11,8 +11,8 @@ struct SettingsView: View {
     @State private var notificationsEnabled = true
     @State private var selectedLanguage = "English"
     @State private var selectedTheme = "Light"
-    
-    var authVM: AuthenticationVM
+    @Environment(\.dismiss) private var dismiss
+    @Environment(AuthenticationVM.self) var authVM
     @State private var showingEmailChange = false
     @State private var showingPasswordChange = false
     @State private var showAlert = false
@@ -156,6 +156,7 @@ struct SettingsView: View {
                             .alert("Confirmation", isPresented: $showAlert) {
                                         Button("Yes") {
                                             authVM.signOut()
+                                            dismiss()
                                         }
                                         Button("No", role: .cancel) {
                                         }

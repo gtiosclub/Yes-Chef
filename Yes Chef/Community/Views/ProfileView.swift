@@ -92,7 +92,7 @@ struct ProfileView: View {
     private var headerView: some View {
         HStack {
             if isOwnProfile {
-                Button(action: {}) {
+                NavigationLink(destination: SettingsView().environment(authVM)) {
                     Image(systemName: "gearshape.fill")
                         .font(.title2)
                         .foregroundColor(.gray)
@@ -113,9 +113,7 @@ struct ProfileView: View {
                 HStack {
                     if isOwnProfile {
                         Spacer()
-                        Button{
-                            print("SETTINGS")
-                        }label:{
+                        NavigationLink(destination: SettingsView().environment(authVM)) {
                             Image(systemName: "gearshape.fill")
                                 .font(.title2)
                                 .foregroundColor(.gray)

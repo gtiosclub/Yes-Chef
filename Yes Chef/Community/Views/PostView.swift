@@ -139,16 +139,16 @@ struct PostView: View {
                         } label: {
                             if (!following) {
                                 ZStack{
-                                    RoundedRectangle(cornerRadius: 20)
+                                    RoundedRectangle(cornerRadius: 24)
                                         .fill(Color(hex: "#FFEABC"))
-                                        .frame(width: 80, height: 30)
+                                        .frame(width: 83, height: 35)
                                     BodyText(text: "Follow")
                                 }
                             } else {
                                 ZStack{
-                                    RoundedRectangle(cornerRadius: 20)
+                                    RoundedRectangle(cornerRadius: 24)
                                         .fill(Color(hex: "#FFEABC"))
-                                        .frame(width: 80, height: 30)
+                                        .frame(width: 83, height: 35)
                                     BodyText(text: "Following")
                                 }
                             }
