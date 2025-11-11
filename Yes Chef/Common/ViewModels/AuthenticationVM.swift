@@ -71,7 +71,7 @@ class AuthenticationVM {
         let db = Firestore.firestore()
         let userReferenceInFirebase = db.collection("users").document(userId)
         do {
-            try await userReferenceInFirebase.setData(["savedRecipes": FieldValue.arrayUnion([recipeId])
+            try await userReferenceInFirebase.updateData(["savedRecipes": FieldValue.arrayUnion([recipeId])
                                                       ])
         } catch {
             print("could not save to firebase \(error)")
