@@ -27,6 +27,7 @@ struct NodeCard: View {
     var onTap: (() -> Void)? = nil
     var onHold: (() -> Void)? = nil
     var sizeMultiplier: CGFloat = 1.0
+    var showImage: Bool = true
     @State private var recipeName: String? = nil
 
     private var backgroundColor: Color {
@@ -41,37 +42,58 @@ struct NodeCard: View {
     }
 
     var body: some View {
-        // Load recipe info for this node so we can show image + name
-        VStack(spacing: 6 * sizeMultiplier) {
-            // Async load recipe and display first media image if available
-            RecipeNodeImageView(recipeID: node.currNodeID, sizeMultiplier: sizeMultiplier, title: $recipeName)
-
-            // Show recipe name if available, otherwise fall back to description
-            Text(recipeName ?? nodeDescriptionTitle)
-                .font(.system(size: 13 * sizeMultiplier, weight: .semibold))
-                .multilineTextAlignment(.center)
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 6 * sizeMultiplier)
-
-            Text(node.currNodeID.prefix(5))
-                .font(.system(size: 10 * sizeMultiplier, weight: .medium))
-                .foregroundColor(.gray.opacity(0.7))
+        // Polaroid-style card
+        VStack(spacing: 0) {
+            // Image section (only show if showImage is true)
+            if showImage {
+                VStack(spacing: 0) {
+                    RecipeNodeImageView(recipeID: node.currNodeID, sizeMultiplier: sizeMultiplier, title: $recipeName)
+                }
+                .padding(.top, 8 * sizeMultiplier)
+                .padding(.horizontal, 8 * sizeMultiplier)
+            }
+            
+            // White space at bottom (polaroid style) with title
+            VStack(spacing: 4 * sizeMultiplier) {
+                Text(recipeName ?? nodeDescriptionTitle)
+                    .font(.system(size: 12 * sizeMultiplier, weight: .medium))
+                    .foregroundColor(.black)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 8 * sizeMultiplier)
+                
+                Text(node.currNodeID.prefix(5))
+                    .font(.system(size: 9 * sizeMultiplier, weight: .regular))
+                    .foregroundColor(.gray.opacity(0.6))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12 * sizeMultiplier)
+            .background(Color.white)
         }
-        .padding(.horizontal, 8 * sizeMultiplier)
-        .padding(.vertical, 10 * sizeMultiplier)
-        .frame(minHeight: 70 * sizeMultiplier)
+        .task(id: node.currNodeID) {
+            // Fetch recipe name even if not showing image
+            if !showImage && recipeName == nil {
+                let recipe = await Recipe.fetchById(node.currNodeID)
+                recipeName = recipe?.name
+            }
+        }
         .background(
-            RoundedRectangle(cornerRadius: 12 * sizeMultiplier)
-                .fill(backgroundColor)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12 * sizeMultiplier)
-                        .stroke(borderColor, lineWidth: 1.5)
-                )
-                .shadow(color: .black.opacity(0.1), radius: 6, x: 0, y: 3)
+            RoundedRectangle(cornerRadius: 4 * sizeMultiplier)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(isHeld ? 0.3 : (isTapped ? 0.2 : 0.15)), radius: isHeld ? 12 : (isTapped ? 8 : 6), x: 0, y: isHeld ? 6 : (isTapped ? 4 : 3))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 4 * sizeMultiplier)
+                .stroke(isHeld ? Color.blue.opacity(0.6) : (isTapped ? Color.blue.opacity(0.4) : Color.clear), lineWidth: 2)
         )
         .scaleEffect(isTapped ? 0.95 : 1.0)
+        .rotation3DEffect(
+            .degrees(isHeld ? 5 : 0),
+            axis: (x: 1, y: 1, z: 0)
+        )
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isTapped)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isHeld)
         .onTapGesture { onTap?() }
         .onLongPressGesture(minimumDuration: 0.5) { onHold?() }
     }
@@ -106,9 +128,8 @@ private struct RecipeNodeImageView: View {
                         image
                             .resizable()
                             .scaledToFill()
-                            .frame(width: 56 * sizeMultiplier, height: 56 * sizeMultiplier)
+                            .frame(width: 120 * sizeMultiplier, height: 120 * sizeMultiplier)
                             .clipped()
-                            .cornerRadius(8 * sizeMultiplier)
                     case .failure:
                         placeholder
                     @unknown default:
@@ -133,15 +154,15 @@ private struct RecipeNodeImageView: View {
 
     private var placeholder: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 8 * sizeMultiplier)
+            Rectangle()
                 .fill(
-                    LinearGradient(colors: [Color.gray.opacity(0.12), Color.gray.opacity(0.06)], startPoint: .top, endPoint: .bottom)
+                    LinearGradient(colors: [Color.gray.opacity(0.15), Color.gray.opacity(0.08)], startPoint: .top, endPoint: .bottom)
                 )
-                .frame(width: 56 * sizeMultiplier, height: 56 * sizeMultiplier)
+                .frame(width: 120 * sizeMultiplier, height: 120 * sizeMultiplier)
 
             Image(systemName: "photo.on.rectangle")
-                .font(.system(size: 20 * sizeMultiplier))
-                .foregroundColor(.gray.opacity(0.6))
+                .font(.system(size: 32 * sizeMultiplier))
+                .foregroundColor(.gray.opacity(0.5))
         }
     }
 }
@@ -256,140 +277,190 @@ struct CircularCarouselView: View {
     var onNodeTap: ((FirebaseRemixTreeNode) -> Void)?
     var onNodeHold: ((FirebaseRemixTreeNode) -> Void)?
     var onCenterNodeChange: ((FirebaseRemixTreeNode?) -> Void)?
-    @State private var rotation: CGFloat = 0
-    @State private var dragOffset: CGFloat = 0
-    @ObservedObject private var inertia = InertiaController()
 
-    private var anglePerNode: CGFloat {
-       360.0 / CGFloat(max(nodes.count, 1))
-    }
-    
-    private var centeredNodeIndex: Int? {
-        guard !nodes.isEmpty else { return nil }
-        let totalRotation = (rotation + dragOffset).truncatingRemainder(dividingBy: 360)
-        let normalized = totalRotation < 0 ? totalRotation + 360 : totalRotation
-        let index = Int((normalized / anglePerNode).rounded()) % nodes.count
-        return (nodes.count - index) % nodes.count
-    }
+    @State private var activeIndex: Int = 0
+    @State private var reportedIndex: Int = -1
+    @State private var centerNodeID: String?
+    @GestureState private var dragTranslation: CGFloat = 0
 
-    private var centeredNode: FirebaseRemixTreeNode? {
-        // End of Eesh New Edit
-        guard let idx = centeredNodeIndex else { return nil }
-        return nodes[idx]
+    private var nodeIdentifiers: [String] {
+        nodes.map { $0.currNodeID }
     }
-
 
     var body: some View {
         GeometryReader { geo in
-            let radius = min(geo.size.width / 2.5, 140)
+            let cardWidth = max(min(geo.size.width * 0.62, 220), 140)
+            let sideOffset = max(cardWidth * 0.7, 1)
+            let translationProgress = dragTranslation / sideOffset
+            let dynamicIndex = clampIndex(Int(round(CGFloat(activeIndex) - translationProgress)))
+
             ZStack {
                 ForEach(Array(nodes.enumerated()), id: \.1.currNodeID) { index, node in
-                    let baseAngle = CGFloat(index) * anglePerNode
-                    let angle = baseAngle + rotation + dragOffset
-                    let radians = angle * .pi / 180
-                    let xOffset = sin(radians) * radius
-                    let zOffset = cos(radians) * radius
-                    
-                    let normalizedDepth = (zOffset / radius + 1) / 2
-                    
-                    let isCenter = (index == centeredNodeIndex)
-                    
-                    let scale: CGFloat = isCenter ? 1.45 : (0.7 + 0.3 * normalizedDepth)
-                    let opacity: Double = isCenter ? 1.0 : (0.4 + 0.6 * normalizedDepth)
-                    let blur: CGFloat = isCenter ? 0 : (1 - normalizedDepth) * 6
-                    
+                    let relative = CGFloat(index) - CGFloat(activeIndex) + translationProgress
+                    let limitedRelative = max(min(relative, 3), -3)
+                    let isPrimary = abs(relative) < 0.35
+
                     NodeCard(
                         node: node,
                         isTapped: tappedNodeID == node.currNodeID,
                         isHeld: heldNodeID == node.currNodeID,
-                        onTap: { onNodeTap?(node) },
+                        onTap: {
+                            if isPrimary {
+                                onNodeTap?(node)
+                            } else {
+                                withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+                                    activeIndex = index
+                                }
+                            }
+                        },
                         onHold: { onNodeHold?(node) }
                     )
-                    .frame(width: 95, height: 90)
-                    .blur (radius: blur)
-                    .scaleEffect(scale)
-                    .opacity(opacity)
-                    .offset(x: xOffset)
-                    .zIndex(zOffset)
-                    .animation(.easeInOut(duration: 0.25), value: centeredNodeIndex)
+                    .frame(width: cardWidth)
+                    .scaleEffect(scale(for: limitedRelative))
+                    .blur(radius: blur(for: limitedRelative))
+                    .opacity(opacity(for: limitedRelative))
+                    .offset(x: relative * sideOffset)
+                    .zIndex(Double(10 - abs(relative)))
+                    .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 6)
                 }
-
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .gesture(
-                    DragGesture()
-                        .onChanged { value in
-                            dragOffset = -value.translation.width / 8
+            }
+            .frame(width: geo.size.width, height: 220)
+            .clipped()
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture()
+                    .updating($dragTranslation) { value, state, _ in
+                        state = value.translation.width
+                    }
+                    .onEnded { value in
+                        let progress = value.translation.width / sideOffset
+                        let predicted = CGFloat(activeIndex) - progress
+                        let newIndex = clampIndex(Int(round(predicted)))
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+                            activeIndex = newIndex
                         }
-                        .onEnded { value in
-                            rotation += dragOffset
-                            dragOffset = 0
-                            inertia.start(with: -value.predictedEndTranslation.width / 8) { delta in
-                                rotation += delta
-                            }
-                        }
-                )
-                .onChange(of: centeredNode?.currNodeID) { newNodeID in
-                    onCenterNodeChange?(centeredNode)
-                }
-                .overlay(
+                    }
+            )
+            .overlay(alignment: .center) {
+                if nodes.count > 1 {
                     HStack {
                         Button(action: {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                rotation += anglePerNode
+                            let newIndex = clampIndex(activeIndex - 1)
+                            guard newIndex != activeIndex else { return }
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                activeIndex = newIndex
                             }
                         }) {
                             Image(systemName: "chevron.left.circle.fill")
                                 .font(.system(size: 30))
-                                .foregroundColor(.blue.opacity(0.7))
+                                .foregroundColor(.blue.opacity(activeIndex > 0 ? 0.75 : 0.3))
                         }
-                        
+                        .buttonStyle(.plain)
+                        .disabled(activeIndex == 0)
+
                         Spacer()
-                        
+
                         Button(action: {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                rotation -= anglePerNode
+                            let newIndex = clampIndex(activeIndex + 1)
+                            guard newIndex != activeIndex else { return }
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                activeIndex = newIndex
                             }
                         }) {
                             Image(systemName: "chevron.right.circle.fill")
                                 .font(.system(size: 30))
-                                .foregroundColor(.blue.opacity(0.7))
+                                .foregroundColor(.blue.opacity(activeIndex < nodes.count - 1 ? 0.75 : 0.3))
                         }
+                        .buttonStyle(.plain)
+                        .disabled(activeIndex >= nodes.count - 1)
                     }
-                        .padding(.horizontal, 10)
-                )
+                    .padding(.horizontal, 12)
+                }
             }
-            .frame(height: 180)
+            .animation(.spring(response: 0.35, dampingFraction: 0.75), value: activeIndex)
+            .animation(.linear(duration: 0.1), value: dragTranslation == 0)
+            .onChange(of: nodeIdentifiers) { _ in
+                syncActiveIndexWithNodes()
+                reportCenterChange(index: clampIndex(activeIndex))
+            }
+            .onChange(of: activeIndex) { newValue in
+                reportCenterChange(index: newValue)
+            }
+            .onChange(of: dynamicIndex) { newValue in
+                reportCenterChange(index: newValue)
+            }
+            .onAppear {
+                syncActiveIndexWithNodes()
+                reportCenterChange(index: clampIndex(activeIndex))
+            }
+        }
+        .frame(height: 220)
+    }
+
+    private func clampIndex(_ index: Int) -> Int {
+        guard !nodes.isEmpty else { return 0 }
+        return min(max(index, 0), nodes.count - 1)
+    }
+
+    private func syncActiveIndexWithNodes() {
+        guard !nodes.isEmpty else {
+            if reportedIndex != -1 {
+                reportedIndex = -1
+                centerNodeID = nil
+                onCenterNodeChange?(nil)
+            }
+            activeIndex = 0
+            return
+        }
+
+        if let centerNodeID = centerNodeID,
+           let existingIndex = nodes.firstIndex(where: { $0.currNodeID == centerNodeID }) {
+            if existingIndex != activeIndex {
+                activeIndex = existingIndex
+            }
+        } else if activeIndex >= nodes.count {
+            activeIndex = nodes.count - 1
         }
     }
 
-    class InertiaController: ObservableObject {
-        private var velocity: CGFloat = 0
-        private var displayLink: CADisplayLink?
-        private var update: ((CGFloat) -> Void)?
-        
-        func start(with initialVelocity: CGFloat, update: @escaping (CGFloat) -> Void) {
-            stop()
-            velocity = initialVelocity
-            self.update = update
-            displayLink = CADisplayLink(target: self, selector: #selector(tick))
-            displayLink?.add(to: .main, forMode: .common)
-        }
-        
-        @objc private func tick() {
-            let damping: CGFloat = 0.92
-            velocity *= damping
-            if abs(velocity) < 0.1 {
-                stop()
-            } else {
-                update?(velocity * 0.016)
+    private func reportCenterChange(index: Int) {
+        guard !nodes.isEmpty else {
+            if reportedIndex != -1 {
+                reportedIndex = -1
+                centerNodeID = nil
+                onCenterNodeChange?(nil)
             }
+            return
         }
-        
-        func stop() {
-            displayLink?.invalidate()
-            displayLink = nil
-            velocity = 0
+
+        guard nodes.indices.contains(index) else { return }
+
+        if reportedIndex != index {
+            reportedIndex = index
+            centerNodeID = nodes[index].currNodeID
+            onCenterNodeChange?(nodes[index])
         }
+    }
+
+    private func scale(for relative: CGFloat) -> CGFloat {
+        let distance = min(abs(relative), 2.5)
+        if distance < 0.35 { return 1.0 }
+        if distance < 1.1 { return 0.9 }
+        return 0.8
+    }
+
+    private func blur(for relative: CGFloat) -> CGFloat {
+        let distance = abs(relative)
+        if distance < 0.35 { return 0 }
+        if distance < 1.2 { return 2 }
+        return 5
+    }
+
+    private func opacity(for relative: CGFloat) -> Double {
+        let distance = abs(relative)
+        if distance < 0.35 { return 1.0 }
+        if distance < 1.2 { return 0.7 }
+        return 0.4
     }
 }
 // MARK: - RemixTreeView
@@ -437,17 +508,16 @@ struct RemixTreeView: View {
     var body: some View {
         GeometryReader { geo in
             ScrollView {
-                VStack(spacing: 0) {
+                VStack(spacing: 24) {
                     // Parent node section
                     // Eesh New Edit: Updated parent node navigation to use new state booleans
                     if let parent = parentNode {
-                        VStack(spacing: 0) {
+                        VStack(spacing: 12) {
                             Text("ORIGINAL")
                                 .font(.system(size: 10, weight: .semibold))
                                 .foregroundColor(.gray.opacity(0.6))
                                 .tracking(1)
                                 .padding(.top, 16)
-                                .padding(.bottom, 8)
 
                             NodeCard(
                                 node: parent,
@@ -459,11 +529,14 @@ struct RemixTreeView: View {
                                     navigateToPostID = parent.currNodeID
                                     isNavigatingToPost = true
                                 },
-                                sizeMultiplier: 0.7
+                                showImage: false
                             )
-                            .frame(maxWidth: 100)
-
-                            SimpleArrowView()
+                            .frame(width: 136, height: 60)
+                            
+                            // Simple line connector
+                            Rectangle()
+                                .fill(Color.blue.opacity(0.3))
+                                .frame(width: 2, height: 24)
                         }
                     }
                     // End of Eesh New Edit
@@ -471,14 +544,11 @@ struct RemixTreeView: View {
                     // Current node
                     // Eesh New Edit: Updated current node navigation to use new state booleans
                     if let node = currentNode {
-                        VStack(spacing: 0) {
-                            if parentNode != nil {
-                                Text("THIS RECIPE")
-                                    .font(.system(size: 10, weight: .semibold))
-                                    .foregroundColor(.blue.opacity(0.7))
-                                    .tracking(1)
-                                    .padding(.bottom, 8)
-                            }
+                        VStack(spacing: 12) {
+                            Text("CURRENT RECIPE")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundColor(.blue.opacity(0.7))
+                                .tracking(1)
 
                             NodeCard(
                                 node: node,
@@ -493,45 +563,49 @@ struct RemixTreeView: View {
                                     isNavigatingToPost = true
                                 }
                             )
-                            .frame(maxWidth: 120)
-                            .padding(.horizontal, 20)
+                            .frame(width: 136)
+                            
+                            // Simple line connector to children
+                            if !firstLayerChildren.isEmpty {
+                                Rectangle()
+                                    .fill(Color.blue.opacity(0.3))
+                                    .frame(width: 2, height: 24)
+                            }
                         }
-                        .padding(.vertical, parentNode == nil ? 20 : 0)
                     }
                     // End of Eesh New Edit
 
                     // First layer children
                     if !firstLayerChildren.isEmpty {
-                        VStack(spacing: 0) {
-                            BranchConnectorView()
-                            
-                            Text("REMIXES")
+                        VStack(spacing: 12) {
+                            Text("CHILDREN")
                                 .font(.system(size: 10, weight: .semibold))
                                 .foregroundColor(.gray.opacity(0.6))
                                 .tracking(1)
-                                .padding(.bottom, 12)
                             
                             layerView(nodes: firstLayerChildren, layerIndex: 1)
+                            
+                            // Simple line connector to grandchildren
+                            if !secondLayerChildren.isEmpty {
+                                Rectangle()
+                                    .fill(Color.blue.opacity(0.3))
+                                    .frame(width: 2, height: 24)
+                            }
                         }
-                        .padding(.top, 8)
                     }
 
                     // Second layer children (of centered first layer node)
                     if !secondLayerChildren.isEmpty {
-                        VStack(spacing: 0) {
-                            BranchConnectorView()
-                            
-                            Text("REMIXES OF REMIXES")
+                        VStack(spacing: 16) {
+                            Text("GRANDCHILDREN")
                                 .font(.system(size: 10, weight: .semibold))
                                 .foregroundColor(.gray.opacity(0.6))
                                 .tracking(1)
-                                .padding(.bottom, 12)
                             
                             layerView(nodes: secondLayerChildren, layerIndex: 2)
                                 .id(centeredFirstLayerNode?.currNodeID ?? "")
                                 .transition(.opacity)
                         }
-                        .padding(.top, 8)
                         .padding(.bottom, 20)
                     }
                 }
@@ -586,11 +660,11 @@ struct RemixTreeView: View {
                         onTap: { handleTap(node: node) },
                         onHold: { handleHold(node: node) }
                     )
-                    .frame(width: nodes.count == 1 ? 120 : 100)
+                    .frame(width: 136)
                 }
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 110)
+            .frame(height: 200)
             .padding(.horizontal, 20)
         }
     }
@@ -738,6 +812,7 @@ struct DummyRemixPostView: View {
 
 #Preview {
     NavigationView {
-        RemixTreeView(nodeID: "FCD2ABD0-36D1-4E80-9533-AC161A727930")
+        RemixTreeView(nodeID: "1E1EE058-180A-4420-9784-F5F36365159E")
+            .environment(AuthenticationVM())
     }
 }
