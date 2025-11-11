@@ -366,36 +366,6 @@ struct CircularCarouselView: View {
                         }
                     }
             )
-            .overlay(alignment: .center) {
-                if nodes.count > 1 {
-                    HStack {
-                        Button(action: {
-                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                                activeIndex = wrappedIndex(activeIndex - 1)
-                            }
-                        }) {
-                            Image(systemName: "chevron.left.circle.fill")
-                                .font(.system(size: 30))
-                                .foregroundColor(.blue.opacity(0.75))
-                        }
-                        .buttonStyle(.plain)
-
-                        Spacer()
-
-                        Button(action: {
-                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                                activeIndex = wrappedIndex(activeIndex + 1)
-                            }
-                        }) {
-                            Image(systemName: "chevron.right.circle.fill")
-                                .font(.system(size: 30))
-                                .foregroundColor(.blue.opacity(0.75))
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    .padding(.horizontal, 12)
-                }
-            }
             .animation(.spring(response: 0.35, dampingFraction: 0.75), value: activeIndex)
             .animation(.linear(duration: 0.1), value: dragTranslation == 0)
             .onChange(of: nodeIdentifiers) { _ in
