@@ -44,10 +44,6 @@ struct PostView: View {
                         Image(systemName: "chevron.backward").font(Font.title2)
                     }
                     .foregroundColor(.black)
-                    //Divider().padding(.horizontal, 15).background(Color.clear)
-                    //Title
-                    //Bookmark Button
-                    //Divider().padding(.horizontal, 5)
                     Spacer()
                     Button {
                         Task {
@@ -185,6 +181,7 @@ struct PostView: View {
                         }
                     }
                     .scrollTargetLayout()
+                    .padding(.horizontal, 16)
                     //TODO scroll targeting needs iOS 17 adapt this so it doesn't cause trouble
                 }
                 .scrollTargetBehavior(.viewAligned)
@@ -313,11 +310,10 @@ struct PostView: View {
                     Rectangle()
                         .frame(maxHeight: 160, alignment: .bottom)
                         .foregroundStyle(Color(hex: "#edede8"))
-                        .ignoresSafeArea(edges: .bottom)
-                        .offset(y: 50)
+                        .offset(y: screen.height / 20)
                 }
                 .ignoresSafeArea()
-                HStack(spacing: 12) {
+                HStack(spacing: screen.width / 45) {
                     HStack {
                         //like
                             //Text(String(recipe.likes))
@@ -355,7 +351,7 @@ struct PostView: View {
                                 
                             }
                         .accessibilityLabel("Like button")
-                        .padding(.trailing, 10)
+                        .padding(.trailing, screen.width / 40)
                         
                         // Comment Button
                         Button {
@@ -368,7 +364,7 @@ struct PostView: View {
                         .sheet(isPresented: $showComments) {
                             CommentsSheet(recipeID: recipe.recipeId)
                         }
-                        .padding(.trailing, 10)
+                        .padding(.trailing, screen.width / 40)
                         
                         Button {
                             print("SHARING")
@@ -377,12 +373,11 @@ struct PostView: View {
                                 .font(.system(size: 24))
                         }
                         .foregroundColor(.black)
-                        .padding(.bottom, 5)
+                        .padding(.bottom, screen.height / 180)
                         
                     }
-                    .padding(.leading, 50)
-                    Spacer()
-                    Spacer()
+                    .padding(.leading, screen.width / 15)
+                    .padding(.trailing, screen.width / 10)
                     //remix tree
                     Button {
                         goToRemixTree = true
@@ -410,11 +405,10 @@ struct PostView: View {
                             .foregroundColor(.white)
                         }
                     }
-                    .padding(.trailing, 20)
-                    Spacer()
+                    .padding(.trailing, screen.width / 15)
                 }
             }
-            .offset(y: 50)
+            .offset(y: screen.width / 18.64)
         }
     }
 }
