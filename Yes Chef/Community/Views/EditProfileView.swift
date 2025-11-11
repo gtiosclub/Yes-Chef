@@ -236,7 +236,7 @@ struct EditProfileView: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
         }
-        .background(Color.white)
+        .background(Color(hex: "#fffdf7"))
     }
     
     // MARK: - Helper Functions

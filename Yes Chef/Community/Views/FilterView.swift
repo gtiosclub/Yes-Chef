@@ -76,7 +76,7 @@ struct FilterView: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 30)
         }
-        .background(Color(.systemBackground))
+        .background(Color(hex: "#fffdf7"))
     }
     
     

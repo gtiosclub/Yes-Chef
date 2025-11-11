@@ -193,6 +193,7 @@ struct SettingsView: View {
                 }
             }
             .navigationBarHidden(true)
+            .preferredColorScheme(.light)
         }
     }
     
@@ -515,9 +516,9 @@ struct FeedView: View {
                         .padding(.top, 20)
                     }
                 }
-                .background(Color.white)
+                .background(Color(hex: "#fffdf7"))
             }
-            .background(Color.white)
+            .background(Color(hex: "#fffdf7"))
             .task {
                 do {
                     try await viewModel.fetchPosts()
@@ -539,7 +540,7 @@ struct FeedView: View {
     private var tabSelection: some View {
         ZStack(alignment: .bottomLeading) {
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white)
+                .fill(Color(hex: "fffdf7"))
                 .frame(height: 56)
             
             HStack(spacing: 0) {
@@ -555,7 +556,7 @@ struct FeedView: View {
                 .zIndex(selectedTab == 0 ? 1 : 0)
                 .background(
                     RoundedCorner(radius: 25, corners: selectedTab == 0 ? [.topLeft, .topRight] : [.bottomRight, .topRight, .topLeft])
-                        .fill(selectedTab == 0 ? Color.white : Color(.systemGray6))
+                        .fill(selectedTab == 0 ? Color(hex: "fffdf7") : Color(hex: "#F9F5F2"))
                         .frame(width: (UIScreen.main.bounds.width) / 2, height: 50)
                         .background(
                             RoundedCorner(radius: 25, corners: selectedTab == 0 ? [.topLeft, .topRight] : [.bottomRight, .topRight, .topLeft])
@@ -564,7 +565,7 @@ struct FeedView: View {
                                 .padding(selectedTab == 0 ? .bottom : .top, 3)
                                 .overlay(
                                     Rectangle()
-                                        .fill(Color.white)
+                                        .fill(Color(hex: "fffdf7"))
                                         .padding(selectedTab == 0 ? .top : .bottom, 35)
                                 )
                         )
@@ -581,7 +582,7 @@ struct FeedView: View {
                 .zIndex(selectedTab == 1 ? 2 : 0)
                 .background(
                     RoundedCorner(radius: 25, corners: selectedTab == 1 ? [.topLeft, .topRight] : [.bottomRight, .bottomLeft, .topRight, .topLeft])
-                        .fill(selectedTab == 1 ? Color.white : Color(.systemGray6))
+                        .fill(selectedTab == 1 ? Color(hex: "fffdf7") : Color(hex: "#F9F5F2"))
                         .frame(width: (UIScreen.main.bounds.width) / 2, height: 50)
                         .background(
                             RoundedCorner(radius: 25, corners: selectedTab == 1 ? [.topLeft, .topRight] : [.bottomRight, .bottomLeft, .topRight, .topLeft])
@@ -590,7 +591,7 @@ struct FeedView: View {
                                 .padding(selectedTab == 1 ? .bottom : .top, 3)
                                 .overlay(
                                     Rectangle()
-                                        .fill(Color.white)
+                                        .fill(Color(hex: "fffdf7"))
                                         .padding(selectedTab == 1 ? .top : .bottom, 35)
                                 )
                         )

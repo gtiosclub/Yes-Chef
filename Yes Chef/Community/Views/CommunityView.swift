@@ -6,6 +6,12 @@
 //
 import SwiftUI
 
+extension UIApplication {
+    func dismissKeyboard() {
+        sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+}
+
 struct CommunityView : View {
     @State private var searchText = ""
     @State private var viewModel = SearchViewModel()
@@ -13,7 +19,8 @@ struct CommunityView : View {
     @State private var showFilters = false
     @State private var showSearch = false
     @State private var searchon = true
-    
+    @Environment(AuthenticationVM.self) var authVM
+
     
     @State private var selectedCuisine: Set<String> = []
     @State private var selectedDietary: Set<String> = []
@@ -21,18 +28,28 @@ struct CommunityView : View {
     @State private var selectedTime: Set<String> = []
     @State private var selectedTags: Set<String> = []
     
-
     
-    let allItems = ["Pizza", "Pasta", "Salad", "Soup", "Sandwich", "Cake", "Curry"]
 
-    var filteredItems: [String] {
-        if searchText.isEmpty {
-            return []
-        } else {
-            let allSearchableItems = allItems + viewModel.usernames
-            return allSearchableItems.filter { $0.localizedCaseInsensitiveContains(searchText)}
+    var filteredUsernames: [User] {
+        guard !searchText.isEmpty else { return [] }
+        return viewModel.users.filter { $0.username.localizedCaseInsensitiveContains(searchText) }
+    }
+
+    var filteredRecipes: [Recipe] {
+        guard !searchText.isEmpty else { return [] }
+
+        return postVM.recipes.filter { recipe in
+            let matchesSearch = recipe.name.localizedCaseInsensitiveContains(searchText)
+            let matchesCuisine = selectedCuisine.isEmpty || !selectedCuisine.isDisjoint(with: Set(recipe.tags))
+            let matchesDietary = selectedDietary.isEmpty || !selectedDietary.isDisjoint(with: Set(recipe.tags))
+            let matchesDifficulty = selectedDifficulty.isEmpty || !selectedDifficulty.isDisjoint(with: Set(recipe.tags))
+            let matchesTime = selectedTime.isEmpty || !selectedTime.isDisjoint(with: Set(recipe.tags))
+            let matchesTags = selectedTags.isEmpty || !selectedTags.isDisjoint(with: Set(recipe.tags))
+
+            return matchesSearch && matchesCuisine && matchesDietary && matchesDifficulty && matchesTime && matchesTags
         }
     }
+
     
     var body: some View {
         NavigationStack {
@@ -95,9 +112,14 @@ struct CommunityView : View {
                             )
                             .padding(.horizontal)
                         
+
+
+                        
                         NavigationLink(destination: SearchView(text: searchText, selectedCuisine: $selectedCuisine,
                             selectedDietary:
-                            $selectedDietary, selectedDifficulty: $selectedDifficulty, selectedTime: $selectedTime, selectedTags: $selectedTags), isActive: $showSearch) {
+                            $selectedDietary, selectedDifficulty: $selectedDifficulty, selectedTime: $selectedTime, selectedTags: $selectedTags)
+                                .environment(authVM),
+                                isActive: $showSearch) {
                                 EmptyView()
                                 }
                        
@@ -112,18 +134,26 @@ struct CommunityView : View {
                 }
                 .padding(.bottom, 10)
                 
-                if !filteredItems.isEmpty {
-                    List(filteredItems, id: \.self) { item in
-                        if let selectedUser = viewModel.users.first(where: { $0.username == item }) {
-                            NavigationLink(destination: ProfileView(user: selectedUser)) {
-                                Text(item)
+                if !filteredUsernames.isEmpty || !filteredRecipes.isEmpty {
+                    List {
+                        ForEach(filteredUsernames) { user in
+                            NavigationLink(destination: ProfileView(user: user).environment(authVM)) {
+                                Text(user.username)
                             }
-                        } else {
-                            Text(item)
-                                .onTapGesture {searchText = item
-                                    searchon = true}
+                        }
+
+                        ForEach(filteredRecipes) { recipe in
+                            NavigationLink(destination: PostView(recipe: recipe).environment(authVM)) {
+                                HStack {
+                                    Text(recipe.name)
+                                    Spacer()
+                                }
+                            }
                         }
                     }
+                    .listStyle(.plain)
+                    .frame(maxHeight: 200)
+
                     .listStyle(.plain)
                     .frame(maxHeight: 200)
                     Spacer()
@@ -152,6 +182,10 @@ struct CommunityView : View {
                 }
                 Spacer()
             }
+            .background(Color(hex: "#fffdf7"))
+            .onTapGesture {
+                UIApplication.shared.dismissKeyboard()
+            }
             .task {
                 await viewModel.getAllUsers()
                 await viewModel.getAllUsernames()
@@ -170,6 +204,7 @@ struct CommunityView : View {
                    selectedTags: $selectedTags)
                    
             }
+            .preferredColorScheme(.light)
         }
     }
 
@@ -178,6 +213,7 @@ struct RecipeSection: View {
     let title: String
     let items: [Recipe]
     let wide: Bool
+    //@Environment(AuthenticationVM.self) var authVM
     var body: some View {
         VStack(alignment: .leading) {
             Text(title)
@@ -188,15 +224,19 @@ struct RecipeSection: View {
                 HStack(spacing: 15) {
                     if (wide) {
                         ForEach(items) { recipe in
-                            RecipeCard(recipe: recipe, wide: true)
+                            NavigationLink(destination: PostView(recipe: recipe)) {
+                                RecipeCard(recipe: recipe, wide: wide)
+                            }
+                            .buttonStyle(.plain)
                         }
-                        
-                        //RecipeCard(recipe: items[0], wide: true)
                     } else {
                         ForEach(items) { recipe in
-                            RecipeCard(recipe: recipe, wide: false)
+                            NavigationLink(destination: PostView(recipe: recipe)) {
+                                RecipeCard(recipe: recipe, wide: false)
+                            }
                         }
                     }
+
                     
                 }
                 .padding(.horizontal, 20)
@@ -209,6 +249,7 @@ struct RecipeSection: View {
 struct RecipeCard: View {
     let recipe: Recipe
     let wide: Bool
+    //@Environment(AuthenticationVM.self) var authVM
     var body: some View {
         if wide {
             ZStack {

@@ -11,49 +11,121 @@ struct Home: View {
     @State private var selectedView: TabSelection = .home
     @State private var navigationRecipe: Recipe? = nil
     @Environment(AuthenticationVM.self) var authVM
+    
     var body: some View {
-        TabView(selection: $selectedView) {
-            FeedView().tabItem {
-                Image(systemName: "house")
-            }
-            .tag(TabSelection.home)
-            .environment(authVM)
-            CommunityView().tabItem {
-                Image(systemName: "magnifyingglass")
-            }
-            .tag(TabSelection.search)
-            AddRecipeMain(selectedTab: $selectedView, navigationRecipe: $navigationRecipe).tabItem {
-                Image(systemName: "plus.circle")
-            }
-            .tag(TabSelection.post)
-            .environment(authVM)
-            LeaderboardView().tabItem {
-                Image(systemName: "trophy")
-            }
-            .tag(TabSelection.leaderboard)
-            if let currentUser = authVM.currentUser {
-                ProfileView(user: currentUser, isOwnProfile:true).tabItem {
-                    Image(systemName: "person.circle")
+        ZStack(alignment: .bottom) {
+            // Main content area
+            Group {
+                switch selectedView {
+                case .home:
+                    FeedView()
+                        .environment(authVM)
+                case .search:
+                    CommunityView()
+                case .post:
+                    AddRecipeMain(selectedTab: $selectedView, navigationRecipe: $navigationRecipe)
+                        .environment(authVM)
+                case .leaderboard:
+                    LeaderboardView()
+                case .profile:
+                    if let currentUser = authVM.currentUser {
+                        ProfileView(user: currentUser, isOwnProfile: true)
+                            .environment(authVM)
+                    } else {
+                        ProgressView()
+                    }
+                default:
+                    FeedView()
+                        .environment(authVM)
                 }
-                .tag(TabSelection.profile)
-                .environment(authVM)
-            } else {
-                ProgressView().tabItem {
-                    Image(systemName: "person.circle")
-                }.tag(TabSelection.profile)
             }
-//            RemixTreeView().tabItem {
-//                Image(systemName: "tree")
-//            }
-//            .tag(TabSelection.remixtreedemo)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             
+            // Custom bottom navigation bar
+            CustomBottomNavBar(selectedView: $selectedView)
         }
+        .ignoresSafeArea(edges: .bottom)
         .onAppear {
             Task {
                 await authVM.updateCurrentUser()
             }
             print("UPDATED")
         }
+    }
+}
+
+struct CustomBottomNavBar: View {
+    @Binding var selectedView: TabSelection
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Top border
+            Rectangle()
+                .fill(Color(.separator))
+                .frame(height: 0.5)
+            
+            // Navigation buttons
+            HStack(spacing: 0) {
+                // Home
+                NavBarButton(
+                    icon: "house",
+                    isSelected: selectedView == .home,
+                    action: { selectedView = .home }
+                )
+                
+                // Search
+                NavBarButton(
+                    icon: "magnifyingglass",
+                    isSelected: selectedView == .search,
+                    action: { selectedView = .search }
+                )
+                
+                // Add Recipe
+                NavBarButton(
+                    icon: "plus.circle",
+                    isSelected: selectedView == .post,
+                    action: { selectedView = .post }
+                )
+                
+                // Leaderboard
+                NavBarButton(
+                    icon: "trophy",
+                    isSelected: selectedView == .leaderboard,
+                    action: { selectedView = .leaderboard }
+                )
+                
+                // Profile
+                NavBarButton(
+                    icon: "person.circle",
+                    isSelected: selectedView == .profile,
+                    action: { selectedView = .profile }
+                )
+            }
+            .frame(height: 60)
+            .padding(.bottom, 8)
+        }
+        .background(Color(hex: "#fffdf7"))
+        .frame(maxWidth: .infinity)
+        .ignoresSafeArea(edges: .bottom)
+    }
+}
+
+struct NavBarButton: View {
+    let icon: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 22))
+                    .foregroundStyle(isSelected ? Color(hex: "#D07436") : Color.gray)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 60)
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 

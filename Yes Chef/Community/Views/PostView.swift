@@ -278,6 +278,7 @@ struct PostView: View {
             .padding(15)
             .padding(.bottom, 80)
         }
+        .background(Color(hex: "#fffdf7"))
         .task{
             if !(recipe.userId.isEmpty) {
                 let posterData = await UVM.getUserInfo(userID: recipe.userId)

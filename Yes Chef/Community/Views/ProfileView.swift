@@ -83,18 +83,9 @@ struct ProfileView: View {
             }
 
         }
-        .navigationBarHidden(false)
-        /*.toolbar {
-            if isOwnProfile {
-                Button {
-                    
-                } label : {
-                    Image(systemName: "gearshape.fill")
-                        .font(.title2)
-                        .foregroundColor(.gray)
-                }
-            }
-        }*/
+        .background(Color(hex: "#fffdf7"))
+        .navigationBarTitleDisplayMode(.inline)
+        .preferredColorScheme(.light)
     }
     
     // MARK: - Header
@@ -263,8 +254,9 @@ struct ProfileView: View {
         ZStack(alignment: .bottomLeading){
             
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(Color.white))
-                        .frame(height: 56)
+                .fill(Color(hex: "fffdf7"))
+                .frame(height: 56)
+                .background(Color(hex: "fffdf7"))
             
             
             HStack(spacing: 0) {
@@ -273,7 +265,7 @@ struct ProfileView: View {
                     VStack(spacing: 8) {
                         Text("My Posts")
                             .font(.body)
-                            .fontWeight(selectedTab == 0 ? .semibold : .regular)
+                            //.fontWeight(selectedTab == 0 ? .semibold : .regular)
                             .foregroundColor(.black)
                         
                     }
@@ -283,7 +275,7 @@ struct ProfileView: View {
                 .zIndex(selectedTab == 0 ? 1 : 0)
                 .background(
                         RoundedCorner(radius: 25, corners: selectedTab == 0 ? [.topLeft, .topRight] : [.bottomRight,.topRight,.topLeft])
-                            .fill(selectedTab == 0 ? Color.white: Color(.systemGray6))
+                            .fill(selectedTab == 0 ? Color(hex: "fffdf7"): Color(.systemGray6))
                             .frame(width: (UIScreen.main.bounds.width)/2, height: 50)
                             .background(
                                 //Border over top/bottom of tab
@@ -294,7 +286,7 @@ struct ProfileView: View {
                                     .overlay(
                                         //White Rectangle cuts off bottom half of border
                                         Rectangle()
-                                            .fill(Color.white)
+                                            .fill(Color(hex: "fffdf7"))
                                             .padding(selectedTab == 0 ? .top : .bottom, 35)
                                     )
                             )
@@ -304,7 +296,7 @@ struct ProfileView: View {
                     VStack(spacing: 8) {
                         Text("Saved")
                             .font(.body)
-                            .fontWeight(selectedTab == 1 ? .semibold : .regular)
+                            //.fontWeight(selectedTab == 1 ? .semibold : .regular)
                             .foregroundColor(.black)
                         
                     }
@@ -313,7 +305,7 @@ struct ProfileView: View {
                 .zIndex(selectedTab == 1 ? 2 : 0)
                 .background(
                     RoundedCorner(radius: 25, corners: selectedTab == 1 ? [.topLeft, .topRight] : [.bottomRight,.bottomLeft,.topRight,.topLeft])
-                        .fill(selectedTab == 1 ? Color.white: Color(.systemGray6))
+                        .fill(selectedTab == 1 ? Color(hex: "fffdf7"): Color(.systemGray6))
                         .frame(width: (UIScreen.main.bounds.width)/2 , height: 50)
                         .background(
                             //Border over top of tab
@@ -324,7 +316,7 @@ struct ProfileView: View {
                                 .overlay(
                                     //White Rectangle cuts off bottom half of border
                                     Rectangle()
-                                        .fill(Color.white)
+                                        .fill(Color(hex: "fffdf7"))
                                         .padding(selectedTab == 1 ? .top : .bottom, 35)
                                 )
                         )
@@ -333,6 +325,7 @@ struct ProfileView: View {
             .padding(.top, 8)
             .padding(.bottom, 10)
             .padding(.horizontal, 0)
+            .background(Color(hex: "fffdf7"))
 
         }
         

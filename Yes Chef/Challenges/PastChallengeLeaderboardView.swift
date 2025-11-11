@@ -163,6 +163,7 @@ struct PastChallengeLeaderboardView: View {
                 .padding(.horizontal)
             }
         }
+        .background(Color(hex: "#fffdf7"))
         .task {
             await data.fetchPastChallengeRecipes(recipeIDs: historyBlock.submissions)
         }

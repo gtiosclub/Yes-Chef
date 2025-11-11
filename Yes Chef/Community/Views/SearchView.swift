@@ -12,6 +12,8 @@ struct SearchView : View {
     @State private var viewModel = SearchViewModel()
     @State private var postVM = PostViewModel()
     @State private var showFilters = false
+    @Environment(AuthenticationVM.self) var authVM
+
 
     
     @Binding var selectedCuisine: Set<String>
@@ -37,7 +39,7 @@ struct SearchView : View {
         _selectedTags = selectedTags
     }
     
-    let allItems = ["Pizza", "Pasta", "Salad", "Soup", "Sandwich", "Cake", "Curry"]
+    //let allItems = ["Pizza", "Pasta", "Salad", "Soup", "Sandwich", "Cake", "Curry"]
 
     var filteredItems: [Recipe] {
         if searchText.isEmpty {
@@ -63,10 +65,12 @@ struct SearchView : View {
                 }
                 return matchesSearch && matchesCuisine && matchesDietary && matchesDifficulty && matchesTime && matchesTags
                 
-                
             }
         }
     }
+    
+
+
     var body: some View {
         VStack {
             HStack {
@@ -135,19 +139,26 @@ struct SearchView : View {
             
             ScrollView {
                 HStack(alignment: .top, spacing: 15) {
-                        // Left column
-                        LazyVStack(spacing: 15) {
-                            ForEach(Array(filteredItems.enumerated().filter { $0.offset % 2 == 0 }), id: \.element.id) { _, recipe in
+                    // Left column
+                    LazyVStack(spacing: 15) {
+                        ForEach(Array(filteredItems.enumerated().filter { $0.offset % 2 == 0 }), id: \.element.id) { _, recipe in
+                            NavigationLink(destination: PostView(recipe: recipe).environment(authVM)) {
                                 RecipeItem(recipe: recipe)
                             }
+                            .buttonStyle(.plain) // removes default nav link style
                         }
-                        
-                        // Right column
-                        LazyVStack(spacing: 15) {
-                            ForEach(Array(filteredItems.enumerated().filter { $0.offset % 2 == 1 }), id: \.element.id) { _, recipe in
+                    }
+
+                    // Right column
+                    LazyVStack(spacing: 15) {
+                        ForEach(Array(filteredItems.enumerated().filter { $0.offset % 2 == 1 }), id: \.element.id) { _, recipe in
+                            NavigationLink(destination: PostView(recipe: recipe).environment(authVM)) {
                                 RecipeItem(recipe: recipe)
                             }
+                            .buttonStyle(.plain)
                         }
+                    }
+
                     }
                 
                 .padding(.horizontal, 15)
@@ -155,6 +166,7 @@ struct SearchView : View {
                 
             }
         }
+        .background(Color(hex: "#fffdf7"))
         .navigationBarBackButtonHidden(true)
         
         
@@ -177,10 +189,12 @@ struct SearchView : View {
                selectedTags: $selectedTags)
                
         }
+        .preferredColorScheme(.light)
     }
 }
 struct RecipeItem: View {
     let recipe: Recipe
+    @Environment(AuthenticationVM.self) var authVM
     var body: some View {
         VStack {
             ZStack {
