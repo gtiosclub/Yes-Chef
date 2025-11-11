@@ -29,6 +29,7 @@ struct NodeCard: View {
     var sizeMultiplier: CGFloat = 1.0
     var showImage: Bool = true
     @State private var recipeName: String? = nil
+    @State private var recipeDescription: String? = nil
 
     private var backgroundColor: Color {
         if isHeld { return Color.blue.opacity(0.85) }
@@ -47,7 +48,7 @@ struct NodeCard: View {
             // Image section (only show if showImage is true)
             if showImage {
                 VStack(spacing: 0) {
-                    RecipeNodeImageView(recipeID: node.currNodeID, sizeMultiplier: sizeMultiplier, title: $recipeName)
+                    RecipeNodeImageView(recipeID: node.currNodeID, sizeMultiplier: sizeMultiplier, title: $recipeName, description: $recipeDescription)
                 }
                 .padding(.top, 8 * sizeMultiplier)
                 .padding(.horizontal, 8 * sizeMultiplier)
@@ -63,19 +64,23 @@ struct NodeCard: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 8 * sizeMultiplier)
                 
-                Text(node.currNodeID.prefix(5))
+                Text(recipeDescription ?? "")
                     .font(.system(size: 9 * sizeMultiplier, weight: .regular))
                     .foregroundColor(.gray.opacity(0.6))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .padding(.horizontal, 8 * sizeMultiplier)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12 * sizeMultiplier)
             .background(Color.white)
         }
         .task(id: node.currNodeID) {
-            // Fetch recipe name even if not showing image
+            // Fetch recipe name and description even if not showing image
             if !showImage && recipeName == nil {
                 let recipe = await Recipe.fetchById(node.currNodeID)
                 recipeName = recipe?.name
+                recipeDescription = recipe?.description
             }
         }
         .background(
@@ -114,6 +119,7 @@ private struct RecipeNodeImageView: View {
     let recipeID: String
     var sizeMultiplier: CGFloat = 1.0
     @Binding var title: String?
+    var description: Binding<String?>? = nil
 
     @State private var recipe: Recipe? = nil
 
@@ -144,9 +150,10 @@ private struct RecipeNodeImageView: View {
             // Avoid duplicate fetches if already loaded
             if recipe?.recipeId != recipeID {
                 recipe = await Recipe.fetchById(recipeID)
-                // update parent with recipe name when available
+                // update parent with recipe name and description when available
                 if let fetched = recipe {
                     title = fetched.name
+                    description?.wrappedValue = fetched.description
                 }
             }
         }
@@ -543,7 +550,7 @@ struct RemixTreeView: View {
                     VStack(spacing: 12) {
                         Text("ORIGINAL")
                             .font(.system(size: 10, weight: .semibold))
-                            .foregroundColor(.gray.opacity(0.6))
+                            .foregroundColor(Color(hex: "#ffa94a"))
                             .tracking(1)
                             .padding(.top, 16)
 
@@ -576,7 +583,7 @@ struct RemixTreeView: View {
                         
                         // Simple line connector
                         Rectangle()
-                            .fill(Color.blue.opacity(0.3))
+                            .fill(Color(hex: "#ffa94a"))
                             .frame(width: 2, height: 24)
                     }
                     // End of Eesh New Edit
@@ -586,7 +593,7 @@ struct RemixTreeView: View {
                     VStack(spacing: 12) {
                         Text("CURRENT RECIPE")
                             .font(.system(size: 10, weight: .semibold))
-                            .foregroundColor(.blue.opacity(0.7))
+                            .foregroundColor(Color(hex: "#ffa94a"))
                             .tracking(1)
 
                         if let node = currentNode {
@@ -619,7 +626,7 @@ struct RemixTreeView: View {
                         
                         // Simple line connector to children - always shown
                         Rectangle()
-                            .fill(Color.blue.opacity(0.3))
+                            .fill(Color(hex: "#ffa94a"))
                             .frame(width: 2, height: 24)
                     }
                     // End of Eesh New Edit
@@ -628,7 +635,7 @@ struct RemixTreeView: View {
                     VStack(spacing: 12) {
                         Text("CHILDREN")
                             .font(.system(size: 10, weight: .semibold))
-                            .foregroundColor(.gray.opacity(0.6))
+                            .foregroundColor(Color(hex: "#ffa94a"))
                             .tracking(1)
                         
                         if !firstLayerChildren.isEmpty {
@@ -648,7 +655,7 @@ struct RemixTreeView: View {
                         
                         // Simple line connector to grandchildren - always shown
                         Rectangle()
-                            .fill(Color.blue.opacity(0.3))
+                            .fill(Color(hex: "#ffa94a"))
                             .frame(width: 2, height: 24)
                     }
 
@@ -656,7 +663,7 @@ struct RemixTreeView: View {
                     VStack(spacing: 16) {
                         Text("GRANDCHILDREN")
                             .font(.system(size: 10, weight: .semibold))
-                            .foregroundColor(.gray.opacity(0.6))
+                            .foregroundColor(Color(hex: "#ffa94a"))
                             .tracking(1)
                         
                         if !secondLayerChildren.isEmpty {
@@ -683,7 +690,7 @@ struct RemixTreeView: View {
                 .animation(.easeInOut(duration: 0.3), value: centeredFirstLayerNode?.currNodeID)
             }
         }
-        .background(Color(.systemGroupedBackground).ignoresSafeArea())
+        .background(Color(red: 1.0, green: 0.992, blue: 0.969).ignoresSafeArea())
         .background(navigationLinks)
         .onAppear {
             data.startListening()
