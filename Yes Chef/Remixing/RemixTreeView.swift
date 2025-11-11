@@ -292,13 +292,18 @@ struct CircularCarouselView: View {
             let cardWidth = max(min(geo.size.width * 0.62, 220), 140)
             let sideOffset = max(cardWidth * 0.7, 1)
             let translationProgress = dragTranslation / sideOffset
-            let dynamicIndex = clampIndex(Int(round(CGFloat(activeIndex) - translationProgress)))
+            let dynamicIndex = wrappedIndex(Int(round(CGFloat(activeIndex) + translationProgress)))
 
             ZStack {
                 ForEach(Array(nodes.enumerated()), id: \.1.currNodeID) { index, node in
-                    let relative = CGFloat(index) - CGFloat(activeIndex) + translationProgress
+                    let rawRelative = CGFloat(index) - CGFloat(activeIndex) - translationProgress
+                    // For circular wrapping, find shortest distance
+                    let relative = shortestDistance(from: index, to: activeIndex, progress: translationProgress)
                     let limitedRelative = max(min(relative, 3), -3)
                     let isPrimary = abs(relative) < 0.35
+                    
+                    // Only show cards that are within range
+                    let shouldShow = abs(relative) <= 2.5
 
                     NodeCard(
                         node: node,
@@ -318,9 +323,9 @@ struct CircularCarouselView: View {
                     .frame(width: cardWidth)
                     .scaleEffect(scale(for: limitedRelative))
                     .blur(radius: blur(for: limitedRelative))
-                    .opacity(opacity(for: limitedRelative))
+                    .opacity(shouldShow ? opacity(for: limitedRelative) : 0)
                     .offset(x: relative * sideOffset)
-                    .zIndex(Double(10 - abs(relative)))
+                    .zIndex(shouldShow ? Double(10 - abs(relative)) : -1)
                     .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 6)
                 }
             }
@@ -334,8 +339,20 @@ struct CircularCarouselView: View {
                     }
                     .onEnded { value in
                         let progress = value.translation.width / sideOffset
-                        let predicted = CGFloat(activeIndex) - progress
-                        let newIndex = clampIndex(Int(round(predicted)))
+                        
+                        // Determine direction: only move one card at a time
+                        let newIndex: Int
+                        if progress > 0.15 {
+                            // Swiped right significantly - go to previous
+                            newIndex = wrappedIndex(activeIndex - 1)
+                        } else if progress < -0.15 {
+                            // Swiped left significantly - go to next
+                            newIndex = wrappedIndex(activeIndex + 1)
+                        } else {
+                            // Small swipe - stay on current
+                            newIndex = activeIndex
+                        }
+                        
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
                             activeIndex = newIndex
                         }
@@ -345,34 +362,28 @@ struct CircularCarouselView: View {
                 if nodes.count > 1 {
                     HStack {
                         Button(action: {
-                            let newIndex = clampIndex(activeIndex - 1)
-                            guard newIndex != activeIndex else { return }
                             withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                                activeIndex = newIndex
+                                activeIndex = wrappedIndex(activeIndex - 1)
                             }
                         }) {
                             Image(systemName: "chevron.left.circle.fill")
                                 .font(.system(size: 30))
-                                .foregroundColor(.blue.opacity(activeIndex > 0 ? 0.75 : 0.3))
+                                .foregroundColor(.blue.opacity(0.75))
                         }
                         .buttonStyle(.plain)
-                        .disabled(activeIndex == 0)
 
                         Spacer()
 
                         Button(action: {
-                            let newIndex = clampIndex(activeIndex + 1)
-                            guard newIndex != activeIndex else { return }
                             withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                                activeIndex = newIndex
+                                activeIndex = wrappedIndex(activeIndex + 1)
                             }
                         }) {
                             Image(systemName: "chevron.right.circle.fill")
                                 .font(.system(size: 30))
-                                .foregroundColor(.blue.opacity(activeIndex < nodes.count - 1 ? 0.75 : 0.3))
+                                .foregroundColor(.blue.opacity(0.75))
                         }
                         .buttonStyle(.plain)
-                        .disabled(activeIndex >= nodes.count - 1)
                     }
                     .padding(.horizontal, 12)
                 }
@@ -381,7 +392,7 @@ struct CircularCarouselView: View {
             .animation(.linear(duration: 0.1), value: dragTranslation == 0)
             .onChange(of: nodeIdentifiers) { _ in
                 syncActiveIndexWithNodes()
-                reportCenterChange(index: clampIndex(activeIndex))
+                reportCenterChange(index: wrappedIndex(activeIndex))
             }
             .onChange(of: activeIndex) { newValue in
                 reportCenterChange(index: newValue)
@@ -391,15 +402,31 @@ struct CircularCarouselView: View {
             }
             .onAppear {
                 syncActiveIndexWithNodes()
-                reportCenterChange(index: clampIndex(activeIndex))
+                reportCenterChange(index: wrappedIndex(activeIndex))
             }
         }
         .frame(height: 220)
     }
 
-    private func clampIndex(_ index: Int) -> Int {
+    private func wrappedIndex(_ index: Int) -> Int {
         guard !nodes.isEmpty else { return 0 }
-        return min(max(index, 0), nodes.count - 1)
+        let count = nodes.count
+        return ((index % count) + count) % count
+    }
+    
+    private func shortestDistance(from: Int, to: Int, progress: CGFloat) -> CGFloat {
+        guard nodes.count > 1 else { return 0 }
+        
+        let count = CGFloat(nodes.count)
+        let directDistance = CGFloat(from) - CGFloat(to) + progress
+        
+        // Calculate wrapped distances
+        let wrapLeft = directDistance + count
+        let wrapRight = directDistance - count
+        
+        // Find the shortest distance
+        let distances = [directDistance, wrapLeft, wrapRight]
+        return distances.min(by: { abs($0) < abs($1) }) ?? directDistance
     }
 
     private func syncActiveIndexWithNodes() {
@@ -418,8 +445,9 @@ struct CircularCarouselView: View {
             if existingIndex != activeIndex {
                 activeIndex = existingIndex
             }
-        } else if activeIndex >= nodes.count {
-            activeIndex = nodes.count - 1
+        } else {
+            // Wrap the active index instead of clamping
+            activeIndex = wrappedIndex(activeIndex)
         }
     }
 
@@ -812,7 +840,9 @@ struct DummyRemixPostView: View {
 
 #Preview {
     NavigationView {
-        RemixTreeView(nodeID: "1E1EE058-180A-4420-9784-F5F36365159E")
+//        RemixTreeView(nodeID: "1E1EE058-180A-4420-9784-F5F36365159E")
+//            .environment(AuthenticationVM())
+        RemixTreeView(nodeID: "CD816F37-F313-4BB5-BF51-1A229C72806D")
             .environment(AuthenticationVM())
     }
 }
