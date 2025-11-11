@@ -307,7 +307,7 @@ struct AddRecipeMain: View {
                             Rectangle()
                                 .fill(Color(.systemGray4))
                                 .frame(height: 1)
-                            Color(hex: "#fffffc")
+                            Color(hex: "#fffdf7")
                         }
                         .ignoresSafeArea(edges: .bottom)
                     )
@@ -339,7 +339,7 @@ struct AddRecipeMain: View {
                 .zIndex(selectedInternalTab == 0 ? 1 : 0)
                 .background(
                     RoundedCorner(radius: 25, corners: selectedInternalTab == 0 ? [.topLeft, .topRight] : [.bottomRight,.topRight,.topLeft])
-                        .fill(selectedInternalTab == 0 ? Color(hex: "fffdf7") : Color(hex: "#F9F5F2"))
+                        .fill(selectedInternalTab == 0 ? Color(hex: "#fffdf7") : Color(hex: "#F9F5F2"))
                         .frame(width: (UIScreen.main.bounds.width)/2, height: 50)
                         .background(
                             RoundedCorner(radius: 25, corners: selectedInternalTab == 0 ? [.topLeft, .topRight] : [.bottomRight,.topRight,.topLeft])
@@ -348,7 +348,7 @@ struct AddRecipeMain: View {
                                 .padding(selectedInternalTab == 0 ? .bottom : .top, 3)
                                 .overlay(
                                     Rectangle()
-                                        .fill(Color(hex: "fffdf7"))
+                                        .fill(Color(hex: "#fffdf7"))
                                         .padding(selectedInternalTab == 0 ? .top : .bottom, 35)
                                 )
                         )
