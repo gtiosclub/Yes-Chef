@@ -279,6 +279,39 @@ struct CreateRecipe: View {
                 .padding(.bottom, -0.5)
         }
     }
+struct SectionHeader2: View {
+    let title: String
+    
+    var body: some View {
+        Text(title)
+            .font(.custom("Georgia", size: 24))
+            .foregroundStyle(Color(hex: "#7C887D"))
+            .fontWeight(.semibold)
+            .padding(.horizontal)
+            .padding(.top, 4)
+            .padding(.bottom, -0.5)
+    }
+}
+struct BodyText: View {
+    let text: String
+    
+    var body: some View {
+        Text(text)
+            .font(.custom("Work Sans", size: 16))
+            .foregroundStyle(Color(hex: "#453736"))
+    }
+}
+struct BodyText2: View {
+    let text: String
+    
+    var body: some View {
+        Text(text)
+            .font(.custom("Work Sans", size: 16))
+            .foregroundStyle(Color(hex: "#7C887D"))
+    }
+}
     #Preview {
         CreateRecipe(recipeVM: CreateRecipeVM())
     }
+
+

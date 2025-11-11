@@ -9,6 +9,7 @@ import Foundation
 import Observation
 import FirebaseAuth
 import FirebaseFirestore
+import FirebaseStorage
 import UIKit
 
 @Observable class UserViewModel{
@@ -98,12 +99,12 @@ import UIKit
         return base64String
     }
     
-    func updateUserProfileWithImage(userID: String, username: String, bio: String?, image: UIImage?) async -> Bool {
+    func updateUserProfileWithImage(userID: String, username: String, bio: String?, image: MediaItem?) async -> Bool {
         var profilePhotoURL = ""
-        
+        let fileName = "profile.jpg"
         // Upload image if provided
         if let image = image {
-            if let uploadedURL = await uploadProfileImage(userID: userID, image: image) {
+            if let uploadedURL = await uploadMediaToFirebase(mediaItem: image, fileName: fileName, userID: userID) {
                 profilePhotoURL = uploadedURL
             } else {
                 print("Failed to upload image, but continuing with profile update")
@@ -206,6 +207,30 @@ import UIKit
             
         guard userMagnitude != 0 && recipeMagnitude != 0 else { return 0 }
         return dot / (userMagnitude * recipeMagnitude)
+    }
+    
+    func uploadMediaToFirebase(mediaItem: MediaItem, fileName: String, userID: String) async -> String? {
+        let storage = Storage.storage()
+        let contentType = mediaItem.mediaType == .video ? "video/quicktime" : "image/jpeg"
+        let path = "profile/\(userID)/\(fileName)"
+        let ref = storage.reference().child(path)
+        
+        do {
+            let data = try Data(contentsOf: mediaItem.localPath)
+            
+            let metadata = StorageMetadata()
+            metadata.contentType = contentType
+            metadata.customMetadata = ["mediaType": mediaItem.mediaType == .video ? "video" : "photo"]
+            
+            let _ = try await ref.putDataAsync(data, metadata: metadata)
+            let downloadURL = try await ref.downloadURL()
+            
+            print("Uploaded \(fileName) successfully")
+            return downloadURL.absoluteString
+        } catch {
+            print("Failed to upload \(fileName): \(error.localizedDescription)")
+            return nil
+        }
     }
 }
 

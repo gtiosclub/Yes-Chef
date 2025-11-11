@@ -126,7 +126,7 @@ struct ProfileView: View {
             }
             
             // Profile Image
-            let photoURL = URL(string: profilePhoto)
+            let photoURL = URL(string: user.profilePhoto)
             
             AsyncImage(url: photoURL) { phase in
                 if let image = phase.image{
