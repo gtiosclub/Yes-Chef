@@ -84,8 +84,9 @@ struct ProfileView: View {
 
         }
         .background(Color(hex: "#fffdf7"))
-        .navigationBarTitleDisplayMode(.inline)
+//        .navigationBarTitleDisplayMode(.inline)
         .preferredColorScheme(.light)
+        .navigationBarHidden(true)
     }
     
     // MARK: - Header
