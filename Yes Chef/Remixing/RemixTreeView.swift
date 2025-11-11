@@ -543,10 +543,17 @@ struct RemixTreeView: View {
         .background(navigationLinks)
         .onAppear {
             data.startListening()
-            // Set initial centered node
-            if centeredFirstLayerNode == nil {
-                centeredFirstLayerNode = firstLayerChildren.first
-            }
+            // Initialize centered node on appear
+            updateCenteredNode()
+        }
+        .onChange(of: data.nodes) { _ in
+            // Update centered node when data loads or changes
+            updateCenteredNode()
+        }
+        .onChange(of: nodeID) { _ in
+            // Reset centered node when navigating to a different tree
+            centeredFirstLayerNode = nil
+            updateCenteredNode()
         }
         .onDisappear { data.stopListening() }
     }
@@ -646,6 +653,13 @@ struct RemixTreeView: View {
         }
     }
     // End of Eesh New Edit
+    
+    // MARK: - Helper Methods
+    private func updateCenteredNode() {
+        if !firstLayerChildren.isEmpty && centeredFirstLayerNode == nil {
+            centeredFirstLayerNode = firstLayerChildren.first
+        }
+    }
 }
 
 // MARK: - Recipe Loading View
