@@ -56,6 +56,7 @@ struct ProfileView: View {
                         Text("No saved recipes yet!")
                             .font(.caption)
                             .foregroundColor(.gray)
+                            .padding(.top, screen.height * 0.02)
                     } else {
                         contentGrid(recipes: authVM.savedRecipes)
                     }
@@ -68,7 +69,7 @@ struct ProfileView: View {
                         let posterData = await UVM.getUserInfo(userID: user.userId)
                         profilePhoto = posterData?["profilePhoto"] as? String ?? ""
                     }
-                    self.user = await UVM.updateUser(userID: user.userId)
+                    print(self.user.profilePhoto)
                 } catch {
                     print("Failed to fetch recipes: \(error)")
                 }
@@ -329,9 +330,6 @@ struct ProfileView: View {
         
         
     }
-    
-    let foods = ["Apple Pie", "Cheddar Omelet", "Fried Rice", "Butter Chicken", "Steak and Potatoes", "Homemade Yogurt"]
-    let foods2 = ["Spaghetti Carbonara", "Sushi Rolls", "Tacos al Pastor", "Fried Chicken","Margherita Pizza", "Ramen"]
     
     // MARK: - Content Grid
     private func contentGrid(recipes: [Recipe]) -> some View {
