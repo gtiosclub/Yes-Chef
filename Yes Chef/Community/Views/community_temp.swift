@@ -24,7 +24,14 @@ struct SettingsView: View {
                     .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    
+                    HStack {
+                        Button(action: {dismiss()}){
+                            Image(systemName: "chevron.backward").font(Font.title2)
+                        }
+                        .foregroundColor(.black)
+                        .padding(.leading, screen.width * 0.04)
+                        Spacer()
+                    }
                     // MARK: - Title
                     Text("Settings")
                         .font(.custom("Georgia", size: 32))

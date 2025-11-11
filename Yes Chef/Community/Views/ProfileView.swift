@@ -69,7 +69,6 @@ struct ProfileView: View {
                         let posterData = await UVM.getUserInfo(userID: user.userId)
                         profilePhoto = posterData?["profilePhoto"] as? String ?? ""
                     }
-                    print(self.user.profilePhoto)
                 } catch {
                     print("Failed to fetch recipes: \(error)")
                 }

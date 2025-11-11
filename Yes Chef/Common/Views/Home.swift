@@ -49,7 +49,6 @@ struct Home: View {
             Task {
                 await authVM.updateCurrentUser()
             }
-            print("UPDATED")
         }
     }
 }
