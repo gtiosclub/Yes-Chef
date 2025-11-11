@@ -22,6 +22,7 @@ struct Home: View {
                         .environment(authVM)
                 case .search:
                     CommunityView()
+                        .environment(authVM)
                 case .post:
                     AddRecipeMain(selectedTab: $selectedView, navigationRecipe: $navigationRecipe)
                         .environment(authVM)

@@ -191,10 +191,12 @@ struct CommunityView : View {
                         ScrollView {
                             VStack(alignment: .leading, spacing: 25) {
                                 RecipeSection(title: "This Week's Challenges!", items: Array(postVM.recipes[0..<5]),wide: true)
+                                    .environment(authVM)
                            }
                             if !postVM.recipes.isEmpty {
                                 let trending = Array(postVM.recipes.prefix(10))
                                 RecipeSection(title: "Trending", items: trending, wide: false)
+                                    .environment(authVM)
                             }
 
                             }
@@ -234,6 +236,7 @@ struct CommunityView : View {
 
 
 struct RecipeSection: View {
+    @Environment(AuthenticationVM.self) var authVM
     let title: String
     let items: [Recipe]
     let wide: Bool
@@ -248,14 +251,14 @@ struct RecipeSection: View {
                 HStack(spacing: 15) {
                     if (wide) {
                         ForEach(items) { recipe in
-                            NavigationLink(destination: PostView(recipe: recipe)) {
+                            NavigationLink(destination: PostView(recipe: recipe).environment(authVM)) {
                                 RecipeCard(recipe: recipe, wide: wide)
                             }
                             .buttonStyle(.plain)
                         }
                     } else {
                         ForEach(items) { recipe in
-                            NavigationLink(destination: PostView(recipe: recipe)) {
+                            NavigationLink(destination: PostView(recipe: recipe).environment(authVM)) {
                                 RecipeCard(recipe: recipe, wide: false)
                             }
                         }
