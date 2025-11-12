@@ -33,6 +33,7 @@ struct PostView: View {
     @State private var goToRemixTree = false
     // End of Eesh New Edit
     @State private var showAlert = false
+    @State private var poster = User(userId: "String", username: "String", email: "String")
     
     private func formatIngredient(_ ingredient: Ingredient) -> String {
         var parts: [String] = []
@@ -110,42 +111,42 @@ struct PostView: View {
                     SectionHeader(title:recipe.name).padding(.leading)
                     Spacer()
                 }.padding(.bottom, 20)
-                HStack{
-                    
+                HStack {
                     //Poster Profile Pic
-                    let user = authVM.currentUser ?? User(userId: "", username: "", email: "", bio: "")
-                    let photoURL = URL(string: user.profilePhoto)
-                    AsyncImage(url: photoURL) { phase in
-                        if let image = phase.image{
-                            image
-                                .resizable()
-                                .scaledToFill()
-                                .clipShape(Circle())
-                                .frame(width: 40, height: 40)
-                            
-                        } else{
-                            Circle()
-                                .fill(Color(.systemGray6))
-                                .frame(width: 40, height: 40)
+                    NavigationLink(destination: ProfileView(user: poster, isOwnProfile: poster.userId == authVM.currentUser?.id)
+                        .environment(authVM)) {
+                        let photoURL = URL(string: profilePhoto)
+                        AsyncImage(url: photoURL) { phase in
+                            if let image = phase.image{
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .clipShape(Circle())
+                                    .frame(width: 40, height: 40)
+                                
+                            } else{
+                                Circle()
+                                    .fill(Color(.systemGray6))
+                                    .frame(width: 40, height: 40)
+                            }
                         }
+                        
+                        //Poster Username
+                        BodyText(text: username)
                     }
-                    
-                    //Poster Username
-                    BodyText(text: username)
                     
                     Spacer()
                     
                     //Follow Button
                     if (!(recipe.userId == authVM.currentUser?.userId ?? "")){
                         
-                        Button(){
+                        Button {
                             if (!following) {
                                 Task {
                                     await FVM.follow(other_userID: recipe.userId, self_userID: authVM.currentUser?.userId ?? "")
                                 }
                                 authVM.currentUser?.following.append(recipe.userId)
                                 following = true
-                                print("Followed, \(following)")
                             } else {
                                 //need to implement unfollow
                                 Task {
@@ -304,12 +305,14 @@ struct PostView: View {
         }
         .onAppear {
             liked = (authVM.currentUser?.likedRecipes ?? []).contains(recipe.id)
-            print("liked",liked)
             following = (authVM.currentUser?.following ?? []).contains(recipe.userId)
             saved = (authVM.currentUser?.savedRecipes ?? []).contains(recipe.id)
             Task {
                 let user = authVM.currentUser ?? User(userId: "", username: "", email: "", bio: "")
                 await UVM.updateSuggestionProfile(userID: user.userId, suggestionProfile: &user.suggestionProfile, recipe: recipe, interaction: "view")
+                poster = await UVM.updateUser(userID: recipe.userId)
+                profilePhoto = poster.profilePhoto
+                print(profilePhoto)
             }
         }
         .navigationBarBackButtonHidden(true)

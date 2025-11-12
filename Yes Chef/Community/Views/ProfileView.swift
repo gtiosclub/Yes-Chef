@@ -11,7 +11,7 @@ struct ProfileView: View {
     @State private var username: String = ""
     @State private var profilePhoto: String = ""
     @State private var showingEditProfile = false
-    
+    @State private var followVM = FollowViewModel()
 
     @State var user: User
     // Simple boolean to toggle between own profile vs other's profile for UI demo
@@ -69,6 +69,10 @@ struct ProfileView: View {
                         let posterData = await UVM.getUserInfo(userID: user.userId)
                         profilePhoto = posterData?["profilePhoto"] as? String ?? ""
                     }
+                    let curruser = authVM.currentUser ?? User(userId: "String", username: "String", email: "String")
+                    isFollowing = curruser.following.contains(user.userId)
+                    print(user.userId)
+                    print("Following: \(isFollowing)")
                 } catch {
                     print("Failed to fetch recipes: \(error)")
                 }
@@ -217,12 +221,27 @@ struct ProfileView: View {
         } else {
              HStack{
                 Button{
-                    isFollowing.toggle()
+                    if (!isFollowing) {
+                        Task {
+                            await followVM.follow(other_userID: user.userId, self_userID: authVM.currentUser?.userId ?? "")
+                        }
+                        authVM.currentUser?.following.append(user.userId)
+                        user.followers.append(authVM.currentUser?.userId ?? "")
+                        isFollowing = true
+                    } else {
+                        //need to implement unfollow
+                        Task {
+                            await followVM.unfollow(other_userID: user.userId, self_userID: authVM.currentUser?.userId ?? "")
+                        }
+                        authVM.currentUser?.following.removeAll { $0 == user.userId }
+                        user.followers.removeAll { $0 == authVM.currentUser?.userId ?? "" }
+                        isFollowing = false
+                    }
                 } label: {
                     Text((isFollowing ? "Following" : "Follow"))
-                        .font(.body)
+                        .font(.custom("Work Sans", size: 13.49))
                         .fontWeight(.medium)
-                        .foregroundColor(isOwnProfile ? .black : (isFollowing ? .black : .white))
+                        .foregroundColor(.white)
                         .frame(width: 120, height: 36)
                         .background(
                             RoundedRectangle(cornerRadius: 18)
@@ -236,10 +255,10 @@ struct ProfileView: View {
                         isFollowing.toggle()
                     }
                 } label: {
-                    BodyText(text: "Message")
-                        .font(.body)
+                    Text("Message")
+                        .font(.custom("Work Sans", size: 13.49))
                         .fontWeight(.medium)
-                        .foregroundColor(isOwnProfile ? .black : (isFollowing ? .black : .white))
+                        .foregroundColor(.white)
                         .frame(width: 120, height: 36)
                         .background(
                             RoundedRectangle(cornerRadius: 18)

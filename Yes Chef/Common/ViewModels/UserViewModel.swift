@@ -171,6 +171,7 @@ import UIKit
             let savedRecipes = data?["savedRecipes"] as? [String] ?? []
             let badges = data?["badges"] as? [String] ?? []
             let tempuser = User(userId: userID, username: username, email: email, bio: bio, password: "")
+            tempuser.profilePhoto = profilePhotoURL
             tempuser.following = following
             tempuser.followers = followers
             tempuser.likedRecipes = likedRecipes
