@@ -34,6 +34,25 @@ struct PostView: View {
     // End of Eesh New Edit
     @State private var showAlert = false
     
+    private func formatIngredient(_ ingredient: Ingredient) -> String {
+        var parts: [String] = []
+        
+        parts.append("\(ingredient.quantity)")
+        
+        if !ingredient.unit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            parts.append(ingredient.unit)
+        }
+        if !ingredient.preparation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            parts.append(ingredient.preparation)
+        }
+        if !ingredient.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            parts.append(ingredient.name)
+        }
+        
+        // Join with spaces, but only if there are parts
+        return parts.joined(separator: " ")
+    }
+    
     var body: some View {
         ScrollView{
             VStack(spacing: 6 ){
@@ -243,7 +262,7 @@ struct PostView: View {
                 VStack( alignment: .leading, spacing: 2){
                     SectionHeader(title: "Ingredients").padding(.vertical, screen.height/100)
                     ForEach (recipe.ingredients) { ingredient in
-                        BodyText(text: "\(ingredient.quantity) \(ingredient.name)")
+                        BodyText(text: formatIngredient(ingredient))
                     }
                     SectionHeader(title: "Instructions")
                         .font(Font.title)
