@@ -335,7 +335,7 @@ struct PostView: View {
                 HStack(spacing: screen.width / 45) {
                     HStack {
                         //like
-                            //Text(String(recipe.likes))
+                        VStack {
                             Button {
                                 if (!liked) {
                                     Task {
@@ -369,8 +369,14 @@ struct PostView: View {
                                 }
                                 
                             }
-                        .accessibilityLabel("Like button")
+                            .accessibilityLabel("Like button")
+                            Text(String(recipe.likes))
+                                .font(.custom("Work Sans", size: 10))
+                                .frame(maxWidth: .infinity)
+                            
+                        }
                         .padding(.trailing, screen.width / 40)
+                        .offset(y: screen.height / 150)
                         
                         // Comment Button
                         Button {
