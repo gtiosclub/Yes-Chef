@@ -310,6 +310,17 @@ struct BodyText2: View {
             .foregroundStyle(Color(hex: "#7C887D"))
     }
 }
+
+struct FeedText: View {
+    let text: String
+    
+    var body: some View {
+        Text(text)
+            .font(.custom("Inter", size: 12))
+            .foregroundStyle(Color(hex: "#404741"))
+            .multilineTextAlignment(.leading)
+    }
+}
     #Preview {
         CreateRecipe(recipeVM: CreateRecipeVM())
     }

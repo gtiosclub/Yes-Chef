@@ -108,7 +108,7 @@ struct ProfileView: View {
         VStack(spacing: 10) {
             ZStack {
                 Text("@\(user.username)")
-                    .font(.subheadline)
+                    .font(.custom("Work Sans", size: 16))
                     .foregroundColor(.secondary)
                 HStack {
                     if isOwnProfile {
@@ -142,13 +142,14 @@ struct ProfileView: View {
             }
             // Display Name
             Text(user.username)
-                .font(.title2)
+                .font(.custom("Georgia", size: 24))
                 .fontWeight(.semibold)
+                .foregroundStyle(Color(hex: "#404741"))
             
             // Bio
             Text(user.bio ?? "")
-                .font(.body)
-                .foregroundColor(.secondary)
+                .font(.custom("Work Sans", size: 12))
+                .foregroundStyle(Color(hex: "#404741"))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 20)
         }
@@ -160,29 +161,32 @@ struct ProfileView: View {
         HStack(spacing: 40) {
             VStack(spacing: 4) {
                 Text("\(user.followers.count)")
-                    .font(.title2)
+                    .font(.custom("Work Sans", size: 20))
                     .fontWeight(.semibold)
+                    .foregroundStyle(Color(hex: "#404741"))
                 Text("Followers")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(.custom("Work Sans", size: 14))
+                    .foregroundStyle(Color(hex: "#404741"))
             }
             
             VStack(spacing: 4) {
                 Text("\(user.following.count)")
-                    .font(.title2)
+                    .font(.custom("Work Sans", size: 20))
                     .fontWeight(.semibold)
+                    .foregroundStyle(Color(hex: "#404741"))
                 Text("Following")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(.custom("Work Sans", size: 14))
+                    .foregroundStyle(Color(hex: "#404741"))
             }
             
             VStack(spacing: 4) {
                 Text("\(postVM.selfRecipes.count)")
-                    .font(.title2)
+                    .font(.custom("Work Sans", size: 20))
                     .fontWeight(.semibold)
+                    .foregroundStyle(Color(hex: "#404741"))
                 Text("Recipes")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(.custom("Work Sans", size: 14))
+                    .foregroundStyle(Color(hex: "#404741"))
             }
         }
         .padding(.vertical, 20)
@@ -196,7 +200,7 @@ struct ProfileView: View {
                  showingEditProfile = true
             } label: {
                 Text("Edit")
-                    .font(.body)
+                    .font(.custom("Work Sans", size: 13.49))
                     .fontWeight(.medium)
                     .foregroundColor( .white)
                     .frame(width: 120, height: 36)
@@ -232,7 +236,7 @@ struct ProfileView: View {
                         isFollowing.toggle()
                     }
                 } label: {
-                    Text("Message")
+                    BodyText(text: "Message")
                         .font(.body)
                         .fontWeight(.medium)
                         .foregroundColor(isOwnProfile ? .black : (isFollowing ? .black : .white))
@@ -261,7 +265,7 @@ struct ProfileView: View {
                 
                 Button(action: { selectedTab = 0 }) {
                     VStack(spacing: 8) {
-                        Text("My Posts")
+                        BodyText(text: "My Posts")
                             .font(.body)
                             //.fontWeight(selectedTab == 0 ? .semibold : .regular)
                             .foregroundColor(.black)
@@ -292,7 +296,7 @@ struct ProfileView: View {
                 
                 Button(action: { selectedTab = 1 }) {
                     VStack(spacing: 8) {
-                        Text("Saved")
+                        BodyText(text: "Saved")
                             .font(.body)
                             //.fontWeight(selectedTab == 1 ? .semibold : .regular)
                             .foregroundColor(.black)
@@ -405,7 +409,7 @@ struct ProfileView: View {
             }
 
             Text(recipe.name)
-                .font(.body)
+                .font(.custom("Work Sans", size: 14))
                 .foregroundColor(Color(.darkGray))
                 .fontWeight(.medium)
                 .lineLimit(2)

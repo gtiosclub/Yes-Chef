@@ -512,9 +512,7 @@ struct FeedView: View {
                                                 .clipShape(RoundedRectangle(cornerRadius: 12))
                                         }
                                         
-                                        Text(recipe.name)
-                                            .font(.custom("Inter-Regular", size: 12))
-                                            .foregroundColor(Color(hex: "#404741"))
+                                        FeedText(text: recipe.name)
                                             .frame(width: 154, alignment: .leading)
                                     }
                                 }
