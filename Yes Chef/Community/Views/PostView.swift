@@ -29,6 +29,7 @@ struct PostView: View {
 
     @State private var goToAddRecipe = false
     @State private var showComments = false
+    @State private var showShare = false
     // Eesh New Edit: Add state for navigating to remix tree view
     @State private var goToRemixTree = false
     // End of Eesh New Edit
@@ -393,14 +394,17 @@ struct PostView: View {
                             CommentsSheet(recipeID: recipe.recipeId)
                         }
                         .padding(.trailing, screen.width / 40)
-                        
+                        //share button
                         Button {
-                            print("SHARING")
+                            showShare = true
                         } label : {
                             Image(systemName: "arrowshape.turn.up.right")
                                 .font(.system(size: 24))
                         }
                         .foregroundColor(.black)
+                        .sheet(isPresented: $showShare) {
+                            ShareSheet(recipeID: recipe.recipeId).environment(authVM)
+                        }
                         .padding(.bottom, screen.height / 180)
                         
                     }
@@ -440,50 +444,7 @@ struct PostView: View {
         }
     }
 }
-struct likeButton: View {
-    @State var liked: Bool
-    var recipe: Recipe
-    @State var authVM: AuthenticationVM
-    @State var postVM: PostViewModel
-    @State var UVM: UserViewModel
-    var body: some View {
-        HStack {
-            //likes and like button
-            Text(String(recipe.likes))
-            Button {
-                if (!liked) {
-                    Task {
-                        try await postVM.likePost(recipeId: recipe.id)
-                        try await UVM.like(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
-                    }
-                    recipe.likes += 1
-                    authVM.currentUser?.likedRecipes.append(recipe.id)
-                    liked = true
-                    Task {
-                        let user = authVM.currentUser ?? User(userId: "", username: "", email: "", bio: "")
-                        await UVM.updateSuggestionProfile(userID: user.userId, suggestionProfile: &user.suggestionProfile, recipe: recipe, interaction: "like")
-                    }
-                } else {
-                    Task {
-                        try await postVM.unlikePost(recipeId: recipe.id)
-                        try await UVM.unlike(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
-                    }
-                    recipe.likes -= 1
-                    authVM.currentUser?.likedRecipes.removeAll { $0 == recipe.id }
-                    liked = false
-                }
-            } label : {
-                if (!liked) {
-                    Image(systemName: "heart").foregroundColor(.black)
-                } else {
-                    Image(systemName: "heart.fill").foregroundColor(.red)
-                }
-                
-            }.frame(width: 20, height: 20)
-        }
-        .accessibilityLabel("Like button")
-    }
-}
+
 struct CommentsSheet: View {
     @StateObject private var viewModel = CommentsViewModel()
     @State private var UVM = UserViewModel()
@@ -492,9 +453,13 @@ struct CommentsSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Text("Comments")
-                .font(.headline)
-                .padding(.vertical, 8)
+            Spacer()
+            HStack {
+                SectionHeader(title: "Comments")
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 8)
+                Spacer()
+            }
 
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 16) {
@@ -552,6 +517,147 @@ struct CommentsSheet: View {
     }
 }
 
+struct ShareSheet: View {
+    @StateObject private var vm = ChatListViewModel()
+    @Environment(\.dismiss) private var dismiss
+    @Environment(AuthenticationVM.self) var authVM
+    @State private var message: String = ""
+    @State private var UVM = UserViewModel()
+    @State private var CVM = ChatListViewModel()
+    @State private var users: [User] = []
+    @State private var send: [User] = []
+    let recipeID: String
+    let columns = [
+        GridItem(.flexible()),
+        GridItem(.flexible()),
+        GridItem(.flexible()),
+        GridItem(.flexible())
+    ]
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer()
+            HStack {
+                SectionHeader(title: "Share")
+
+                Spacer()
+                ShareLink(item: URL(string: "https://www.youtube.com/watch?v=xvFZjo5PgG0")!) {
+                    Label("", systemImage: "square.and.arrow.up")
+                        .foregroundStyle(.orange)
+                }
+            }
+            ScrollView {
+                Spacer()
+                LazyVGrid(columns: columns, spacing: 16) {
+                    ForEach(users, id: \.id) { friend in
+                        Button {
+                            select(friend: friend)
+                        } label: {
+                            VStack {
+                                miniProfile(imageurl: friend.profilePhoto)
+                                    .background {
+                                        if send.contains(where: { $0.userId == friend.userId}) {
+                                            Circle()
+                                                .fill(Color(hex: "##FFA947"))
+                                                .frame(width:66, height:66)
+                                        }
+                                    }
+                                Text(friend.username)
+                                    .font(.custom("Work Sans", size: 14))
+                                    .foregroundStyle(Color(hex:"#404741"))
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            Divider()
+
+            HStack {
+                TextField("Send", text: $message)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .autocapitalization(.none)
+                Button("Send") {
+                    sendAll(recipeId: recipeID, message: message, sending: send)
+                    dismiss()
+                }
+                .foregroundColor(.blue)
+            }
+            .padding()
+        }
+        .onAppear {
+            loadFriends()
+        }
+        .presentationDetents([.medium, .large])
+    }
+    
+    func loadFriends() {
+        guard let user = authVM.currentUser else { return }
+        Task {
+            var temp: [User] = []
+            for friendId in user.following {
+                let fetched = await UVM.updateUser(userID: friendId)
+                temp.append(fetched)
+            }
+            await MainActor.run {
+                users = temp
+            }
+        }
+    }
+    
+    private func startChat(with user: User) {
+        vm.startChat(with: user) { chat in
+            if !vm.chats.contains(where: { $0.chatId == chat.chatId }) {
+                vm.chats.append(chat)
+            }
+        }
+    }
+    
+    private func select(friend: User) {
+        if send.contains(where: {$0.userId == friend.userId}) {
+            send.removeAll(where: {$0.userId == friend.userId})
+        } else {
+            send.append(friend)
+        }
+    }
+    
+    private func sendAll(recipeId: String, message: String, sending: [User]) {
+        if message.isEmpty && sending.isEmpty { return }
+        guard let currentUser = authVM.currentUser else { return }
+        for user in sending {
+            CVM.startChat(with: user) { chat in
+                let vm = ChatViewModel(chatId: chat.chatId, currentUserId: currentUser.userId)
+                if message != "" {
+                    vm.sendMessage(text: message)
+                }
+                vm.sendMessage(text: recipeId, isRecipe: true)
+            }
+        }
+    }
+}
+
+struct miniProfile: View {
+    var imageurl: String
+    var body: some View {
+        let photoURL = URL(string: imageurl)
+        VStack {
+            AsyncImage(url: photoURL) { phase in
+                if let image = phase.image{
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .clipShape(Circle())
+                        .frame(width: 64, height: 64)
+                        
+                } else{
+                    Circle()
+                        .fill(Color(.systemGray6))
+                        .frame(width: 64, height: 64)
+                }
+            }
+        }
+    }
+}
 
 struct BulletPoint: View {
     var text: String
@@ -576,10 +682,6 @@ struct BulletPoint: View {
         }
     }
 }
-
-
-
-
 
 #Preview {
     let rec = Recipe(

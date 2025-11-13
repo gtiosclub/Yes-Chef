@@ -71,8 +71,6 @@ struct ProfileView: View {
                     }
                     let curruser = authVM.currentUser ?? User(userId: "String", username: "String", email: "String")
                     isFollowing = curruser.following.contains(user.userId)
-                    print(user.userId)
-                    print("Following: \(isFollowing)")
                 } catch {
                     print("Failed to fetch recipes: \(error)")
                 }
@@ -252,7 +250,6 @@ struct ProfileView: View {
                 
                 Button{
                     if !isOwnProfile {
-                        isFollowing.toggle()
                     }
                 } label: {
                     Text("Message")

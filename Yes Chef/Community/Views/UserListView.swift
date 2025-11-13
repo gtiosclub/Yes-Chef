@@ -10,6 +10,7 @@ import FirebaseAuth
 import FirebaseFirestore
 
 struct UserListView: View {
+    @Environment(AuthenticationVM.self) var authVM
     @StateObject private var vm = ChatListViewModel()
     @State private var searchVM = SearchViewModel()
     @State private var searchText = ""
@@ -76,7 +77,7 @@ struct UserListView: View {
                                         ),
                                         otherUserName: chat.otherUserName,
                                         otherUserPhotoURL: chat.otherUserPhotoURL
-                                    )
+                                    ).environment(authVM)
                                 ) {
                                     HStack(spacing: 12) {
                                         if let urlString = chat.otherUserPhotoURL,

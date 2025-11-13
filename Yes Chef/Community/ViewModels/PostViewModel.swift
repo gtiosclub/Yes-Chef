@@ -70,12 +70,9 @@ class PostViewModel {
         let snapshot = try await db.collection("RECIPES").whereField("userId", isEqualTo: userID).getDocuments()
         self.selfRecipes = snapshot.documents.compactMap { document in
             let data = document.data()
+            
             let userId = data["userId"] as? String ?? ""
             let recipeId = document.documentID
-            //let recipeId = data["id"] as? String ?? UUID().uuidString
-            //let mediaURL = data["profileImageURL"] as? String
-            //let media = mediaURL != nil ? [mediaURL!] : []
-            
             let name = data["name"] as? String ?? "Untitled"
             let media = data["media"] as? [String] ?? []
             var ingredients: [Ingredient] = []
@@ -205,9 +202,53 @@ class PostViewModel {
         
         return nil
     }
+    
+    func getRecipeByID(recipeID: String) async throws -> Recipe{
+        let db = Firestore.firestore()
+        let info = db.collection("RECIPES").document(recipeID)
+        let doc = try await info.getDocument()
+        let data = doc.data()!
+        let userId = data["userId"] as? String ?? ""
+        let recipeId = info.documentID
+        let name = data["name"] as? String ?? "Untitled"
+        let media = data["media"] as? [String] ?? []
+        var ingredients: [Ingredient] = []
+        do {
+            let data2 = try JSONSerialization.data(withJSONObject: data["ingredients"])
+            ingredients = try JSONDecoder().decode([Ingredient].self, from: data2)
+        } catch {
+            print("blehhhh")
+        }
+        let allergens: [String] = data["allergens"] as? [String] ?? []
+        let tags: [String] = data["tags"] as? [String] ?? []
+        let steps: [String] = data["steps"] as? [String] ?? []
+        let description = data["description"] as? String ?? ""
+        let servingSize = data["servingSize"] as? Int ?? 1
+        let prepTime = data["prepTime"] as? Int ?? 0
+        let difficultystring = data["difficulty"] as? String ?? "easy"
+        let difficulty = Difficulty(rawValue: difficultystring) ?? .easy
+        let chefsNotes = data["chefsNotes"] as? String ?? ""
+        let likes = data["likes"] as? Int ?? 0
+            
+        return Recipe(
+            userId: userId,
+            recipeId: recipeId,
+            name: name,
+            ingredients: ingredients,
+            allergens: allergens,
+            tags: tags,
+            steps: steps,
+            description: description,
+            prepTime: prepTime,
+            difficulty: difficulty,
+            servingSize: servingSize,
+            media: media,
+            chefsNotes: chefsNotes,
+            likes: likes
+        )
+    }
     func deletePost(postID: String) async -> Void {
         let db = Firestore.firestore()
-        
         let info = db.collection("RECIPES").document(postID)
         do {
             let doc = try await info.getDocument()
