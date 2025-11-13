@@ -492,11 +492,6 @@ struct CommentsSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Capsule()
-                .fill(Color.gray.opacity(0.4))
-                .frame(width: 40, height: 6)
-                .padding(.top, 8)
-
             Text("Comments")
                 .font(.headline)
                 .padding(.vertical, 8)
