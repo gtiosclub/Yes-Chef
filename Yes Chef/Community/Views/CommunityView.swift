@@ -28,6 +28,10 @@ struct CommunityView : View {
     @State private var selectedTags: Set<String> = []
     @State private var selectedDifficulty: Difficulty = .none
     @State private var selectedServingSize: Int = 1
+    @State private var minPrepTime: Int? = nil
+    @State private var maxPrepTime: Int? = nil
+
+
 
     
 //    @State private var selectedCuisine: Set<String> = []
@@ -131,6 +135,8 @@ struct CommunityView : View {
                             selectedDifficulty: $selectedDifficulty,
                             selectedServingSize: $selectedServingSize,
                             selectedTags: $selectedTags,
+                            minPrepTime: $minPrepTime,
+                            maxPrepTime: $maxPrepTime,
                             hasAppliedFilters: $hasAppliedFilters
                         )
                                 .environment(authVM),
@@ -242,19 +248,23 @@ struct CommunityView : View {
                 selectedTags = []
                 selectedDifficulty = .none
                 selectedServingSize = 1
+                minPrepTime = nil
+                maxPrepTime = nil
                 hasAppliedFilters = false
                 searchText = ""
             }
         .sheet(isPresented: $showFilters) {
             FilterView(
                 show: $showFilters,
-                onApply: { searchText, ingredients, allergens, difficulty, servingSize, tags, isFiltered in
+                onApply: { searchText, ingredients, allergens, difficulty, servingSize, tags, minTime, maxTime, isFiltered in
                     self.searchText = searchText
                     self.selectedIngredients = ingredients
                     self.selectedAllergens = allergens
                     self.selectedDifficulty = difficulty
                     self.selectedServingSize = servingSize
                     self.selectedTags = tags
+                    self.minPrepTime = minTime
+                    self.maxPrepTime = maxTime
                     self.hasAppliedFilters = isFiltered
 
                     

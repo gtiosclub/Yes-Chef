@@ -3,7 +3,7 @@ import SwiftUI
 
 struct FilterView: View {
     @Binding var show: Bool
-    var onApply: (String, Set<String>, Set<String>, Difficulty, Int, Set<String>, Bool) -> Void
+    var onApply: (String, Set<String>, Set<String>, Difficulty, Int, Set<String>, Int?, Int?, Bool) -> Void
 
     @State private var postVM = PostViewModel()
     
@@ -14,6 +14,9 @@ struct FilterView: View {
     @State private var selectedTags: [SearchableValue<Tag>] = []
     @State private var selectedDifficulty: Difficulty = .none
     @State private var servingSize: Int = 1
+    @State private var minPrepTime: Int? = nil
+    @State private var maxPrepTime: Int? = nil
+
     
     @State private var isFiltered: Bool = false
     
@@ -38,6 +41,7 @@ struct FilterView: View {
                     allergensSection
                     tagsSection
                     servingSizeSection
+                    prepTimeSection
                     difficultySection
                 }
                 .padding(.horizontal, 20)
@@ -147,6 +151,40 @@ extension FilterView {
         }
     }
     
+    private var prepTimeSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: "Prep & Cook Time")
+            
+            HStack(spacing: 10) {
+                TextField("Min (minutes)", value: $minPrepTime, format: .number)
+                    .keyboardType(.numberPad)
+                    .font(.system(size: 15))
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 14)
+                    .frame(maxWidth: .infinity)
+                    .background(Color(hex:"#F9F5F2"))
+                    .cornerRadius(14)
+                
+                Text("to")
+                    .font(.custom("Georgia", size: 16))
+                    .foregroundColor(Color(hex: "#7C887D"))
+                
+                TextField("Max (minutes)", value: $maxPrepTime, format: .number)
+                    .keyboardType(.numberPad)
+                    .font(.system(size: 15))
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 14)
+                    .frame(maxWidth: .infinity)
+                    .background(Color(hex:"#F9F5F2"))
+                    .cornerRadius(14)
+            }
+            .padding(.horizontal, 20)
+        }
+    }
+
+
+
+    
     private var applyButton: some View {
         VStack {
 
@@ -162,6 +200,8 @@ extension FilterView {
                     selectedDifficulty,
                     servingSize,
                     Set(selectedTags.map { $0.displayName }),
+                    minPrepTime,
+                    maxPrepTime,
                     isFiltered
                 )
             }) {
@@ -186,6 +226,8 @@ extension FilterView {
                     selectedDifficulty: .constant(selectedDifficulty),
                     selectedServingSize: .constant(servingSize),
                     selectedTags: .constant(Set(selectedTags.map { $0.displayName })),
+                    minPrepTime: .constant(minPrepTime),
+                    maxPrepTime: .constant(maxPrepTime),
                     hasAppliedFilters: $isFiltered
                 )
                 .environment(postVM),

@@ -19,6 +19,9 @@ struct SearchView : View {
     @Binding var selectedDifficulty: Difficulty
     @Binding var selectedServingSize: Int
     @Binding var selectedTags: Set<String>
+    @Binding var minPrepTime: Int?
+    @Binding var maxPrepTime: Int?
+
     
     @Binding var hasAppliedFilters: Bool
 
@@ -31,6 +34,8 @@ struct SearchView : View {
         selectedDifficulty: Binding<Difficulty>,
         selectedServingSize: Binding<Int>,
         selectedTags: Binding<Set<String>>,
+        minPrepTime: Binding<Int?>,
+        maxPrepTime: Binding<Int?>,
         hasAppliedFilters: Binding<Bool>
     ) {
         self.searchText = searchText
@@ -39,6 +44,8 @@ struct SearchView : View {
         self._selectedDifficulty = selectedDifficulty
         self._selectedServingSize = selectedServingSize
         self._selectedTags = selectedTags
+        self._minPrepTime = minPrepTime
+        self._maxPrepTime = maxPrepTime
         self._hasAppliedFilters = hasAppliedFilters
     }
 
@@ -77,7 +84,12 @@ struct SearchView : View {
             
             let matchesServingSize = selectedServingSize <= 1 || recipe.servingSize == selectedServingSize
             
-            return matchesSearch && matchesIngredients && matchesAllergens && matchesDifficulty && matchesServingSize && matchesTags
+            let matchesPrepTime = (
+                (minPrepTime == nil || recipe.prepTime >= (minPrepTime ?? 0)) &&
+                (maxPrepTime == nil || recipe.prepTime <= (maxPrepTime ?? Int.max))
+            )
+            
+            return matchesSearch && matchesIngredients && matchesAllergens && matchesDifficulty && matchesServingSize && matchesTags && matchesPrepTime
 
         }
     }
@@ -195,7 +207,7 @@ struct SearchView : View {
         .sheet(isPresented: $showFilters) {
             FilterView(
                 show: $showFilters,
-                onApply: { searchTextFromFilter, ingredients, allergens, difficulty, servingSize, tags, isFiltered in
+                onApply: { searchTextFromFilter, ingredients, allergens, difficulty, servingSize, tags, minTime, maxTime, isFiltered in
                     if !searchTextFromFilter.isEmpty {
                         self.searchText = searchTextFromFilter
                     }
@@ -204,6 +216,8 @@ struct SearchView : View {
                     self.selectedDifficulty = difficulty
                     self.selectedServingSize = servingSize
                     self.selectedTags = tags
+                    self.minPrepTime = minTime
+                    self.maxPrepTime = maxTime
                     self.hasAppliedFilters = isFiltered
                     self.showFilters = false
                 }
@@ -258,6 +272,8 @@ struct RecipeItem: View {
         selectedDifficulty: .constant(.easy),
         selectedServingSize: .constant(1),
         selectedTags: .constant([]),
+        minPrepTime: .constant(0),
+        maxPrepTime: .constant(1000),
         hasAppliedFilters: .constant(false)
     )
 }
