@@ -22,12 +22,24 @@ import FirebaseFirestore
             // Map documents into User objects
             let fetchedUsers = snapshot.documents.map { doc -> User in
                 let data = doc.data()
-                return User(
-                    userId: data["userId"] as? String ?? "",
-                    username: data["username"] as? String ?? "",
-                    email: data["email"] as? String ?? "",
-                    bio: data["bio"] as? String
-                )
+                let userID = data["userId"] as? String ?? ""
+                let profilePhotoURL = data["profilePhoto"] as? String ?? ""
+                let username = data["username"] as? String ?? "username"
+                let bio = data["bio"] as? String ?? "bio"
+                let email = data["email"] as? String ?? "email"
+                let followers = data["followers"] as? [String] ?? []
+                let following = data["following"] as? [String] ?? []
+                let likedRecipes = data["likedRecipes"] as? [String] ?? []
+                let savedRecipes = data["savedRecipes"] as? [String] ?? []
+                let badges = data["badges"] as? [String] ?? []
+                let tempuser = User(userId: userID, username: username, email: email, bio: bio, password: "")
+                tempuser.profilePhoto = profilePhotoURL
+                tempuser.following = following
+                tempuser.followers = followers
+                tempuser.likedRecipes = likedRecipes
+                tempuser.savedRecipes = savedRecipes
+                tempuser.badges = badges
+                return tempuser
             }
                     
             // Update the local users array

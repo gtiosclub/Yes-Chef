@@ -13,7 +13,7 @@ struct Message: Identifiable, Codable {
     var senderId: String
     var text: String
     var timestamp: Timestamp
-
+    var isRecipe: Bool
 }
 
 struct Message2: Identifiable, Codable {

@@ -33,8 +33,8 @@ class ChatViewModel: ObservableObject {
             }
     }
     
-    func sendMessage(text: String) {
-        let message = Message(senderId: currentUserId, text: text, timestamp: Timestamp())
+    func sendMessage(text: String, isRecipe: Bool = false) {
+        let message = Message(senderId: currentUserId, text: text, timestamp: Timestamp(), isRecipe: isRecipe)
         do {
             _ = try db.collection("chats").document(chatId)
                 .collection("messages")
