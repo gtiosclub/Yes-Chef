@@ -13,6 +13,7 @@ class PostViewModel {
     var recipes: [Recipe] = []
     var selfRecipes: [Recipe] = []
     private let db = Firestore.firestore()
+    var allIngredients: [Ingredient] = []
     
     func fetchPosts() async throws {
         let snapshot = try await db.collection("RECIPES").getDocuments()
@@ -216,5 +217,14 @@ class PostViewModel {
         } catch {
             print("Error deleting recipe: \(error)")
         }
+    }
+    func fetchAllIngredients() {
+        var ingredientSet = Set<Ingredient>()
+        for recipe in recipes {
+            for ingredient in recipe.ingredients {
+                ingredientSet.insert(ingredient)
+            }
+        }
+        allIngredients = Array(ingredientSet).sorted { $0.name < $1.name }
     }
 }

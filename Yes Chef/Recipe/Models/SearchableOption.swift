@@ -6,6 +6,7 @@
 
 import Foundation
 
+
 protocol SearchableOption: Hashable, Identifiable {
     var displayName: String { get }
 }

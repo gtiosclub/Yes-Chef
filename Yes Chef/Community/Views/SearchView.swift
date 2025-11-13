@@ -8,66 +8,80 @@
 import SwiftUI
 
 struct SearchView : View {
-    @State private var searchText = ""
     @State private var viewModel = SearchViewModel()
     @State private var postVM = PostViewModel()
     @State private var showFilters = false
     @Environment(AuthenticationVM.self) var authVM
 
-
-    
-    @Binding var selectedCuisine: Set<String>
-    @Binding var selectedDietary: Set<String>
-    @Binding var selectedDifficulty: Set<String>
-    @Binding var selectedTime: Set<String>
+    @State private var searchText: String = ""
+    @Binding var selectedIngredients: Set<String>
+    @Binding var selectedAllergens: Set<String>
+    @Binding var selectedDifficulty: Difficulty
+    @Binding var selectedServingSize: Int
     @Binding var selectedTags: Set<String>
     
-    let text: String
+    @Binding var hasAppliedFilters: Bool
+
     @Environment(\.dismiss) var dismiss
-    init(searchText: String = "", viewModel: SearchViewModel = SearchViewModel(), text: String, selectedCuisine: Binding<Set<String>>,
-         selectedDietary: Binding<Set<String>>,
-         selectedDifficulty: Binding<Set<String>>,
-         selectedTime: Binding<Set<String>>,
-         selectedTags: Binding<Set<String>>) {
-        self.searchText = text
-        self.viewModel = viewModel
-        self.text = text
-        _selectedCuisine = selectedCuisine
-        _selectedDietary = selectedDietary
-        _selectedDifficulty = selectedDifficulty
-        _selectedTime = selectedTime
-        _selectedTags = selectedTags
+
+    init(
+        searchText: String,
+        selectedIngredients: Binding<Set<String>>,
+        selectedAllergens: Binding<Set<String>>,
+        selectedDifficulty: Binding<Difficulty>,
+        selectedServingSize: Binding<Int>,
+        selectedTags: Binding<Set<String>>,
+        hasAppliedFilters: Binding<Bool>
+    ) {
+        self.searchText = searchText
+        self._selectedIngredients = selectedIngredients
+        self._selectedAllergens = selectedAllergens
+        self._selectedDifficulty = selectedDifficulty
+        self._selectedServingSize = selectedServingSize
+        self._selectedTags = selectedTags
+        self._hasAppliedFilters = hasAppliedFilters
     }
+
+
+
     
     //let allItems = ["Pizza", "Pasta", "Salad", "Soup", "Sandwich", "Cake", "Curry"]
 
     var filteredItems: [Recipe] {
-        if searchText.isEmpty {
-            return []
-        } else {
-            let allSearchableItems = postVM.recipes
-            return allSearchableItems.filter {recipe in
-                let matchesSearch = recipe.name.localizedCaseInsensitiveContains(searchText)
-                let matchesCuisine = selectedCuisine.isEmpty || recipe.tags.contains { element in
-                   selectedCuisine.contains(element)
+        postVM.recipes.filter { recipe in
+            let matchesSearch = searchText.isEmpty ||
+                recipe.name.localizedCaseInsensitiveContains(searchText)
+            
+            let matchesIngredients =
+                selectedIngredients.isEmpty ||
+                selectedIngredients.allSatisfy { ingredient in
+                    recipe.ingredients.contains {
+                        $0.name.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+                        == ingredient.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+                    }
                 }
-                let matchesDietary = selectedDietary.isEmpty || recipe.tags.contains { element in
-                    selectedDietary.contains(element)
+            
+            let matchesAllergens =
+                selectedAllergens.isEmpty ||
+                recipe.allergens.allSatisfy { allergen in
+                    !selectedAllergens.contains(allergen)
                 }
-                let matchesDifficulty = selectedDifficulty.isEmpty || recipe.tags.contains { element in
-                    selectedDifficulty.contains(element)
+            
+            let matchesTags =
+                selectedTags.isEmpty ||
+                selectedTags.allSatisfy { tag in
+                    recipe.tags.contains { $0.lowercased() == tag.lowercased() }
                 }
-                let matchesTime = selectedTime.isEmpty || recipe.tags.contains { element in
-                    selectedTime.contains(element)
-                }
-                let matchesTags = selectedTags.isEmpty || recipe.tags.contains { element in
-                    selectedTags.contains(element)
-                }
-                return matchesSearch && matchesCuisine && matchesDietary && matchesDifficulty && matchesTime && matchesTags
-                
-            }
+            
+            let matchesDifficulty = selectedDifficulty == .none || recipe.difficulty == selectedDifficulty
+            
+            let matchesServingSize = selectedServingSize <= 1 || recipe.servingSize == selectedServingSize
+            
+            return matchesSearch && matchesIngredients && matchesAllergens && matchesDifficulty && matchesServingSize && matchesTags
+
         }
     }
+
     
 
 
@@ -87,21 +101,7 @@ struct SearchView : View {
                 Button ()  {
                     showFilters = true
                 } label: {
-                    if(selectedCuisine.isEmpty && selectedDietary.isEmpty && selectedDifficulty.isEmpty && selectedTime.isEmpty && selectedTags.isEmpty) {
-                        
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color(.systemGray6))
-                            .stroke(Color.orange, lineWidth: 1).overlay(
-                                Image(systemName: "slider.horizontal.2.square").font(.system(size: 30))
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 10)
-                            
-                                .foregroundColor(.orange)
-                            )
-                        
-                        
-                        
-                    } else {
+                    if hasAppliedFilters{
                         RoundedRectangle(cornerRadius: 10)
                             .fill(.orange)
                             .stroke(Color.orange, lineWidth: 1).overlay(
@@ -111,6 +111,18 @@ struct SearchView : View {
                                         .padding(.vertical, 10)
                                     .foregroundColor(.white)
                                 }
+                            )
+                        
+                    } else {
+
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color(.systemGray6))
+                            .stroke(Color.orange, lineWidth: 1).overlay(
+                                Image(systemName: "slider.horizontal.2.square").font(.system(size: 30))
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 10)
+                            
+                                .foregroundColor(.orange)
                             )
                     }
                 }
@@ -141,17 +153,7 @@ struct SearchView : View {
                 HStack(alignment: .top, spacing: 15) {
                     // Left column
                     LazyVStack(spacing: 15) {
-                        ForEach(Array(filteredItems.enumerated().filter { $0.offset % 2 == 0 }), id: \.element.id) { _, recipe in
-                            NavigationLink(destination: PostView(recipe: recipe).environment(authVM)) {
-                                RecipeItem(recipe: recipe)
-                            }
-                            .buttonStyle(.plain) // removes default nav link style
-                        }
-                    }
-
-                    // Right column
-                    LazyVStack(spacing: 15) {
-                        ForEach(Array(filteredItems.enumerated().filter { $0.offset % 2 == 1 }), id: \.element.id) { _, recipe in
+                        ForEach(filteredItems.enumerated().filter { $0.offset % 2 == 0 }, id: \.element.id) { _, recipe in
                             NavigationLink(destination: PostView(recipe: recipe).environment(authVM)) {
                                 RecipeItem(recipe: recipe)
                             }
@@ -159,12 +161,22 @@ struct SearchView : View {
                         }
                     }
 
+                    // Right column
+                    LazyVStack(spacing: 15) {
+                        ForEach(filteredItems.enumerated().filter { $0.offset % 2 == 1 }, id: \.element.id) { _, recipe in
+                            NavigationLink(destination: PostView(recipe: recipe).environment(authVM)) {
+                                RecipeItem(recipe: recipe)
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
-                
+                }
+
                 .padding(.horizontal, 15)
                 .padding(.top, 15)
-                
+
             }
+
         }
         .background(Color(hex: "#fffdf7"))
         .navigationBarBackButtonHidden(true)
@@ -181,15 +193,24 @@ struct SearchView : View {
 
         }
         .sheet(isPresented: $showFilters) {
-            FilterView(show: $showFilters,
-               selectedCuisine: $selectedCuisine,
-               selectedDietary: $selectedDietary,
-               selectedDifficulty: $selectedDifficulty,
-               selectedTime: $selectedTime,
-               selectedTags: $selectedTags)
-               
+            FilterView(
+                show: $showFilters,
+                onApply: { searchTextFromFilter, ingredients, allergens, difficulty, servingSize, tags, isFiltered in
+                    if !searchTextFromFilter.isEmpty {
+                        self.searchText = searchTextFromFilter
+                    }
+                    self.selectedIngredients = ingredients
+                    self.selectedAllergens = allergens
+                    self.selectedDifficulty = difficulty
+                    self.selectedServingSize = servingSize
+                    self.selectedTags = tags
+                    self.hasAppliedFilters = isFiltered
+                    self.showFilters = false
+                }
+            )
         }
         .preferredColorScheme(.light)
+
     }
 }
 struct RecipeItem: View {
@@ -230,12 +251,13 @@ struct RecipeItem: View {
     }
 
 #Preview {
-    SearchView(text: "s",
-               selectedCuisine:.constant([]),
-               selectedDietary:.constant([]),
-               selectedDifficulty:.constant([]),
-               selectedTime:.constant([]),
-               selectedTags:.constant([])
+    SearchView(
+        searchText: "s",
+        selectedIngredients: .constant([]),
+        selectedAllergens: .constant([]),
+        selectedDifficulty: .constant(.easy),
+        selectedServingSize: .constant(1),
+        selectedTags: .constant([]),
+        hasAppliedFilters: .constant(false)
     )
-    
 }

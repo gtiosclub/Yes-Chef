@@ -7,7 +7,9 @@
 import Foundation
 import Observation
 
-@Observable class Ingredient: Codable, Identifiable {
+
+
+@Observable class Ingredient: Codable, Identifiable, Hashable {
     let id = UUID()
     var name: String
     var quantity: Int
@@ -53,4 +55,16 @@ import Observation
         try container.encode(unit, forKey: .unit)
         try container.encode(preparation, forKey: .preparation)
     }
+    
+    static func == (lhs: Ingredient, rhs: Ingredient) -> Bool {
+        lhs.name.lowercased() == rhs.name.lowercased()
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(name.lowercased())
+    }
+}
+
+extension Ingredient: SearchableOption {
+    var displayName: String { name }
 }

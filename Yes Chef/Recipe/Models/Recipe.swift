@@ -15,6 +15,7 @@ enum Difficulty: String, CaseIterable, Identifiable {
     case easy = "Easy"
     case medium = "Medium"
     case hard = "Hard"
+    case none = "Any"
 }
 
 @Observable class Recipe: Identifiable {

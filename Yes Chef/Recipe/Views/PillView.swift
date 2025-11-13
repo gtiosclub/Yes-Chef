@@ -11,12 +11,14 @@ import SwiftUI
 enum AcceptedTypes {
     case tags(Tag)
     case allergens(Allergen)
+    case ingredients(Ingredient)
     case customString(String)
     
     var displayName: String {
         switch self {
         case .tags(let tag): return tag.rawValue.capitalized
         case .allergens(let allergen): return allergen.rawValue.capitalized
+        case .ingredients(let ingredient): return ingredient.name.capitalized
         case .customString(let string): return string
         }
     }
