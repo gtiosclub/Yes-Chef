@@ -20,13 +20,25 @@ struct CommunityView : View {
     @State private var showSearch = false
     @State private var searchon = true
     @Environment(AuthenticationVM.self) var authVM
+    @State private var hasAppliedFilters: Bool = false
+
+
+    @State private var selectedIngredients: Set<String> = []
+    @State private var selectedAllergens: Set<String> = []
+    @State private var selectedTags: Set<String> = []
+    @State private var selectedDifficulty: Difficulty = .none
+    @State private var selectedServingSize: Int = 1
+    @State private var minPrepTime: Int? = nil
+    @State private var maxPrepTime: Int? = nil
+
+
 
     
-    @State private var selectedCuisine: Set<String> = []
-    @State private var selectedDietary: Set<String> = []
-    @State private var selectedDifficulty: Set<String> = []
-    @State private var selectedTime: Set<String> = []
-    @State private var selectedTags: Set<String> = []
+//    @State private var selectedCuisine: Set<String> = []
+//    @State private var selectedDietary: Set<String> = []
+//    @State private var selectedDifficulty: Set<String> = []
+//    @State private var selectedTime: Set<String> = []
+//    @State private var selectedTags: Set<String> = []
     
     
 
@@ -40,13 +52,14 @@ struct CommunityView : View {
 
         return postVM.recipes.filter { recipe in
             let matchesSearch = recipe.name.localizedCaseInsensitiveContains(searchText)
-            let matchesCuisine = selectedCuisine.isEmpty || !selectedCuisine.isDisjoint(with: Set(recipe.tags))
-            let matchesDietary = selectedDietary.isEmpty || !selectedDietary.isDisjoint(with: Set(recipe.tags))
-            let matchesDifficulty = selectedDifficulty.isEmpty || !selectedDifficulty.isDisjoint(with: Set(recipe.tags))
-            let matchesTime = selectedTime.isEmpty || !selectedTime.isDisjoint(with: Set(recipe.tags))
-            let matchesTags = selectedTags.isEmpty || !selectedTags.isDisjoint(with: Set(recipe.tags))
+//            let matchesCuisine = selectedCuisine.isEmpty || !selectedCuisine.isDisjoint(with: Set(recipe.tags))
+//            let matchesDietary = selectedDietary.isEmpty || !selectedDietary.isDisjoint(with: Set(recipe.tags))
+//            let matchesDifficulty = selectedDifficulty.isEmpty || !selectedDifficulty.isDisjoint(with: Set(recipe.tags))
+//            let matchesTime = selectedTime.isEmpty || !selectedTime.isDisjoint(with: Set(recipe.tags))
+//            let matchesTags = selectedTags.isEmpty || !selectedTags.isDisjoint(with: Set(recipe.tags))
 
-            return matchesSearch && matchesCuisine && matchesDietary && matchesDifficulty && matchesTime && matchesTags
+            return matchesSearch
+            //&& matchesCuisine && matchesDietary && matchesDifficulty && matchesTime && matchesTags
         }
     }
 
@@ -70,29 +83,26 @@ struct CommunityView : View {
                     Button ()  {
                         showFilters = true
                     } label: {
-                        if(selectedCuisine.isEmpty && selectedDietary.isEmpty && selectedDifficulty.isEmpty && selectedTime.isEmpty && selectedTags.isEmpty) {
-                            
+//                        if !hasAppliedFilters {
+//                            
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color(.systemGray6))
                                 .stroke(Color.orange, lineWidth: 1).overlay(
                                     Image(systemName: "slider.horizontal.2.square").font(.system(size: 30))
                                         .padding(.horizontal, 10)
                                         .padding(.vertical, 10)
-                                
                                     .foregroundColor(.orange)
-                                    
-                                )
-                        } else {
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(.orange)
-                                .stroke(Color.orange, lineWidth: 1).overlay(
-                                    Image(systemName: "slider.horizontal.2.square").font(.system(size: 30))
-                                        .padding(.horizontal, 10)
-                                        .padding(.vertical, 10)
-                                        .foregroundColor(Color(hex: "#fffdf7"))
-                                    
-                                )
-                        }
+                                    )
+//                        } else {
+//                            RoundedRectangle(cornerRadius: 10)
+//                                .fill(.orange)
+//                                .stroke(Color.orange, lineWidth: 1).overlay(
+//                                    Image(systemName: "slider.horizontal.2.square").font(.system(size: 30))
+//                                        .padding(.horizontal, 10)
+//                                        .padding(.vertical, 10)
+//                                        .foregroundColor(Color(hex: "#fffdf7"))
+//                                )
+                        //}
                     }
                     .frame(width: 44, height: 43)
                     .padding(.leading, 15)
@@ -100,8 +110,11 @@ struct CommunityView : View {
                     ZStack {
                         TextField("Search...", text: $searchText)
                             .onSubmit {
-                                showSearch = true
-                             }
+                                showSearch = false
+                                        DispatchQueue.main.async {
+                                            showSearch = true
+                                        }
+                            }
                             .padding(10)
                             .padding(.trailing, 30) // extra space for the icon
                             .background(Color(.systemGray6))
@@ -115,9 +128,17 @@ struct CommunityView : View {
 
 
                         
-                        NavigationLink(destination: SearchView(text: searchText, selectedCuisine: $selectedCuisine,
-                            selectedDietary:
-                            $selectedDietary, selectedDifficulty: $selectedDifficulty, selectedTime: $selectedTime, selectedTags: $selectedTags)
+                        NavigationLink(destination: SearchView(
+                            searchText: searchText,
+                            selectedIngredients: $selectedIngredients,
+                            selectedAllergens: $selectedAllergens,
+                            selectedDifficulty: $selectedDifficulty,
+                            selectedServingSize: $selectedServingSize,
+                            selectedTags: $selectedTags,
+                            minPrepTime: $minPrepTime,
+                            maxPrepTime: $maxPrepTime,
+                            hasAppliedFilters: $hasAppliedFilters
+                        )
                                 .environment(authVM),
                                 isActive: $showSearch) {
                                 EmptyView()
@@ -141,7 +162,7 @@ struct CommunityView : View {
 
                         ScrollView {
                             VStack(spacing: 0) {
-                                ForEach(filteredUsernames) { user in
+                                ForEach(Array(filteredUsernames.enumerated()), id: \.offset) { _, user in
                                     NavigationLink(destination: ProfileView(user: user).environment(authVM)) {
                                         HStack {
                                             Text(user.username)
@@ -149,7 +170,7 @@ struct CommunityView : View {
                                                 .padding(.vertical, 10)
                                             Spacer()
                                             Image(systemName: "arrow.up.right")
-                                                .foregroundColor(.green)
+                                                .foregroundColor(.gray)
                                         }
                                         .padding(.horizontal, 16)
                                     }
@@ -221,15 +242,39 @@ struct CommunityView : View {
                     print("Failed to fetch recipes: \(error)")
                 }
             }
-            .sheet(isPresented: $showFilters) {
-                FilterView(show: $showFilters,
-                   selectedCuisine: $selectedCuisine,
-                   selectedDietary: $selectedDietary,
-                   selectedDifficulty: $selectedDifficulty,
-                   selectedTime: $selectedTime,
-                   selectedTags: $selectedTags)
-                   
+            .onAppear {
+                selectedIngredients = []
+                selectedAllergens = []
+                selectedTags = []
+                selectedDifficulty = .none
+                selectedServingSize = 1
+                minPrepTime = nil
+                maxPrepTime = nil
+                hasAppliedFilters = false
+                searchText = ""
             }
+        .sheet(isPresented: $showFilters) {
+            FilterView(
+                show: $showFilters,
+                onApply: { searchText, ingredients, allergens, difficulty, servingSize, tags, minTime, maxTime, isFiltered in
+                    self.searchText = searchText
+                    self.selectedIngredients = ingredients
+                    self.selectedAllergens = allergens
+                    self.selectedDifficulty = difficulty
+                    self.selectedServingSize = servingSize
+                    self.selectedTags = tags
+                    self.minPrepTime = minTime
+                    self.maxPrepTime = maxTime
+                    self.hasAppliedFilters = isFiltered
+
+                    
+                    DispatchQueue.main.async {
+                        showSearch = true
+                    }
+                }
+            )
+        }
+
             .preferredColorScheme(.light)
         }
     }

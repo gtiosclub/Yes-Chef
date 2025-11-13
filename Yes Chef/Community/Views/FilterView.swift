@@ -1,150 +1,256 @@
+
 import SwiftUI
 
 struct FilterView: View {
     @Binding var show: Bool
-    @Binding var selectedCuisine: Set<String>
-    @Binding var selectedDietary: Set<String>
-    @Binding var selectedDifficulty: Set<String>
-    @Binding var selectedTime: Set<String>
-    @Binding var selectedTags: Set<String>
+    var onApply: (String, Set<String>, Set<String>, Difficulty, Int, Set<String>, Int?, Int?, Bool) -> Void
+
+    @State private var postVM = PostViewModel()
     
-    let cuisines = ["All", "Italian", "Mediterranean", "Chinese", "Japanese", "Korean", "Mexican"]
-    let dietary = ["Any", "Vegetarian", "Vegan", "Halal", "Gluten-Free", "Keto", "Pescatarian"]
-    let difficulties = ["Easy", "Medium", "Difficult"]
-    let times = ["1 hr", "2 hr", "3 hr"]
-    let tags = ["Egg", "Pasta", "Dumpling", "Soup"]
-    let servingsize = ["1", "2", "3", "4"]
+    // Filter selections
+    @State private var searchText = ""
+    @State private var selectedIngredients: [Ingredient] = []
+    @State private var selectedAllergens: [SearchableValue<Allergen>] = []
+    @State private var selectedTags: [SearchableValue<Tag>] = []
+    @State private var selectedDifficulty: Difficulty = .none
+    @State private var servingSize: Int = 1
+    @State private var minPrepTime: Int? = nil
+    @State private var maxPrepTime: Int? = nil
+
+    
+    @State private var isFiltered: Bool = false
+    
+    @State var allIngredients: [Ingredient] = []
+
+    // Derived ingredient list
+    @State private var uniqueIngredients: [Ingredient] = []
+    @State private var showSearchResults = false
+
+
+    
+    private let bgColor = Color(hex: "#F9F5F2")
+    private let accentColor = Color(hex: "#453736")
     
     var body: some View {
-        VStack() {
-            HStack {
-                Text("Search Filters")
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                
-                Spacer()
-                
-                Button("Clear") {
-                    selectedCuisine.removeAll()
-                    selectedDietary.removeAll()
-                    selectedDifficulty.removeAll()
-                    selectedTime.removeAll()
-                    selectedTags.removeAll()
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 20)
-            .padding(.bottom, 10)
-            
+        VStack(spacing: 0) {
+            header
             Divider()
-            
-            ScrollView {
-                VStack(alignment: .leading, spacing: 25) {
-                    FilterSection(title: "Cuisine") {
-                        FilterOptions(items: cuisines, selection: $selectedCuisine)
-                    }
-                    FilterSection(title: "Dietary") {
-                        FilterOptions(items: dietary, selection: $selectedDietary)
-                    }
-                    FilterSection(title: "Difficulty") {
-                        FilterOptions(items: difficulties, selection: $selectedDifficulty)
-                    }
-                    FilterSection(title: "Time") {
-                        FilterOptions(items: times, selection: $selectedTime)
-                    }
-                    FilterSection(title: "Tags") {
-                        FilterOptions(items: tags, selection: $selectedTags)
-                    }
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 28) {
+                    ingredientsSection
+                    allergensSection
+                    tagsSection
+                    servingSizeSection
+                    prepTimeSection
+                    difficultySection
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 20)
-                .padding(.bottom, 100)
+                .padding(.vertical, 10)
             }
+            applyButton
+        }
+        .background(bgColor)
+        .task {
+            await loadIngredientsFromRecipes()
+        }
+
+    }
+}
+
+extension FilterView {
+    
+    private var header: some View {
+        HStack {
+            Text("Search Filters")
+                .font(.custom("Georgia", size: 24))
+                .foregroundColor(accentColor)
             
             Spacer()
             
-            Button(action: {
-                show = false
-            }) {
-                Text("Apply Filters")
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: 200)
-                    .padding(.vertical, 16)
-                    .background(Color.orange)
-                    .cornerRadius(12)
+            Button("Clear") {
+                selectedIngredients.removeAll()
+                selectedAllergens.removeAll()
+                selectedTags.removeAll()
+                selectedDifficulty = .none
+                servingSize = 1
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 30)
+            .font(.custom("Work Sans", size: 14))
+            .foregroundColor(Color(hex: "#7C887D"))
         }
-        .background(Color(hex: "#fffdf7"))
+        .padding(.horizontal, 20)
+        .padding(.top, 20)
+        .padding(.bottom, 10)
     }
     
-    
-    
-}
-
-struct FilterSection<Content: View>: View {
-    let title: String
-    let content: Content
-    
-    init(title: String, @ViewBuilder content: () -> Content) {
-        self.title = title
-        self.content = content()
-    }
-    
-    var body: some View {
+    private var ingredientsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(title)
-                .font(.headline)
-            content
-        }
-    }
-}
-
-struct FilterBubble: View {
-    let text: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Text(text)
-                .font(.subheadline)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(isSelected ? Color.orange : Color(.systemGray6))
-                .foregroundColor(isSelected ? Color.white : Color.black)
-                .cornerRadius(20)
-        }
-    }
-}
-
-
-
-struct FilterOptions: View {
-    let items: [String]
-    @Binding var selection: Set<String>
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            LazyVGrid(columns: [
-                GridItem(.adaptive(minimum: 110))
-            ], spacing: 8) {
-                ForEach(items, id: \.self) { item in
-                    FilterBubble(
-                        text: item,
-                        isSelected: selection.contains(item),
-                        action: {
-                            if selection.contains(item) {
-                                selection.remove(item)
-                            } else {
-                                selection.insert(item)
+            SectionHeader(title: "Ingredients")
+            
+            if uniqueIngredients.isEmpty {
+                ProgressView("Loading ingredients…")
+                    .padding(.vertical)
+            } else {
+                SearchableDropdown(
+                    options: uniqueIngredients, // deduplicated ingredient list
+                    selectedValues: Binding(
+                        get: { selectedIngredients.map { SearchableValue.predefined($0) } },
+                        set: { newValues in
+                            selectedIngredients = newValues.compactMap {
+                                switch $0 {
+                                case .predefined(let ingredient): return ingredient
+                                case .custom(let string): return Ingredient(name: string)
+                                }
                             }
                         }
-                    )
-                }
+                    ),
+                    placeholder: "Select or type ingredients",
+                    allowCustom: true
+                )
+            }
+        }
+    }
+
+
+
+    
+    private var allergensSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: "Allergens")
+            SearchableDropdown(
+                options: Allergen.allCases,
+                selectedValues: $selectedAllergens,
+                placeholder: "Search allergens...",
+                allowCustom: false
+            )
+        }
+    }
+    
+    private var tagsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: "Tags")
+            SearchableDropdown(
+                options: Tag.allTags,
+                selectedValues: $selectedTags,
+                placeholder: "Search tags...",
+                allowCustom: false
+            )
+        }
+    }
+    
+    private var servingSizeSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: "Serving Size")
+            ServingSizeView(selectedServingSize: $servingSize)
+        }
+    }
+    
+    private var difficultySection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: "Difficulty")
+            DifficultyLevelView(difficulty: $selectedDifficulty)
+        }
+    }
+    
+    private var prepTimeSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: "Prep & Cook Time")
+            
+            HStack(spacing: 10) {
+                TextField("Min (minutes)", value: $minPrepTime, format: .number)
+                    .keyboardType(.numberPad)
+                    .font(.system(size: 15))
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 14)
+                    .frame(maxWidth: .infinity)
+                    .background(Color(hex:"#F9F5F2"))
+                    .cornerRadius(14)
+                
+                Text("to")
+                    .font(.custom("Georgia", size: 16))
+                    .foregroundColor(Color(hex: "#7C887D"))
+                
+                TextField("Max (minutes)", value: $maxPrepTime, format: .number)
+                    .keyboardType(.numberPad)
+                    .font(.system(size: 15))
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 14)
+                    .frame(maxWidth: .infinity)
+                    .background(Color(hex:"#F9F5F2"))
+                    .cornerRadius(14)
+            }
+            .padding(.horizontal, 20)
+        }
+    }
+
+
+
+    
+    private var applyButton: some View {
+        VStack {
+
+            Button(action: {
+
+                show = false
+                
+                isFiltered = true
+                onApply(
+                    searchText,
+                    Set(selectedIngredients.map { $0.name }),
+                    Set(selectedAllergens.map { $0.displayName }),
+                    selectedDifficulty,
+                    servingSize,
+                    Set(selectedTags.map { $0.displayName }),
+                    minPrepTime,
+                    maxPrepTime,
+                    isFiltered
+                )
+            }) {
+                Text("Apply Filters")
+                    .font(.custom("Work Sans", size: 16))
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(accentColor)
+                    .cornerRadius(14)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 30)
+            }
+            .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 4)
+            
+            NavigationLink(
+                destination: SearchView(
+                    searchText: searchText,
+                    selectedIngredients: .constant(Set(selectedIngredients.map { $0.name })),
+                    selectedAllergens: .constant(Set(selectedAllergens.map { $0.displayName })),
+                    selectedDifficulty: .constant(selectedDifficulty),
+                    selectedServingSize: .constant(servingSize),
+                    selectedTags: .constant(Set(selectedTags.map { $0.displayName })),
+                    minPrepTime: .constant(minPrepTime),
+                    maxPrepTime: .constant(maxPrepTime),
+                    hasAppliedFilters: $isFiltered
+                )
+                .environment(postVM),
+                isActive: $showSearchResults
+            ) {
+                EmptyView()
             }
 
+        }
+    }
+}
+
+extension FilterView {
+    private func loadIngredientsFromRecipes() async {
+        do {
+            try await postVM.fetchPosts()
+            let allIngredients = postVM.recipes.flatMap { $0.ingredients }
+            
+            let uniqueNames = Set(allIngredients.map { $0.name.trimmingCharacters(in: .whitespacesAndNewlines).capitalized })
+            uniqueIngredients = uniqueNames.map { Ingredient(name: $0) }.sorted { $0.name < $1.name }
+            
+        } catch {
+            print("❌ Error loading recipes: \(error.localizedDescription)")
         }
     }
 }

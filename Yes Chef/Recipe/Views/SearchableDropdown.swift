@@ -202,11 +202,13 @@ struct SearchableDropdown<Option: SearchableOption>: View {
     private func toAcceptedType(_ value: SearchableValue<Option>) -> AcceptedTypes? {
         switch value {
         case .predefined(let option):
-            if let allergen = option as? Allergen {
-                return .allergens(allergen)
-            } else if let tag = option as? Tag {
-                return .tags(tag)
-            }
+                if let allergen = option as? Allergen {
+                    return .allergens(allergen)
+                } else if let tag = option as? Tag {
+                    return .tags(tag)
+                } else if let ingredient = option as? Ingredient {
+                    return .ingredients(ingredient)
+                }
         case .custom(let string):
             return .customString(string)
         }
