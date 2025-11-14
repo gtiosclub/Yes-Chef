@@ -106,7 +106,7 @@ struct SearchView : View {
                 }) {
                     Image(systemName: "arrow.left")
                         .font(.system(size: 20))
-                        .foregroundColor(.orange)
+                        .foregroundColor(Color(hex: "#FFA947"))
                 }
                 .padding(.leading, 15)
                 
@@ -115,27 +115,26 @@ struct SearchView : View {
                 } label: {
                     if hasAppliedFilters{
                         RoundedRectangle(cornerRadius: 10)
-                            .fill(.orange)
-                            .stroke(Color.orange, lineWidth: 1).overlay(
+                            .fill(Color(hex: "#FFA947"))
+                            .stroke(Color(hex: "#FFA947"), lineWidth: 1).overlay(
                                 HStack {
-                                    Image(systemName: "slider.horizontal.2.square").font(.system(size: 30))
+                                    Image(systemName: "slider.horizontal.3").font(.system(size: 30))
                                         .padding(.horizontal, 10)
                                         .padding(.vertical, 10)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(Color(hex: "#F9F5F2"))
                                 }
                             )
                         
                     } else {
 
                         RoundedRectangle(cornerRadius: 10)
-                            .fill(Color(.systemGray6))
-                            .stroke(Color.orange, lineWidth: 1).overlay(
-                                Image(systemName: "slider.horizontal.2.square").font(.system(size: 30))
+                            .fill(Color(hex: "#F9F5F2"))
+                            .stroke(Color(hex: "#FFA947"), lineWidth: 1).overlay(
+                                Image(systemName: "slider.horizontal.3").font(.system(size: 30))
                                     .padding(.horizontal, 10)
                                     .padding(.vertical, 10)
-                            
-                                .foregroundColor(.orange)
-                            )
+                                .foregroundColor(Color(hex: "#FFA947"))
+                                )
                     }
                 }
                 .frame(width: 44, height: 43)
@@ -143,16 +142,16 @@ struct SearchView : View {
                 
                 HStack {
                     Image(systemName: "magnifyingglass")
-                        .foregroundColor(.orange)
+                        .foregroundColor(Color(hex: "#FFA947"))
                     
                     TextField("", text: $searchText).foregroundColor(Color.black)
                     
                 }
                 .padding(10)
-                .background(Color(.systemGray6))
+                .background(Color(hex: "#F9F5F2"))
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.orange, lineWidth: 1)
+                        .stroke(Color(hex: "FFA947"), lineWidth: 1)
                 )
                 .padding(.horizontal, 10)
                 .padding(.trailing, 15)

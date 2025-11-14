@@ -293,7 +293,7 @@ struct ProfileView: View {
                 .zIndex(selectedTab == 0 ? 1 : 0)
                 .background(
                         RoundedCorner(radius: 25, corners: selectedTab == 0 ? [.topLeft, .topRight] : [.bottomRight,.topRight,.topLeft])
-                            .fill(selectedTab == 0 ? Color(hex: "fffdf7"): Color(.systemGray6))
+                            .fill(selectedTab == 0 ? Color(hex: "fffdf7"): Color(hex: "F9F5F2"))
                             .frame(width: (UIScreen.main.bounds.width)/2, height: 50)
                             .background(
                                 //Border over top/bottom of tab
@@ -323,7 +323,7 @@ struct ProfileView: View {
                 .zIndex(selectedTab == 1 ? 2 : 0)
                 .background(
                     RoundedCorner(radius: 25, corners: selectedTab == 1 ? [.topLeft, .topRight] : [.bottomRight,.bottomLeft,.topRight,.topLeft])
-                        .fill(selectedTab == 1 ? Color(hex: "fffdf7"): Color(.systemGray6))
+                        .fill(selectedTab == 1 ? Color(hex: "fffdf7"): Color(hex: "F9F5F2"))
                         .frame(width: (UIScreen.main.bounds.width)/2 , height: 50)
                         .background(
                             //Border over top of tab

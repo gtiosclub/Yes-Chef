@@ -34,15 +34,27 @@ class ChatViewModel: ObservableObject {
     }
     
     func sendMessage(text: String, isRecipe: Bool = false) {
-        let message = Message(senderId: currentUserId, text: text, timestamp: Timestamp(), isRecipe: isRecipe)
+        let message = Message(senderId: currentUserId,
+                              text: text,
+                              timestamp: Timestamp(date: Date()),
+                              isRecipe: isRecipe)
+
         do {
-            _ = try db.collection("chats").document(chatId)
+            let chatRef = db.collection("chats").document(chatId)
+
+            _ = try chatRef
                 .collection("messages")
                 .addDocument(from: message)
+
+            chatRef.updateData([
+                "timestamp": Timestamp(date: Date())
+            ])
+
         } catch {
             print("Error sending message: \(error)")
         }
     }
+
     
     deinit {
         listener?.remove()

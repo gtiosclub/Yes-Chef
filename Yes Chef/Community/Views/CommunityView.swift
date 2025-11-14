@@ -30,6 +30,8 @@ struct CommunityView : View {
     @State private var selectedServingSize: Int = 1
     @State private var minPrepTime: Int? = nil
     @State private var maxPrepTime: Int? = nil
+    
+    @StateObject private var leaderboardData = LeaderboardData()
 
 
 
@@ -41,6 +43,10 @@ struct CommunityView : View {
 //    @State private var selectedTags: Set<String> = []
     
     
+    var weeklyChallengeRecipes: [Recipe] {
+        let challengeIds = Set(leaderboardData.currentLeaderboard.entries.map { $0.id })
+        return postVM.recipes.filter { challengeIds.contains($0.id ?? "") }
+    }
 
     var filteredUsernames: [User] {
         guard !searchText.isEmpty else { return [] }
@@ -70,15 +76,18 @@ struct CommunityView : View {
                 HStack {
                     Image(systemName: "person.circle")
                         .font(.system(size: 32))
-                        .foregroundColor(.gray)
+                        .foregroundColor(Color(hex: "#404741"))
                         .padding(.leading, 15)
                     
                     Text("Hi Chef!")
-                        .font(.largeTitle)
+                        .font(.custom("Georgia", size: 32))
+                        .foregroundColor(Color(hex: "#404741"))
                         .fontWeight(.bold)
                     
                     Spacer()
                 }
+                .padding(.top, 20)
+                .padding(.bottom, 20)
                 HStack {
                     Button ()  {
                         showFilters = true
@@ -86,12 +95,12 @@ struct CommunityView : View {
 //                        if !hasAppliedFilters {
 //                            
                             RoundedRectangle(cornerRadius: 10)
-                                .fill(Color(.systemGray6))
-                                .stroke(Color.orange, lineWidth: 1).overlay(
-                                    Image(systemName: "slider.horizontal.2.square").font(.system(size: 30))
+                                .fill(Color(hex: "#F9F5F2"))
+                                .stroke(Color(hex: "#FFA947"), lineWidth: 1).overlay(
+                                    Image(systemName: "slider.horizontal.3").font(.system(size: 30))
                                         .padding(.horizontal, 10)
                                         .padding(.vertical, 10)
-                                    .foregroundColor(.orange)
+                                    .foregroundColor(Color(hex: "#FFA947"))
                                     )
 //                        } else {
 //                            RoundedRectangle(cornerRadius: 10)
@@ -117,11 +126,11 @@ struct CommunityView : View {
                             }
                             .padding(10)
                             .padding(.trailing, 30) // extra space for the icon
-                            .background(Color(.systemGray6))
+                            .background(Color(hex: "#F9F5F2"))
                             .cornerRadius(10)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.orange, lineWidth: 1)
+                                    .stroke(Color(hex: "#FFA947"), lineWidth: 1)
                             )
                             .padding(.horizontal)
                         
@@ -170,7 +179,7 @@ struct CommunityView : View {
                                                 .padding(.vertical, 10)
                                             Spacer()
                                             Image(systemName: "arrow.up.right")
-                                                .foregroundColor(.gray)
+                                                .foregroundColor(Color(hex: "#F9F5F2"))
                                         }
                                         .padding(.horizontal, 16)
                                     }
@@ -186,7 +195,7 @@ struct CommunityView : View {
                                                 .padding(.vertical, 10)
                                             Spacer()
                                             Image(systemName: "arrow.up.right")
-                                                .foregroundColor(.gray)
+                                                .foregroundColor(Color(hex: "#F9F5F2"))
                                         }
                                         .padding(.horizontal, 16)
                                     }
@@ -211,19 +220,20 @@ struct CommunityView : View {
                     } else {
                         ScrollView {
                             VStack(alignment: .leading, spacing: 25) {
-                                RecipeSection(title: "This Week's Challenges!", items: Array(postVM.recipes[0..<5]),wide: true)
+                                RecipeSection(title: "This Week's Challenges!", items: weeklyChallengeRecipes, wide: true)
                                     .environment(authVM)
                            }
                             if !postVM.recipes.isEmpty {
                                 let trending = Array(postVM.recipes.prefix(10))
                                 RecipeSection(title: "Trending", items: trending, wide: false)
                                     .environment(authVM)
+                                    .padding(.top, 20)
                             }
 
                             }
-        
                                 
                             .padding(.bottom, 20)
+                        
                         }
                     }
                 }
@@ -241,6 +251,7 @@ struct CommunityView : View {
                 } catch {
                     print("Failed to fetch recipes: \(error)")
                 }
+                leaderboardData.fetchUserRecipes()
             }
             .onAppear {
                 selectedIngredients = []
@@ -289,7 +300,8 @@ struct RecipeSection: View {
     var body: some View {
         VStack(alignment: .leading) {
             Text(title)
-                .font(.title2)
+                .font(.custom("Georgia", size: 24))
+                .foregroundColor(Color(hex: "#404741"))
                 .fontWeight(.bold)
                 .padding(.horizontal, 20)
             ScrollView(.horizontal) {

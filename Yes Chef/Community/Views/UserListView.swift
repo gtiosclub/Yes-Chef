@@ -16,17 +16,43 @@ struct UserListView: View {
     @State private var searchText = ""
     @State private var searchResults: [User] = []
     @State private var showDropdown = false
+    @Environment(\.dismiss) private var dismiss
+    let appBackground = Color(hex: "#FFFDF7")
+
+
     
     let currentUserId: String = Auth.auth().currentUser?.uid ?? ""
     
     var body: some View {
         VStack(spacing: 0) {
-            //Search Bar
+            
+            HStack {
+                Button(action: { dismiss() }) {
+                    Image(systemName: "chevron.backward")
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundColor(Color(hex: "#404741"))
+                }
+
+                Spacer()
+
+                Text("Chats")
+                    .font(.custom("Georgia", size: 32))
+                    .fontWeight(.bold)
+                    .foregroundColor(Color(hex: "#404741"))
+                    .frame(maxWidth: .infinity, alignment: .center)
+
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 25)
+            .padding(.bottom, 10)
+
             VStack {
                 HStack {
+                    
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.gray)
-                    TextField("Search users...", text: $searchText)
+                    TextField("Search a Chef", text: $searchText)
                         .textFieldStyle(PlainTextFieldStyle())
                         .onChange(of: searchText) { newValue in
                             Task {
@@ -35,11 +61,10 @@ struct UserListView: View {
                         }
                 }
                 .padding(10)
-                .background(Color(.systemGray6))
+                .background(Color(hex: "#F9F5F2"))
                 .cornerRadius(10)
                 .padding(.horizontal)
                 
-                //Dropdown Search Results
                 if showDropdown && !searchResults.isEmpty {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 0) {
@@ -68,52 +93,65 @@ struct UserListView: View {
             .padding(.top)
             
             List {
-                            ForEach(vm.chats) { chat in
-                                NavigationLink(
-                                    destination: ChatView(
-                                        vm: ChatViewModel(
-                                            chatId: chat.chatId,
-                                            currentUserId: currentUserId
-                                        ),
-                                        otherUserName: chat.otherUserName,
-                                        otherUserPhotoURL: chat.otherUserPhotoURL
-                                    ).environment(authVM)
-                                ) {
-                                    HStack(spacing: 12) {
-                                        if let urlString = chat.otherUserPhotoURL,
-                                           let url = URL(string: urlString) {
-                                            AsyncImage(url: url) { image in
-                                                image
-                                                    .resizable()
-                                                    .scaledToFill()
-                                            } placeholder: {
-                                                Circle()
-                                                    .fill(Color.gray.opacity(0.3))
-                                            }
-                                            .frame(width: 45, height: 45)
-                                            .clipShape(Circle())
-                                        } else {
-                                            Circle()
-                                                .fill(Color.gray.opacity(0.3))
-                                                .frame(width: 45, height: 45)
-                                        }
-                                        
-                                        Text(chat.otherUserName)
-                                            .font(.headline)
-                                    }
-                                    .padding(.vertical, 4)
+                ForEach(vm.chats) { chat in
+                    NavigationLink(
+                        destination: ChatView(
+                            vm: ChatViewModel(
+                                chatId: chat.chatId,
+                                currentUserId: currentUserId
+                            ),
+                            otherUserName: chat.otherUserName,
+                            otherUserPhotoURL: chat.otherUserPhotoURL
+                        ).environment(authVM)
+                    ) {
+
+                        HStack(spacing: 12) {
+
+                            if let urlString = chat.otherUserPhotoURL,
+                               let url = URL(string: urlString) {
+                                AsyncImage(url: url) { image in
+                                    image.resizable().scaledToFill()
+                                } placeholder: {
+                                    Circle().fill(Color.gray.opacity(0.3))
                                 }
+                                .frame(width: 55, height: 55)
+                                .clipShape(Circle())
+                            } else {
+                                Circle()
+                                    .fill(Color.gray.opacity(0.3))
+                                    .frame(width: 55, height: 55)
                             }
+
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(chat.otherUserName)
+                                    .font(.system(size: 18))
+                                    .foregroundColor(.primary)
+
+                                Text(subtitle(for: chat))
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.gray)
+                                    .lineLimit(1)
+                            }
+
+                            Spacer()
                         }
-                        .listStyle(.plain)
+
+                        .padding(.vertical, 6)
                     }
-                    .navigationTitle("Messages")
-                    .onAppear {
-                        vm.fetchUserChats()
-                    }
+                    .listRowBackground(Color(hex: "#FFFDF7")) 
                 }
+            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .listRowInsets(EdgeInsets())
+        }
+        .background(Color(hex: "#fffdf7").ignoresSafeArea())
+        .navigationBarHidden(true)
+        .onAppear {
+            vm.fetchUserChats()
+        }
+    }
     
-    //Perform search
     private func performSearch(query: String) async {
         if query.isEmpty {
             showDropdown = false
@@ -131,7 +169,6 @@ struct UserListView: View {
         }
     }
     
-    //Start chat with searched user
     private func startChat(with user: User) {
         vm.startChat(with: user) { chat in
             if !vm.chats.contains(where: { $0.chatId == chat.chatId }) {
@@ -141,4 +178,17 @@ struct UserListView: View {
             showDropdown = false
         }
     }
+    
+    private func subtitle(for chat: ChatPreview) -> String {
+        guard let text = chat.lastMessageText, !text.isEmpty else {
+            return "No messages yet"
+        }
+
+        if chat.lastMessageIsRecipe {
+            return "Shared a recipe • \(text)"
+        }
+
+        return text
+    }
+
 }

@@ -562,7 +562,7 @@ struct FeedView: View {
                 .zIndex(selectedTab == 0 ? 1 : 0)
                 .background(
                     RoundedCorner(radius: 25, corners: selectedTab == 0 ? [.topLeft, .topRight] : [.bottomRight, .topRight, .topLeft])
-                        .fill(selectedTab == 0 ? Color(hex: "fffdf7") : Color(hex: "#F9F5F2"))
+                        .fill(selectedTab == 0 ? Color(hex: "#fffdf7") : Color(hex: "#F9F5F2"))
                         .frame(width: (UIScreen.main.bounds.width) / 2, height: 50)
                         .background(
                             RoundedCorner(radius: 25, corners: selectedTab == 0 ? [.topLeft, .topRight] : [.bottomRight, .topRight, .topLeft])

@@ -13,39 +13,89 @@ struct ChatView: View {
     var otherUserName: String
     var otherUserPhotoURL: String?
     @State private var typedMessage = ""
+    @Environment(\.dismiss) private var dismiss
+
     
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
+
+            HStack(spacing: 12) {
+
+                Button(action: { dismiss() }) {
+                    Image(systemName: "chevron.backward")
+                        .font(.title2)
+                        .foregroundColor(.black)
+                }
+
+                if let urlString = otherUserPhotoURL,
+                   let url = URL(string: urlString) {
+                    AsyncImage(url: url) { phase in
+                        if let img = phase.image {
+                            img.resizable()
+                                .scaledToFill()
+                        } else {
+                            Color.gray.opacity(0.3)
+                        }
+                    }
+                    .frame(width: 36, height: 36)
+                    .clipShape(Circle())
+                } else {
+                    Circle()
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(width: 36, height: 36)
+                }
+
+                Text(otherUserName)
+                    .font(.custom("Georgia", size: 22))
+                    .foregroundColor(Color(hex: "#404741"))
+
+                Spacer()
+            }
+            .padding(.horizontal, 15)
+            .padding(.vertical, 12)
+
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 8) {
                         ForEach(vm.messages) { message in
-                            HStack {
-                                if message.senderId == vm.currentUserId {
-                                    Spacer()
-                                    if message.isRecipe {
-                                        chatPostPreview(postId: message.text)
-                                            .environment(authVM)
-                                    } else {
-                                        Text(message.text)
-                                            .padding()
-                                            .background(Color.blue)
-                                            .foregroundColor(.white)
-                                            .cornerRadius(12)
-                                    }
-                                } else {
-                                    if message.isRecipe {
-                                        chatPostPreview(postId: message.text)
-                                            .environment(authVM)
-                                    } else {
-                                        Text(message.text)
-                                            .padding()
-                                            .background(Color.gray.opacity(0.3))
-                                            .cornerRadius(12)
+                            HStack(alignment: .bottom, spacing: 8) {
+
+                                if message.senderId != vm.currentUserId {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        if message.isRecipe {
+                                            chatPostPreview(postId: message.text)
+                                                .environment(authVM)
+                                        } else {
+                                            Text(message.text)
+                                                .padding(.horizontal, 14)
+                                                .padding(.vertical, 10)
+                                                .background(Color(hex: "#E8E3D9"))
+                                                .foregroundColor(Color(hex: "#404741"))
+                                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                                        }
                                     }
                                     Spacer()
                                 }
+
+                                if message.senderId == vm.currentUserId {
+                                    Spacer()
+                                    VStack(alignment: .trailing, spacing: 4) {
+                                        if message.isRecipe {
+                                            chatPostPreview(postId: message.text)
+                                                .environment(authVM)
+                                        } else {
+                                            Text(message.text)
+                                                .padding(.horizontal, 14)
+                                                .padding(.vertical, 10)
+                                                .background(Color(hex: "#F4A261"))
+                                                .foregroundColor(.white)
+                                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                                        }
+                                    }
+                                }
                             }
+                            .padding(.horizontal, 10)
+
                         }
                     }
                     .padding()
@@ -59,61 +109,35 @@ struct ChatView: View {
                 }
             }
             
-            HStack {
+            HStack(spacing: 10) {
+
                 TextField("Message...", text: $typedMessage)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                Button("Send") {
+                    .padding(12)
+                    .background(Color(hex: "#F9F5F2"))
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+
+                Button {
                     guard !typedMessage.isEmpty else { return }
                     vm.sendMessage(text: typedMessage)
                     typedMessage = ""
+                } label: {
+                    Image(systemName: "arrow.up")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(12)
+                        .background(Color(hex: "#F4A261"))
+                        .clipShape(Circle())
                 }
             }
-            .padding()
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            .background(Color(hex: "#FFFDF7"))
         }
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                HStack(spacing: 8) {
-                    if let urlString = otherUserPhotoURL,
-                       let url = URL(string: urlString) {
-                        AsyncImage(url: url) { phase in
-                            switch phase {
-                            case .empty:
-                                Circle()
-                                    .fill(Color.gray.opacity(0.3))
-                                    .frame(width: 32, height: 32)
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 32, height: 32)
-                                    .clipShape(Circle())
-                            case .failure(_):
-                                Circle()
-                                    .fill(Color.gray.opacity(0.3))
-                                    .frame(width: 32, height: 32)
-                            @unknown default:
-                                Circle()
-                                    .fill(Color.gray.opacity(0.3))
-                                    .frame(width: 32, height: 32)
-                            }
-                        }
-                    } else {
-                        Circle()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(width: 32, height: 32)
-                    }
 
-                    Text(otherUserName)
-                        .font(.headline)
-                        .lineLimit(1)
-                }
-            }
-        }
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarHidden(true)
+        .background(Color(hex: "#fffdf7").ignoresSafeArea())
 
     }
-    
-    
 }
 
 
