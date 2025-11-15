@@ -161,58 +161,44 @@ class RemixTree {
             if let node = document, node.exists {
 
                 
-                // Eesh New Edit: Updated field names and collection references
+                // Eesh New Edit: Updated field names to match actual Firebase schema
                 if let children = node.get("childrenIDs") as? [String] {
-                    //asumes children are valid
-                    if let parent = node.get("parentID") as? String {
+                    //assumes children are valid
+                    if let parent = node.get("parentID") as? String, parent != "none" {
+                        // Node has a parent - reassign children to parent
                         let parentRef = Firebase.db.collection("REMIXTREENODES").document(parent)
 
                         for childID in children {
+                            guard !childID.isEmpty else { continue }
                             let childRef = Firebase.db.collection("REMIXTREENODES").document(childID)
                             childRef.updateData([
                                 "parentID": parent
                             ])
-
-
-//                if let children = node.get("childrenID") as? [String] {
-//                    //asumes children are valid
-//                    if let parent = node.get("parentID") as? String, !parent.isEmpty {
-//                        let parentRef = Firebase.db.collection("REMIXTREENODES").document(parent)
-//
-//                        for childID in children {
-//                                guard !childID.isEmpty else { continue } // <--- skip empty strings
-//                                let childRef = Firebase.db.collection("REMIXTREENODES").document(childID)
-//                                childRef.updateData([
-//                                    "parentID": parent
-//                                ])
-
                         }
 
+                        // Add children to parent's children list
                         parentRef.updateData([
                             "childrenIDs": FieldValue.arrayUnion(children)
                         ])
 
+                        // Remove deleted node from parent's children list
                         parentRef.updateData([
                             "childrenIDs": FieldValue.arrayRemove([nodeId])
                         ])
 
                         nodeRef.delete()
                     } else {
-
-                        print("'parentID' field is missing or not a string")
-
-//                       //root node
-//                        for childID in children {
-//                                guard !childID.isEmpty else { continue } // <--- skip empty strings
-//                                let childRef = Firebase.db.collection("REMIXTREENODES").document(childID)
-//                                childRef.updateData([
-//                                    "parentID": nil,
-//                                    "rootNodeID": childID
-//                                ])
-//                        }
-//                        
-//                        nodeRef.delete()
-
+                        // Root node - make all children root nodes of their own trees
+                        for childID in children {
+                            guard !childID.isEmpty else { continue }
+                            let childRef = Firebase.db.collection("REMIXTREENODES").document(childID)
+                            childRef.updateData([
+                                "parentID": "none",
+                                "rootPostID": childID
+                            ])
+                        }
+                        
+                        nodeRef.delete()
                     }
 
                 } else {

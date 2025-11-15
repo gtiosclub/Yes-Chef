@@ -254,6 +254,8 @@ class PostViewModel {
             let doc = try await info.getDocument()
             if doc.exists{
                 try await db.collection("RECIPES").document(postID).delete()
+                // Also delete from remix tree
+                RemixTree.deleteNodeFirebase(nodeId: postID)
             }
         } catch {
             print("Error deleting recipe: \(error)")
