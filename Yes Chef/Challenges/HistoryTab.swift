@@ -32,12 +32,14 @@ struct HistoryTab: View {
             // MARK: - Header
             HStack {
                 Text("History")
-                    .font(.largeTitle.bold())
+                    .font(.custom("Georgia", size: 32))
+                    .foregroundColor(Color(hex: "#404741"))
+                    .fontWeight(.bold)
                 Spacer()
                 Button(action: { showResetConfirmation = true }) {
                     Image(systemName: "arrow.clockwise.circle.fill")
                         .font(.title2)
-                        .foregroundColor(.orange)
+                        .foregroundColor(Color(hex: "FFA947"))
                 }
             }
             .padding(.horizontal)
@@ -53,13 +55,13 @@ struct HistoryTab: View {
                     .padding(.horizontal, 12)
             }
             .padding()
-            .background(Color(UIColor.systemGray6))
-            .cornerRadius(16)
+            .background(Color(hex: "F9F5F2"))
+            .cornerRadius(12)
             .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color.orange.opacity(0.5), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color(hex: "FFA947").opacity(0.5), lineWidth: 1)
             )
-            .padding(.horizontal)
+            //.padding(.horizontal)
 
             // MARK: - Search + Year Filter
             VStack(spacing: 16) {
@@ -71,11 +73,11 @@ struct HistoryTab: View {
                         .autocapitalization(.none)
                 }
                 .padding()
-                .background(Color.white)
+                .background(Color(hex: "F9F5F2"))
                 .cornerRadius(12)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.orange.opacity(0.5), lineWidth: 1)
+                        .stroke(Color(hex: "FFA947").opacity(0.5), lineWidth: 1)
                 )
                 .padding(.horizontal)
 
@@ -93,11 +95,11 @@ struct HistoryTab: View {
                             .foregroundColor(.gray)
                     }
                     .padding()
-                    .background(Color.white)
+                    .background(Color(hex: "F9F5F2"))
                     .cornerRadius(12)
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.orange.opacity(0.5), lineWidth: 1)
+                            .stroke(Color(hex:"FFA947").opacity(0.5), lineWidth: 1)
                     )
                     .padding(.horizontal)
                 }
@@ -128,7 +130,7 @@ struct HistoryTab: View {
                                 }
                                 .padding()
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color.white)
+                                .background(Color(hex: "F9F5F2"))
                                 .cornerRadius(12)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12)

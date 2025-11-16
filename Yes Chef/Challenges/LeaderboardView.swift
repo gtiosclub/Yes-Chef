@@ -19,20 +19,22 @@ struct LeaderboardView: View {
             // Fixed header with title and history button
             HStack {
                 Text("Weekly Challenge")
-                    .font(.largeTitle)
-                    .bold()
+                    .font(.custom("Georgia", size: 32))
+                    .foregroundColor(Color(hex: "#404741"))
+                    .fontWeight(.bold)
+                
                 Spacer()
                 NavigationLink(destination: HistoryTab().environment(authVM)) {
                     Image(systemName: "clock.fill")
-                        .font(.title2)
-                        .foregroundColor(.blue)
+                        .font(.system(size: 24))
+                        .foregroundColor(Color(hex: "#404741"))
                     
                 }
             }
             .padding(.horizontal)
             .padding(.top, 20)
-            .padding(.bottom, 10)
-            //.background(Color(hex: "#fffdf7"))
+            .padding(.bottom, 20)
+            .background(Color(hex: "#fffdf7"))
             
             
             // MARK: - Tabs
@@ -50,36 +52,38 @@ struct LeaderboardView: View {
             data.fetchUserRecipes()
             await fetchWeeklyPrompt()
         }
-        
+        .background(Color(hex: "fffdf7"))
+
         
     }
 
     // MARK: - Tab Selection
-    // MARK: - Tab Selection
     private var tabSelection: some View {
-        ZStack(alignment: .bottomLeading) {
-            // Background rounded rectangle bar (like in ProfileView)
+        ZStack(alignment: .bottomLeading){
+            
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color(hex: "fffdf7"))
-                        .frame(height: 56)
-
-
+                .frame(height: 56)
+                .background(Color(hex: "fffdf7"))
+            
+            
             HStack(spacing: 0) {
-                // Challenge Feed Tab
+                
                 Button(action: { selectedTab = 0 }) {
                     VStack(spacing: 8) {
-                        Text("Challenge Feed")
+                        BodyText(text: "Challenge Feed")
                             .font(.body)
-                            .fontWeight(selectedTab == 0 ? .semibold : .regular)
+                            //.fontWeight(selectedTab == 0 ? .semibold : .regular)
                             .foregroundColor(.black)
+                        
                     }
                 }
-                .padding(.bottom, 10)
+                .padding(.bottom , 10)
                 .frame(maxWidth: .infinity)
                 .zIndex(selectedTab == 0 ? 1 : 0)
                 .background(
                         RoundedCorner(radius: 25, corners: selectedTab == 0 ? [.topLeft, .topRight] : [.bottomRight,.topRight,.topLeft])
-                            .fill(selectedTab == 0 ? Color(hex: "fffdf7"): Color(.systemGray6))
+                            .fill(selectedTab == 0 ? Color(hex: "fffdf7"): Color(hex: "F9F5F2"))
                             .frame(width: (UIScreen.main.bounds.width)/2, height: 50)
                             .background(
                                 //Border over top/bottom of tab
@@ -95,30 +99,30 @@ struct LeaderboardView: View {
                                     )
                             )
                     )
-
-                // Leaderboard Tab
+                
                 Button(action: { selectedTab = 1 }) {
                     VStack(spacing: 8) {
-                        Text("Leaderboard")
+                        BodyText(text: "Leaderboard")
                             .font(.body)
-                            .fontWeight(selectedTab == 1 ? .semibold : .regular)
+                            //.fontWeight(selectedTab == 1 ? .semibold : .regular)
                             .foregroundColor(.black)
+                        
                     }
                 }
                 .frame(maxWidth: .infinity)
                 .zIndex(selectedTab == 1 ? 2 : 0)
                 .background(
                     RoundedCorner(radius: 25, corners: selectedTab == 1 ? [.topLeft, .topRight] : [.bottomRight,.bottomLeft,.topRight,.topLeft])
-                        .fill(selectedTab == 1 ? Color(hex: "fffdf7"): Color(.systemGray6))
+                        .fill(selectedTab == 1 ? Color(hex: "fffdf7"): Color(hex: "F9F5F2"))
                         .frame(width: (UIScreen.main.bounds.width)/2 , height: 50)
                         .background(
-                            RoundedCorner(radius: 25,
-                                          corners: selectedTab == 1 ? [.topLeft, .topRight]
-                                                                    : [.bottomRight, .bottomLeft, .topRight, .topLeft])
+                            //Border over top of tab
+                            RoundedCorner(radius: 25, corners: selectedTab == 1 ? [.topLeft, .topRight] : [.bottomRight,.bottomLeft, .topRight,.topLeft])
                                 .fill(Color(.systemGray4))
-                                .frame(width: UIScreen.main.bounds.width / 2 + 1, height: 50)
+                                .frame(width: (UIScreen.main.bounds.width)/2 + 1, height: 50)
                                 .padding(selectedTab == 1 ? .bottom : .top, 3)
                                 .overlay(
+                                    //White Rectangle cuts off bottom half of border
                                     Rectangle()
                                         .fill(Color(hex: "fffdf7"))
                                         .padding(selectedTab == 1 ? .top : .bottom, 35)
@@ -127,15 +131,14 @@ struct LeaderboardView: View {
                 )
             }
             .padding(.top, 8)
-            .padding(.bottom, 10)
+            .padding(.bottom, 20)
             .padding(.horizontal, 0)
-        }
-        .padding(.horizontal)
-        .padding(.top, 10) // spacing below the header
-        .padding(.bottom, 10) // spacing before the content starts
-        .padding(.vertical, 8)
-    }
+            .background(Color(hex: "fffdf7"))
 
+        }
+        
+        
+    }
 
     // MARK: - Challenge Feed View
     private var challengeFeedView: some View {
@@ -153,11 +156,11 @@ struct LeaderboardView: View {
                 }
                 .padding()
                 .frame(maxWidth: .infinity)
-                .background(Color(hex: "fffffc"))
+                .background(Color(hex: "F9F5F2"))
                 .cornerRadius(16)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.orange.opacity(0.5), lineWidth: 1)
+                        .stroke(Color(hex: "FFA947").opacity(0.5), lineWidth: 1)
                 )
                 .padding(.horizontal)
 
@@ -175,7 +178,7 @@ struct LeaderboardView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.orange)
+                    .background(Color(hex: "FFA947"))
                     .cornerRadius(12)
                 }
                 .padding(.horizontal)
@@ -183,17 +186,17 @@ struct LeaderboardView: View {
                 // Search bar
                 HStack {
                     Image(systemName: "magnifyingglass")
-                        .foregroundColor(.gray)
+                        .foregroundColor(Color(hex: "#FFA947"))
                     TextField("Search recipes...", text: $searchText)
                         .font(.body)
                         .autocapitalization(.none)
                 }
                 .padding()
-                .background(Color.white)
+                .background(Color(hex: "#F9F5F2"))
                 .cornerRadius(12)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.orange.opacity(0.5), lineWidth: 1)
+                        .stroke(Color(hex: "#FFA947").opacity(0.5), lineWidth: 1)
                 )
                 .padding(.horizontal)
 
@@ -222,6 +225,7 @@ struct LeaderboardView: View {
                 }
             }
             .padding(.bottom, 20)
+            .background(Color(hex: "#fffdf7"))
         }
     }
 
@@ -241,11 +245,11 @@ struct LeaderboardView: View {
                 }
                 .padding()
                 .frame(maxWidth: .infinity)
-                .background(Color.white)
+                .background(Color(hex: "#F9F5F2"))
                 .cornerRadius(16)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.orange.opacity(0.5), lineWidth: 1)
+                        .stroke(Color(hex: "FFA947").opacity(0.5), lineWidth: 1)
                 )
                 .padding(.horizontal)
 
@@ -277,6 +281,8 @@ struct LeaderboardView: View {
                 .padding(.horizontal, 0)
             }
             .padding(.bottom, 20)
+            .background(Color(hex: "#fffdf7"))
+
         }
     }
 
@@ -300,7 +306,7 @@ struct LeaderboardView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: rank == 1 ? 100 : 60, height: rank == 1 ? 100 : 60)
-                        .foregroundColor(.orange.opacity(0.7))
+                        .foregroundColor((Color(hex: "FFA947")).opacity(0.7))
                 }
             }
             if rank == 1 {
@@ -360,7 +366,7 @@ struct LeaderboardRow: View {
         HStack(spacing: 12) {
             Text("#\(entry.rank)")
                 .font(.headline)
-                .foregroundColor(.orange)
+                .foregroundColor(Color(hex: "FFA947"))
                 .frame(width: 30)
             AsyncImage(url: URL(string: entry.user.profileImageURL ?? "")) { phase in
                 if let image = phase.image {
@@ -369,7 +375,7 @@ struct LeaderboardRow: View {
                     Image(systemName: "person.circle.fill")
                         .resizable().scaledToFit()
                         .frame(width: 50, height: 50)
-                        .foregroundColor(.orange.opacity(0.6))
+                        .foregroundColor((Color(hex: "#FFA947")).opacity(0.6))
                 }
             }
             VStack(alignment: .leading, spacing: 4) {
@@ -386,11 +392,11 @@ struct LeaderboardRow: View {
             }
         }
         .padding()
-        .background(Color(hex: "fffffc"))
+        .background(Color(hex: "#F9F5F2"))
         .cornerRadius(12)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.orange.opacity(0.5), lineWidth: 1)
+                .stroke(Color(hex: "#FFA947").opacity(0.5), lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 2)
     }
@@ -405,7 +411,7 @@ struct ChallengeRecipeCard: View {
         VStack(alignment: .leading, spacing: 8) {
             ZStack {
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.orange.opacity(0.1))
+                    .fill(Color(hex: "FFA947").opacity(0.1))
                     .frame(height: 120)
 
                 if let url = recipeImageURL {
@@ -423,7 +429,7 @@ struct ChallengeRecipeCard: View {
                         case .failure(_):
                             Image(systemName: "fork.knife")
                                 .font(.largeTitle)
-                                .foregroundColor(.orange.opacity(0.6))
+                                .foregroundColor(Color(hex: "FFA947").opacity(0.6))
                         @unknown default:
                             EmptyView()
                         }
@@ -431,7 +437,7 @@ struct ChallengeRecipeCard: View {
                 } else {
                     Image(systemName: "fork.knife")
                         .font(.largeTitle)
-                        .foregroundColor(.orange.opacity(0.6))
+                        .foregroundColor(Color(hex: "FFA947").opacity(0.6))
                 }
             }
             .task {
@@ -448,7 +454,7 @@ struct ChallengeRecipeCard: View {
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 20, height: 20)
-                                .foregroundColor(.orange.opacity(0.6))
+                                .foregroundColor(Color(hex: "FFA947").opacity(0.6))
                         }
                     }
                     Text(entry.user.username)
@@ -471,11 +477,11 @@ struct ChallengeRecipeCard: View {
             .padding(.horizontal, 8)
             .padding(.bottom, 8)
         }
-        .background(Color.white)
+        .background(Color(hex: "F9F5F2"))
         .cornerRadius(12)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.orange.opacity(0.5), lineWidth: 1)
+                .stroke(Color(hex: "FFA947").opacity(0.5), lineWidth: 1)
         )
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 2)
     }
