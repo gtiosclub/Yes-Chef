@@ -41,6 +41,31 @@ struct NodeCard: View {
         if isHeld || isTapped { return Color.blue.opacity(0.6) }
         else { return Color.gray.opacity(0.2) }
     }
+    
+    private var shadowColor: Color {
+        let opacity = isHeld ? 0.3 : (isTapped ? 0.2 : 0.15)
+        return .black.opacity(opacity)
+    }
+    
+    private var shadowRadius: CGFloat {
+        isHeld ? 12 : (isTapped ? 8 : 6)
+    }
+    
+    private var shadowY: CGFloat {
+        isHeld ? 6 : (isTapped ? 4 : 3)
+    }
+    
+    private var cardBackground: some View {
+        RoundedRectangle(cornerRadius: 4 * sizeMultiplier)
+            .fill(Color.white)
+            .shadow(color: shadowColor, radius: shadowRadius, x: 0, y: shadowY)
+    }
+    
+    private var cardOverlay: some View {
+        let strokeColor = isHeld ? Color.blue.opacity(0.6) : (isTapped ? Color.blue.opacity(0.4) : Color.clear)
+        return RoundedRectangle(cornerRadius: 4 * sizeMultiplier)
+            .stroke(strokeColor, lineWidth: 2)
+    }
 
     var body: some View {
         // Polaroid-style card
@@ -60,9 +85,10 @@ struct NodeCard: View {
                     .font(.system(size: 12 * sizeMultiplier, weight: .medium))
                     .foregroundColor(.black)
                     .multilineTextAlignment(.center)
-                    .lineLimit(nil)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .lineLimit(2)
+                    .truncationMode(.tail)
                     .padding(.horizontal, 8 * sizeMultiplier)
+                    .frame(height: 32 * sizeMultiplier)
                 
                 Text(recipeDescription ?? "")
                     .font(.system(size: 9 * sizeMultiplier, weight: .regular))
@@ -71,8 +97,7 @@ struct NodeCard: View {
                     .truncationMode(.tail)
                     .padding(.horizontal, 8 * sizeMultiplier)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12 * sizeMultiplier)
+            .frame(maxWidth: .infinity, maxHeight: 56 * sizeMultiplier)
             .background(Color.white)
         }
         .task(id: node.currNodeID) {
@@ -83,15 +108,8 @@ struct NodeCard: View {
                 recipeDescription = recipe?.description
             }
         }
-        .background(
-            RoundedRectangle(cornerRadius: 4 * sizeMultiplier)
-                .fill(Color.white)
-                .shadow(color: .black.opacity(isHeld ? 0.3 : (isTapped ? 0.2 : 0.15)), radius: isHeld ? 12 : (isTapped ? 8 : 6), x: 0, y: isHeld ? 6 : (isTapped ? 4 : 3))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 4 * sizeMultiplier)
-                .stroke(isHeld ? Color.blue.opacity(0.6) : (isTapped ? Color.blue.opacity(0.4) : Color.clear), lineWidth: 2)
-        )
+        .background(cardBackground)
+        .overlay(cardOverlay)
         .scaleEffect(isTapped ? 0.95 : 1.0)
         .rotation3DEffect(
             .degrees(isHeld ? 5 : 0),
@@ -526,58 +544,53 @@ struct RemixTreeView: View {
                 VStack(spacing: 24) {
                     // Parent node section - always shown
                     // Eesh New Edit: Updated parent node navigation to use new state booleans
-                    VStack(spacing: 12) {
-                        Text("ORIGINAL")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundColor(Color(hex: "#ffa94a"))
-                            .tracking(1)
-                            .padding(.top, 16)
-                            .opacity(isTransitioning ? 0 : 1)
+                        VStack(spacing: 12) {
+                            Text("ORIGINAL")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundColor(Color(hex: "#ffa94a"))
+                                .tracking(1)
+                                .padding(.top, 16)
 
-                        if let parent = parentNode {
-                            NodeCard(
-                                node: parent,
-                                onTap: {
-                                    animateTransitionToNode(parent)
-                                },
-                                onHold: {
-                                    navigateToPostID = parent.currNodeID
-                                    isNavigatingToPost = true
-                                },
-                                showImage: true
-                            )
-                            .frame(width: 136, height: 180)
-                            .opacity(isTransitioning ? 0 : 1)
-                        } else {
-                            // Placeholder for no parent
-                            VStack(spacing: 8) {
-                                Image(systemName: "photo.on.rectangle.angled")
-                                    .font(.system(size: 24))
-                                    .foregroundColor(.gray.opacity(0.3))
-                                Text("No Parent")
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(.gray.opacity(0.5))
+                            if let parent = parentNode {
+                                NodeCard(
+                                    node: parent,
+                                    onTap: {
+                                        animateTransitionToNode(parent)
+                                    },
+                                    onHold: {
+                                        navigateToPostID = parent.currNodeID
+                                        isNavigatingToPost = true
+                                    },
+                                    showImage: true
+                                )
+                                .frame(width: 136, height: 180)
+                                .opacity(isTransitioning ? 0 : 1)
+                            } else {
+                                // Placeholder for no parent
+                                VStack(spacing: 8) {
+                                    Image(systemName: "photo.on.rectangle.angled")
+                                        .font(.system(size: 24))
+                                        .foregroundColor(.gray.opacity(0.3))
+                                    Text("No Parent")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.gray.opacity(0.5))
+                                }
+                                .frame(width: 136, height: 180)
+                                .opacity(isTransitioning ? 0 : 1)
                             }
-                            .frame(width: 136, height: 180)
-                            .opacity(isTransitioning ? 0 : 1)
+                            
+                            // Simple line connector
+                            Rectangle()
+                                .fill(Color(hex: "#ffa94a"))
+                                .frame(width: 2, height: 24)
                         }
-                        
-                        // Simple line connector
-                        Rectangle()
-                            .fill(Color(hex: "#ffa94a"))
-                            .frame(width: 2, height: 24)
-                            .opacity(isTransitioning ? 0 : 1)
-                    }
-                    // End of Eesh New Edit
-
-                    // Current node - always shown
+                        // End of Eesh New Edit                    // Current node - always shown
                     // Eesh New Edit: Updated current node navigation to use new state booleans
                     VStack(spacing: 12) {
                         Text("CURRENT RECIPE")
                             .font(.system(size: 10, weight: .semibold))
                             .foregroundColor(Color(hex: "#ffa94a"))
                             .tracking(1)
-                            .opacity(isTransitioning ? 0 : 1)
 
                         if let node = currentNode {
                             NodeCard(
@@ -592,7 +605,7 @@ struct RemixTreeView: View {
                                     isNavigatingToPost = true
                                 }
                             )
-                            .frame(width: 136)
+                            .frame(width: 136, height: 180)
                             .opacity(isTransitioning ? 0 : 1)
                         } else {
                             // Placeholder for no current node
@@ -612,7 +625,6 @@ struct RemixTreeView: View {
                         Rectangle()
                             .fill(Color(hex: "#ffa94a"))
                             .frame(width: 2, height: 24)
-                            .opacity(isTransitioning ? 0 : 1)
                     }
                     // End of Eesh New Edit
 
@@ -622,7 +634,6 @@ struct RemixTreeView: View {
                             .font(.system(size: 10, weight: .semibold))
                             .foregroundColor(Color(hex: "#ffa94a"))
                             .tracking(1)
-                            .opacity(isTransitioning ? 0 : 1)
                         
                         if !firstLayerChildren.isEmpty {
                             layerView(nodes: firstLayerChildren, layerIndex: 1)
@@ -645,7 +656,6 @@ struct RemixTreeView: View {
                         Rectangle()
                             .fill(Color(hex: "#ffa94a"))
                             .frame(width: 2, height: 24)
-                            .opacity(isTransitioning ? 0 : 1)
                     }
 
                     // Second layer children (of centered first layer node) - always shown
@@ -654,7 +664,6 @@ struct RemixTreeView: View {
                             .font(.system(size: 10, weight: .semibold))
                             .foregroundColor(Color(hex: "#ffa94a"))
                             .tracking(1)
-                            .opacity(isTransitioning ? 0 : 1)
                         
                         if !secondLayerChildren.isEmpty {
                             layerView(nodes: secondLayerChildren, layerIndex: 2)
