@@ -1,6 +1,7 @@
 import SwiftUI
 import Foundation
 import Firebase
+import FirebaseStorage
 
 
 struct LeaderboardView: View {
@@ -398,17 +399,44 @@ struct LeaderboardRow: View {
 struct ChallengeRecipeCard: View {
     let entry: LeaderboardData.LeaderboardEntry
     @Environment(AuthenticationVM.self) var authVM
+    @State private var recipeImageURL: URL? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.orange.opacity(0.15))
-                .frame(height: 120)
-                .overlay(
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.orange.opacity(0.1))
+                    .frame(height: 120)
+
+                if let url = recipeImageURL {
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .empty:
+                            ProgressView()
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .frame(height: 120)
+                                .clipped()
+                                .cornerRadius(12)
+                        case .failure(_):
+                            Image(systemName: "fork.knife")
+                                .font(.largeTitle)
+                                .foregroundColor(.orange.opacity(0.6))
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
+                } else {
                     Image(systemName: "fork.knife")
                         .font(.largeTitle)
                         .foregroundColor(.orange.opacity(0.6))
-                )
+                }
+            }
+            .task {
+                await loadRecipeImage()
+            }
 
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
@@ -451,7 +479,23 @@ struct ChallengeRecipeCard: View {
         )
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 2)
     }
+
+    private func loadRecipeImage() async {
+        let storage = Storage.storage()
+        let path = "recipes/\(entry.id)/media_0.jpg"
+        let ref = storage.reference(withPath: path)
+
+        do {
+            let url = try await ref.downloadURL()
+            await MainActor.run {
+                self.recipeImageURL = url
+            }
+        } catch {
+            print("Failed to fetch image for recipe \(entry.id): \(error)")
+        }
+    }
 }
+
 
 #Preview {
     LeaderboardView()
