@@ -50,8 +50,6 @@ class LeaderboardData: ObservableObject {
                     print("Error listening to leaderboard updates:", error?.localizedDescription ?? "unknown error")
                     return
                 }
-                
-                // 💡 FIX 2: Added trimming for ID consistency (Crucial fix)
                 let rawIDs = documents.map { $0.documentID }
                 let recipeIDs = rawIDs.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
                 
@@ -63,8 +61,7 @@ class LeaderboardData: ObservableObject {
                     return
                 }
                 
-                self.db.collection("RECIPES") // 💡 FIX 3: Assuming your collection is lowercase 'recipes' (Standard Firebase practice)
-                                              // If it MUST be 'RECIPES', change it back, but check Firebase casing.
+                self.db.collection("RECIPES") 
                     .whereField(FieldPath.documentID(), in: recipeIDs)
                     .getDocuments { recipeSnapshot, recipeError in
                         

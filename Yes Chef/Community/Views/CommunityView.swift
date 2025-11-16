@@ -32,6 +32,8 @@ struct CommunityView : View {
     @State private var maxPrepTime: Int? = nil
     
     @StateObject private var leaderboardData = LeaderboardData()
+    @State private var weeklyChallengeRecipesState: [Recipe] = []
+
 
 
 
@@ -47,6 +49,11 @@ struct CommunityView : View {
         let challengeIds = Set(leaderboardData.currentLeaderboard.entries.map { $0.id })
         return postVM.recipes.filter { challengeIds.contains($0.id ?? "") }
     }
+    func updateWeekly() {
+        let challengeIds = Set(leaderboardData.currentLeaderboard.entries.map { $0.id })
+        weeklyChallengeRecipesState = postVM.recipes.filter { challengeIds.contains($0.id ?? "") }
+    }
+
 
     var filteredUsernames: [User] {
         guard !searchText.isEmpty else { return [] }
@@ -220,7 +227,7 @@ struct CommunityView : View {
                     } else {
                         ScrollView {
                             VStack(alignment: .leading, spacing: 25) {
-                                RecipeSection(title: "This Week's Challenges!", items: weeklyChallengeRecipes, wide: true)
+                                RecipeSection(title: "This Week's Challenges!", items: weeklyChallengeRecipesState, wide: true)
                                     .environment(authVM)
                            }
                             if !postVM.recipes.isEmpty {
@@ -252,6 +259,12 @@ struct CommunityView : View {
                     print("Failed to fetch recipes: \(error)")
                 }
                 leaderboardData.fetchUserRecipes()
+            }
+            .onReceive(leaderboardData.$currentLeaderboard) { _ in
+                updateWeekly()
+            }
+            .onChange(of: postVM.recipes) { _ in
+                updateWeekly()
             }
             .onAppear {
                 selectedIngredients = []
