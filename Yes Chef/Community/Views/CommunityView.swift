@@ -33,18 +33,7 @@ struct CommunityView : View {
     
     @StateObject private var leaderboardData = LeaderboardData()
     @State private var weeklyChallengeRecipesState: [Recipe] = []
-
-
-
-
-    
-//    @State private var selectedCuisine: Set<String> = []
-//    @State private var selectedDietary: Set<String> = []
-//    @State private var selectedDifficulty: Set<String> = []
-//    @State private var selectedTime: Set<String> = []
-//    @State private var selectedTags: Set<String> = []
-    
-    
+  
     var weeklyChallengeRecipes: [Recipe] {
         let challengeIds = Set(leaderboardData.currentLeaderboard.entries.map { $0.id })
         return postVM.recipes.filter { challengeIds.contains($0.id ?? "") }
@@ -231,8 +220,27 @@ struct CommunityView : View {
                                     .environment(authVM)
                            }
                             if !postVM.recipes.isEmpty {
-                                let trending = Array(postVM.recipes.prefix(10))
+                                let trending = Array(postVM.recipes.prefix(10)).sorted {
+                                    a, b in a.likes > b.likes
+                                }
                                 RecipeSection(title: "Trending", items: trending, wide: false)
+                                    .environment(authVM)
+                                    .padding(.top, 20)
+                            }
+                            
+                            if !postVM.recipes.isEmpty {
+                                let mexican = Array(postVM.recipes.prefix(10)).filter {
+                                    $0.tags.contains("Mexican")
+                                }
+                                RecipeSection(title: "Feeling Mexican", items: mexican, wide: false)
+                                    .environment(authVM)
+                                    .padding(.top, 20)
+                            }
+                            if !postVM.recipes.isEmpty {
+                                let chinese = Array(postVM.recipes.prefix(10)).filter {
+                                    $0.tags.contains("Chinese")
+                                }
+                                RecipeSection(title: "Chinese Cravings", items: chinese, wide: false)
                                     .environment(authVM)
                                     .padding(.top, 20)
                             }
