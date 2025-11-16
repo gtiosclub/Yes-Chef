@@ -6,6 +6,7 @@
 //
 import SwiftUI
 import FirebaseAuth
+import AVKit
 
 
 let screen = UIScreen.main.bounds
@@ -178,36 +179,41 @@ struct PostView: View {
                 }
                 
                 //Recipe Pics
-                ScrollView(.horizontal){
-                    HStack{
-                        ForEach(Array(recipe.media.enumerated()), id: \.offset){ index, media in
-                            
-                            AsyncImage(url: URL(string: media)) { phase in
-                                if let image = phase.image{
-                                    image
-                                        .resizable()
-                                        .scaledToFill()
-                                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                                        .frame(width: screen.width/1.2, height: screen.height/2.5)
-                                        .id(index)
-                                    
-                                } else{
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .fill(Color(.systemGray3))
-                                        .frame(width: screen.width/1.2, height: screen.height/2.5)
-                                        .id(index)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 16) {
+                        ForEach(Array(recipe.media.enumerated()), id: \.offset) { index, media in
+                            if let url = URL(string: media),
+                               url.pathExtension.lowercased().contains("mp4") || url.pathExtension.lowercased().contains("mov") {
+                                // Video slide
+                                VideoPlayer(player: AVPlayer(url: url))
+                                    .frame(width: screen.width/1.2, height: screen.height/2.5)
+                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                                    .id(index)
+                            } else {
+                                // Image slide
+                                AsyncImage(url: URL(string: media)) { phase in
+                                    if let image = phase.image {
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                            .frame(width: screen.width/1.2, height: screen.height/2.5)
+                                            .id(index)
+                                    } else {
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .fill(Color(.systemGray3))
+                                            .frame(width: screen.width/1.2, height: screen.height/2.5)
+                                            .id(index)
+                                    }
                                 }
                             }
-                            
                         }
                     }
                     .scrollTargetLayout()
                     .padding(.horizontal, 16)
-                    //TODO scroll targeting needs iOS 17 adapt this so it doesn't cause trouble
                 }
                 .scrollTargetBehavior(.viewAligned)
                 .scrollPosition(id: $mediaItem)
-                
                 //Scroll Dot Indicator
                 HStack(spacing: 1){
                     ForEach(Array(recipe.media.enumerated()), id: \.offset){ index, media in
