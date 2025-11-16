@@ -486,9 +486,18 @@ struct RemixTreeView: View {
     @State private var isNavigatingToPost: Bool = false
     // End of Eesh New Edit
     
+    // Animated transition states
+    @State private var currentDisplayNodeID: String
+    @State private var isTransitioning: Bool = false
+    
     @Environment(AuthenticationVM.self) var authVM: AuthenticationVM
 
-    private var currentNodeID: String { nodeID }
+    init(nodeID: String) {
+        self.nodeID = nodeID
+        self._currentDisplayNodeID = State(initialValue: nodeID)
+    }
+
+    private var currentNodeID: String { currentDisplayNodeID }
 
     // Eesh New Edit: Changed to use FirebaseRemixTreeNode
     private var currentNode: FirebaseRemixTreeNode? {
@@ -523,21 +532,22 @@ struct RemixTreeView: View {
                             .foregroundColor(Color(hex: "#ffa94a"))
                             .tracking(1)
                             .padding(.top, 16)
+                            .opacity(isTransitioning ? 0 : 1)
 
                         if let parent = parentNode {
                             NodeCard(
                                 node: parent,
                                 onTap: {
-                                    navigateToNode = parent
-                                    isNavigatingToNode = true
+                                    animateTransitionToNode(parent)
                                 },
                                 onHold: {
                                     navigateToPostID = parent.currNodeID
                                     isNavigatingToPost = true
                                 },
-                                showImage: false
+                                showImage: true
                             )
-                            .frame(width: 136, height: 60)
+                            .frame(width: 136, height: 180)
+                            .opacity(isTransitioning ? 0 : 1)
                         } else {
                             // Placeholder for no parent
                             VStack(spacing: 8) {
@@ -548,13 +558,15 @@ struct RemixTreeView: View {
                                     .font(.system(size: 12, weight: .medium))
                                     .foregroundColor(.gray.opacity(0.5))
                             }
-                            .frame(width: 136, height: 60)
+                            .frame(width: 136, height: 180)
+                            .opacity(isTransitioning ? 0 : 1)
                         }
                         
                         // Simple line connector
                         Rectangle()
                             .fill(Color(hex: "#ffa94a"))
                             .frame(width: 2, height: 24)
+                            .opacity(isTransitioning ? 0 : 1)
                     }
                     // End of Eesh New Edit
 
@@ -565,6 +577,7 @@ struct RemixTreeView: View {
                             .font(.system(size: 10, weight: .semibold))
                             .foregroundColor(Color(hex: "#ffa94a"))
                             .tracking(1)
+                            .opacity(isTransitioning ? 0 : 1)
 
                         if let node = currentNode {
                             NodeCard(
@@ -572,8 +585,7 @@ struct RemixTreeView: View {
                                 isTapped: tappedNodeID == node.currNodeID,
                                 isHeld: heldNodeID == node.currNodeID,
                                 onTap: {
-                                    navigateToNode = node
-                                    isNavigatingToNode = true
+                                    // Current node doesn't navigate to itself
                                 },
                                 onHold: {
                                     navigateToPostID = node.currNodeID
@@ -581,6 +593,7 @@ struct RemixTreeView: View {
                                 }
                             )
                             .frame(width: 136)
+                            .opacity(isTransitioning ? 0 : 1)
                         } else {
                             // Placeholder for no current node
                             VStack(spacing: 8) {
@@ -592,12 +605,14 @@ struct RemixTreeView: View {
                                     .foregroundColor(.gray.opacity(0.5))
                             }
                             .frame(width: 136, height: 180)
+                            .opacity(isTransitioning ? 0 : 1)
                         }
                         
                         // Simple line connector to children - always shown
                         Rectangle()
                             .fill(Color(hex: "#ffa94a"))
                             .frame(width: 2, height: 24)
+                            .opacity(isTransitioning ? 0 : 1)
                     }
                     // End of Eesh New Edit
 
@@ -607,9 +622,11 @@ struct RemixTreeView: View {
                             .font(.system(size: 10, weight: .semibold))
                             .foregroundColor(Color(hex: "#ffa94a"))
                             .tracking(1)
+                            .opacity(isTransitioning ? 0 : 1)
                         
                         if !firstLayerChildren.isEmpty {
                             layerView(nodes: firstLayerChildren, layerIndex: 1)
+                                .opacity(isTransitioning ? 0 : 1)
                         } else {
                             // Placeholder for no children
                             VStack(spacing: 8) {
@@ -621,12 +638,14 @@ struct RemixTreeView: View {
                                     .foregroundColor(.gray.opacity(0.5))
                             }
                             .frame(height: 220)
+                            .opacity(isTransitioning ? 0 : 1)
                         }
                         
                         // Simple line connector to grandchildren - always shown
                         Rectangle()
                             .fill(Color(hex: "#ffa94a"))
                             .frame(width: 2, height: 24)
+                            .opacity(isTransitioning ? 0 : 1)
                     }
 
                     // Second layer children (of centered first layer node) - always shown
@@ -635,11 +654,13 @@ struct RemixTreeView: View {
                             .font(.system(size: 10, weight: .semibold))
                             .foregroundColor(Color(hex: "#ffa94a"))
                             .tracking(1)
+                            .opacity(isTransitioning ? 0 : 1)
                         
                         if !secondLayerChildren.isEmpty {
                             layerView(nodes: secondLayerChildren, layerIndex: 2)
                                 .id(centeredFirstLayerNode?.currNodeID ?? "")
                                 .transition(.opacity)
+                                .opacity(isTransitioning ? 0 : 1)
                         } else {
                             // Placeholder for no grandchildren
                             VStack(spacing: 8) {
@@ -652,11 +673,13 @@ struct RemixTreeView: View {
                             }
                             .frame(height: 220)
                             .id(centeredFirstLayerNode?.currNodeID ?? "empty")
+                            .opacity(isTransitioning ? 0 : 1)
                         }
                     }
                     .padding(.bottom, 20)
                 }
                 .frame(maxWidth: .infinity, minHeight: geo.size.height)
+                .animation(.easeInOut(duration: 0.3), value: isTransitioning)
                 .animation(.easeInOut(duration: 0.3), value: centeredFirstLayerNode?.currNodeID)
             }
         }
@@ -757,8 +780,7 @@ struct RemixTreeView: View {
         tappedNodeID = node.currNodeID
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             tappedNodeID = nil
-            navigateToNode = node
-            isNavigatingToNode = true
+            animateTransitionToNode(node)
         }
     }
 
@@ -774,6 +796,30 @@ struct RemixTreeView: View {
         }
     }
     // End of Eesh New Edit
+    
+    // MARK: - Animation Transition
+    private func animateTransitionToNode(_ targetNode: FirebaseRemixTreeNode) {
+        guard !isTransitioning else { return }
+        
+        // Phase 1: Fade out all cards
+        withAnimation(.easeOut(duration: 0.2)) {
+            isTransitioning = true
+        }
+        
+        // Phase 2: Update content while faded out
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            currentDisplayNodeID = targetNode.currNodeID
+            centeredFirstLayerNode = nil
+            updateCenteredNode()
+            
+            // Phase 3: Fade in new cards
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                withAnimation(.easeIn(duration: 0.2)) {
+                    isTransitioning = false
+                }
+            }
+        }
+    }
     
     // MARK: - Helper Methods
     private func updateCenteredNode() {
