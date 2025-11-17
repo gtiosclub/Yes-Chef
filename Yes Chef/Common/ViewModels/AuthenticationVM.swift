@@ -8,6 +8,8 @@
 @preconcurrency import FirebaseAuth
 import FirebaseFirestore
 import Observation
+import SwiftUI
+import FirebaseStorage
 
 @Observable
 class AuthenticationVM {
@@ -17,6 +19,7 @@ class AuthenticationVM {
     var currentUser: User?
     var auth: Auth
     var savedRecipes: [Recipe] = []
+    var imageDictionary: [String: [UIImage]] = [:]
     private var handler: AuthStateDidChangeListenerHandle?
     init() {
         self.auth = Auth.auth()
@@ -116,9 +119,6 @@ class AuthenticationVM {
             print("couldn't get the saved recipes :( \(error.localizedDescription)")
         }
     }
-    
-    
-    
     
     func register(email: String, password: String, username: String) {
         auth.createUser(withEmail: email, password: password) {result, error in
@@ -222,5 +222,45 @@ class AuthenticationVM {
         } catch {
             print("Can't find user: \(error.localizedDescription)")
         }
+    }
+    
+    func cacheImages() async -> [String: [UIImage]] {
+        let folders = ["profile", "recipes"]
+        var result: [String: [UIImage]] = [:]
+        
+        for folder in folders {
+            let folderRef = Storage.storage().reference(withPath: folder)
+            do {
+                let subfolders = try await folderRef.listAll()
+                for subfolder in subfolders.prefixes {
+                    let folderName = subfolder.name
+                    var images: [UIImage] = []
+                    let files = try await subfolder.listAll()
+                    for file in files.items {
+                        do {
+                            print("Getting \(folderName)")
+                            file.getData(maxSize: 10 * 1024 * 1024) {data, error in
+                                if let error = error {
+                                    print("Error downloading \(file.fullPath): \(error)")
+                                    return
+                                }
+                                if let data = data, let img = UIImage(data: data) {
+                                    print("Appending image")
+                                    images.append(img)
+                                }
+                            }
+                        } catch {
+                            print(error)
+                        }
+                    }
+                    if !images.isEmpty {
+                        result[folderName] = images
+                    }
+                }
+            } catch {
+                print(error)
+            }
+        }
+        return result
     }
 }

@@ -117,6 +117,7 @@ struct PostView: View {
                     //Poster Profile Pic
                     NavigationLink(destination: ProfileView(user: poster, isOwnProfile: poster.userId == authVM.currentUser?.id)
                         .environment(authVM)) {
+                        /*
                         let photoURL = URL(string: profilePhoto)
                         AsyncImage(url: photoURL) { phase in
                             if let image = phase.image{
@@ -131,8 +132,13 @@ struct PostView: View {
                                     .fill(Color(.systemGray6))
                                     .frame(width: 40, height: 40)
                             }
-                        }
-                        
+                         }*/
+                            let profileImage = authVM.imageDictionary[recipe.userId]?.first ?? UIImage(systemName: "person.fill")
+                            Image(uiImage: profileImage ?? UIImage(systemName: "pencil")!)
+                                .resizable()
+                                .scaledToFill()
+                                .clipShape(Circle())
+                                .frame(width: 40, height: 40)
                         //Poster Username
                         BodyText(text: username)
                     }

@@ -11,6 +11,7 @@ struct Home: View {
     @State private var selectedView: TabSelection = .home
     @State private var navigationRecipe: Recipe? = nil
     @Environment(AuthenticationVM.self) var authVM
+    @State var cached: Bool = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -48,6 +49,10 @@ struct Home: View {
         .onAppear {
             Task {
                 await authVM.updateCurrentUser()
+                if  !cached {
+                    authVM.imageDictionary = await authVM.cacheImages()
+                    cached = true
+                }
             }
         }
     }

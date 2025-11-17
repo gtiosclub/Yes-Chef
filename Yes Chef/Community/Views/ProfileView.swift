@@ -126,6 +126,7 @@ struct ProfileView: View {
             }
             
             // Profile Image
+            /*
             let photoURL = URL(string: user.profilePhoto)
             
             AsyncImage(url: photoURL) { phase in
@@ -141,7 +142,13 @@ struct ProfileView: View {
                         .fill(Color.gray.opacity(0.3))
                         .frame(width: 120, height: 120)
                 }
-            }
+            }*/
+            let profileImage = authVM.imageDictionary[user.userId]?.first ?? UIImage(systemName: "person.fill")
+            Image(uiImage: profileImage ?? UIImage(systemName: "pencil")!)
+                .resizable()
+                .scaledToFill()
+                .clipShape(Circle())
+                .frame(width: 120, height: 120)
             // Display Name
             Text(user.username)
                 .font(.custom("Georgia", size: 24))
