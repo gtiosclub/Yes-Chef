@@ -17,7 +17,8 @@ import UIKit
                                       "share":0.6,
                                       "save":0.7,
                                       "comment": 0.8,
-                                      "view": 0.1
+                                      "view": 0.1,
+                                      "dislike": -0.6
     
     ]
     func getUserInfo(userID: String) async -> [String: Any]?{

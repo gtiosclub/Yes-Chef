@@ -360,6 +360,8 @@ struct PostView: View {
                                     Task {
                                         try await postVM.unlikePost(recipeId: recipe.id)
                                         try await UVM.unlike(recipeID: recipe.id, userID: authVM.currentUser?.id ?? "")
+                                        let user = authVM.currentUser ?? User(userId: "", username: "", email: "", bio: "")
+                                        await UVM.updateSuggestionProfile(userID: user.userId, suggestionProfile: &user.suggestionProfile, recipe: recipe, interaction: "dislike")
                                     }
                                     recipe.likes -= 1
                                     authVM.currentUser?.likedRecipes.removeAll { $0 == recipe.id }
