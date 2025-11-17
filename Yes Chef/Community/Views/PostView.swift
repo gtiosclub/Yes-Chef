@@ -296,8 +296,6 @@ struct PostView: View {
                         }
                     }
                 }.padding(.top, screen.height/50)
-                
-                CarouselView(recipe: recipe)
             }
             .padding(15)
             .padding(.bottom, 80)
@@ -319,7 +317,6 @@ struct PostView: View {
                 await UVM.updateSuggestionProfile(userID: user.userId, suggestionProfile: &user.suggestionProfile, recipe: recipe, interaction: "view")
                 poster = await UVM.updateUser(userID: recipe.userId)
                 profilePhoto = poster.profilePhoto
-                print(profilePhoto)
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -336,10 +333,10 @@ struct PostView: View {
         .overlay(alignment: .bottom) {
             ZStack {
                 VStack {
-                    Rectangle()
+                    /*Rectangle()
                         .frame(maxHeight: 160, alignment: .bottom)
                         .foregroundStyle(Color(hex: "#edede8"))
-                        .offset(y: screen.height / 20)
+                        .offset(y: screen.height / 20)*/
                 }
                 .ignoresSafeArea()
                 HStack(spacing: screen.width / 45) {
@@ -444,9 +441,14 @@ struct PostView: View {
                         }
                     }
                     .padding(.trailing, screen.width / 15)
+                    
                 }
+                .padding(.top, screen.height / 70)
             }
-            .offset(y: screen.width / 18.64)
+            //.offset(y: screen.width / 18.64)
+            .background(
+                Color(hex: "#edede8")
+            )
         }
     }
 }
